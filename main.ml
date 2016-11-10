@@ -1,41 +1,50 @@
-type base = A | T | G | C ;;
-
-type branch = float * tree
+(* Type for evolutionary trees with nothing at the internal
+   nodes, single bases at the leaves and length on edges (floats)*)
+type base = A | T | G | C
+and branch = float * tree
 and tree =
   | Node of branch * branch
   | Leaf of base
 ;;
 
-let pretty_print tree =
-  let indent n string =
-    let f x = ' ' in
-    String.concat "" ((String.init (4*n) f)::[string])
-  in
-  let prindent n string = print_string (indent n string) in
-  let prinbase = function
-    | A -> print_string "A"
-    | T -> print_string "T"
-    | G -> print_string "G"
-    | C-> print_string "C"
-  in
+(* Pretty printing functions for our tree type *)
+let string_of_base = function
+  | A -> "A"
+  | T -> "T"
+  | G -> "G"
+  | C -> "C"
+;;
+
+let print_base base = print_string (string_of_base base);;
+
+let indent n =
+  let f x = ' ' in
+  String.init (4*n) f
+;;
+
+let string_of_tree tree =
   let rec aux tree level =
     match tree with
     | Leaf (base) ->
-      print_string "BASE: " ;
-      prinbase base;
-      print_string "\n"
+      Printf.sprintf "Base: %s" (string_of_base base)
     | Node ((f1,b1),(f2,b2)) ->
-      print_string "NODE\n" ;
-      prindent level (string_of_float f1) ; print_string "->" ;
-      aux b1 (level+1) ;
-      prindent level (string_of_float f2) ; print_string "->" ;
-      aux b2 (level+1)
+      Printf.sprintf "Node\n%s=(%F)=> %s\n%s=(%F)=> %s" (indent level) f1 (aux b1 (level+1)) (indent level) f2 (aux b2 (level+1))
   in
   aux tree 0
 ;;
 
+(* Some code to test all of the above *)
 let mytree = Node (
-    (3.14, Node ((1.23, Leaf T ), (2.319, Leaf G)) ),
+    (3.14, Node (
+        (1.23, Leaf T ),
+        (2.3, Node (
+            (2.1, Leaf G),
+            (5.2, Leaf A)
+          )
+        )
+      )
+    ),
     (2.4, Leaf G )
   );;
-pretty_print mytree;;
+
+print_string (string_of_tree mytree);;
