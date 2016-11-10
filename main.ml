@@ -44,7 +44,11 @@ let mytree = Node (
         )
       )
     ),
-    (2.4, Leaf G )
+    (2.3, Node (
+        (5.2, Leaf G),
+        (5.3, Leaf G)
+      )
+    )
   );;
 
 print_string (string_of_tree mytree);;
