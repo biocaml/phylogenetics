@@ -1,3 +1,2 @@
-open TopoTree;;
-
 TopoTree.test ();;
+Models.test ();;

@@ -24,7 +24,9 @@ let jcModel a b = if a=b then -3./.4. else 1./.4. ;; (* this certainly makes sen
 (* ========= *)
 (*   TESTS   *)
 (* ========= *)
-let printline () = print_string "==========================\n";;
-printline ();;
-Printf.printf "%F %F\n" (jcModel A A) (jcModel A G);;
-printline ();;
+let test () = 
+  let printline () = print_string "==========================\n" in
+  printline ();
+  Printf.printf "%F %F\n" (jcModel A A) (jcModel A G);
+  printline ()
+;;
