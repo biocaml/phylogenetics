@@ -1,0 +1,3 @@
+open TopoTree;;
+
+TopoTree.test ();;

@@ -1,4 +1,4 @@
-module MyTrees =
+module TopoTree =
 struct
   (* Type for evolutionary trees: binary trees
      whose edges are labelled with lengths (floats)
@@ -85,21 +85,22 @@ struct
     aux tree 0
   ;;
 
+  (* ======== *)
+  (*   TEST   *)
+  (* ======== *)
+  let test () =
+    let printline () = print_string "==========================\n" in
+    let print_treeresult = function Error m -> Printf.printf "Error: %s\n" m | Ok t -> print_string (string_of_tree t) in
+
+    printline ();
+    let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;3" in
+    print_treeresult mytree;
+    printline ();
+    let mytree = tree_of_string "3.;4.;1.;2.;11;5.;6.;12;13;7.;8.;16;9.;10.;14;15" in
+    print_treeresult mytree;
+    printline ();;
+
 end;;
 
-
-(* ======== *)
-(*   TEST   *)
-(* ======== *)
-open MyTrees;;
-let printline () = print_string "==========================\n";;
-let print_treeresult = function Error m -> Printf.printf "Error: %s\n" m | Ok t -> print_string (string_of_tree t);;
-
-printline ();;
-let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;3" in
-print_treeresult mytree;;
-printline ();;
-let mytree = tree_of_string "3.;4.;1.;2.;11;5.;6.;12;13;7.;8.;16;9.;10.;14;15" in
-print_treeresult mytree;;
-printline ();;
+TopoTree.test ();;
 
