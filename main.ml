@@ -107,7 +107,10 @@ let jcModel a b = if a=b then -3./.4. else 1./.4. ;; (* not 100% sure about the 
 (* ========= *)
 let printline () = print_string "==========================\n";;
 printline ();;
-let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;2;3";;
+let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;2;3" in
+print_string (string_of_tree mytree);;
+printline ();;
+let mytree = tree_of_string "3.;4.;1.;2.;11;5.;6.;12;13;7.;8.;16;9.;10.;14;15" in
 print_string (string_of_tree mytree);;
 printline ();;
 Printf.printf "%F %F\n" (jcModel A A) (jcModel A G);;
