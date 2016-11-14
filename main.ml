@@ -1,5 +1,7 @@
 #require "lacaml";;
+#require "tree.ml";;
 open Lacaml.S;;
+open MyTrees;;
 
 (* base type *)
 type base = A | T | G | C;;
@@ -16,7 +18,7 @@ let print_base base = print_string (string_of_base base);;
 (* evolution models  *)
 type model = base -> base -> float ;;
 
-let jcModel a b = if a=b then -3./.4. else 1./.4. ;; (* not 100% sure about the -3/4 thing *)
+let jcModel a b = if a=b then -3./.4. else 1./.4. ;; (* this certainly makes sense *)
 
 (* let delta a b = if a=b then 1. else 0. ;; *)
 
