@@ -1,7 +1,5 @@
 #require "lacaml";;
-#require "tree.ml";;
 open Lacaml.S;;
-open MyTrees;;
 
 (* base type *)
 type base = A | T | G | C;;
