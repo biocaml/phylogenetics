@@ -51,7 +51,7 @@ let element_of_string s =
 
 let tree_of_string str =
 
-  let rec init = function
+  let rec fulltree = function
     | [] -> None, [] (* empty token list *)
     | token :: rest ->
       match token with
@@ -59,19 +59,21 @@ let tree_of_string str =
       | Int i -> Some (Leaf i), rest
 
   and node f1 = function
-    | (Float f2)::rest -> (
-        match init rest with
-        | Some tree1, rest2 -> (
-            match init rest2 with 
-            | Some tree2, rest3 -> Some (Node ((f1, tree1), (f2, tree2))), rest3
-            | _ -> None, [] (* right tree returned unexpected result *)
-          )
-        | _ -> None, [] (* left tree returned unexpected result *)
-      )
+    | (Float f2)::rest -> left f1 f2 rest
     | _ -> None, [] (* error expected second float *)
 
+  and left f1 f2 list =
+    match fulltree list with
+    | Some tree1, rest -> right f1 f2 tree1 rest
+    | _ -> None, [] (* left tree returned unexpected result *)
+
+  and right f1 f2 tree1 list =
+    match fulltree list with
+    | Some tree2, rest -> Some (Node ((f1, tree1), (f2, tree2))), rest
+    | _ -> None, [] (* right tree returned unexpected result *)
+
   in
-  match init (List.map element_of_string (split_on_char ';' str)) with
+  match fulltree (List.map element_of_string (split_on_char ';' str)) with
   | Some tree, _ -> tree
   | _ -> Leaf 0
 ;;
