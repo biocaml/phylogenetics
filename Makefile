@@ -1,10 +1,15 @@
-all: mytest
+MODULES = src/topoTree.cmo src/models.cmo
 
-mytest: main.ml
-	@ocamlc $< -o $@
+all: $(MODULES)
+
+src/%.cmo: src/%.ml
+	ocamlc -c $<
+
+mytest: test.ml $(MODULES)
+	ocamlc $^ -o $@
 
 test: mytest
 	@./mytest
 
 clean :
-	@rm -f mytest *.cmi *.cmo *.cmx *.o
+	@rm -rf mytest src/*.cmi src/*.cmo _build/

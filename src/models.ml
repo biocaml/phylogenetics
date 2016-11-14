@@ -1,5 +1,5 @@
-#require "lacaml";;
-open Lacaml.S;;
+(* #require "lacaml";; *)
+(* open Lacaml.S;; *)
 
 (* base type *)
 type base = A | T | G | C;;
