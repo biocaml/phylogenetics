@@ -70,7 +70,10 @@ let tree_of_string str =
       )
     | _ -> None, [] (* error expected second float *)
 
-  in init (List.map element_of_string (split_on_char ';' str))
+  in
+  match init (List.map element_of_string (split_on_char ';' str)) with
+  | Some tree, _ -> tree
+  | _ -> Leaf 0
 ;;
 
 
@@ -98,11 +101,14 @@ let jcModel a b = if a=b then -3./.4. else 1./.4. ;; (* not 100% sure about the 
 
 (* let delta a b = if a=b then 1. else 0. ;; *)
 
-let probaChange m b1 b2 t = exp (-.(m b1 b2)*.t) ;;
 
+(* ========= *)
+(*   TESTS   *)
+(* ========= *)
 let printline () = print_string "==========================\n";;
 printline ();;
-Printf.printf "%F %F\n" (jcModel A A) (jcModel A G);;
+let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;2;3";;
+print_string (string_of_tree mytree);;
 printline ();;
-Printf.printf "%F %F\n" (probaChange jcModel A T 2.1) (probaChange jcModel A G 2.1);;
+Printf.printf "%F %F\n" (jcModel A A) (jcModel A G);;
 printline ();;
