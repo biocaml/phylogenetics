@@ -1,3 +1,5 @@
+open Lacaml.S;;
+
 (* base type *)
 type base = A | T | G | C;;
 

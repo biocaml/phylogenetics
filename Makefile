@@ -7,4 +7,4 @@ test: mytest
 	@./mytest
 
 clean :
-	@rm -f mytest *.cmi *.cmo
+	@rm -f mytest *.cmi *.cmo *.cmx *.o
