@@ -61,12 +61,16 @@ let tree_of_string str =
   and node f1 = function
     | (Float f2)::rest -> (
         match init rest with
-        | Some tree, rest2 ->
-        | _ -> None, []
+        | Some tree1, rest2 -> (
+            match init rest2 with 
+            | Some tree2, rest3 -> Some (Node ((f1, tree1), (f2, tree2))), rest3
+            | _ -> None, [] (* right tree returned unexpected result *)
+          )
+        | _ -> None, [] (* left tree returned unexpected result *)
       )
-    | l -> None, l (* error expected second float *)
+    | _ -> None, [] (* error expected second float *)
 
-  in init (Int 1)
+  in init (List.map element_of_string (split_on_char ';' str))
 ;;
 
 
