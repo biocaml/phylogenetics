@@ -1,6 +1,19 @@
 (* #require "lacaml";; *)
 (* open Lacaml.S;; *)
 
+(* ========================
+   ||                    ||
+   ||     SIGNATURES     ||
+   ||                    ||
+   ======================== *)
+
+(* base models (UNUSED FOR NOW) *)
+module type BASE_MODEL =
+sig
+  type base
+  val string_of_base: base -> string
+  val print_base: base -> unit
+end;;
 
 
 (* evolution models  *)
@@ -10,6 +23,39 @@ sig
   val transition: base -> base -> float
 end;;
 
+
+(* ========================
+   ||                    ||
+   ||    BASIC MODELS    ||
+   ||                    ||
+   ======================== *)
+
+module DNA =
+struct
+  type base = A | T | G | C
+
+  let string_of_base = function
+    | A -> "A"
+    | T -> "T"
+    | G -> "G"
+    | C -> "C"
+
+  let print_base base = print_string (string_of_base base)
+end;;
+
+module JCModel =
+struct
+  type base = DNA.base
+
+  let transition a b = if a=b then -3./.4. else 1./.4.
+end;;
+
+
+(* ========================
+   ||                    ||
+   ||      FUNCTORS      ||
+   ||                    ||
+   ======================== *)
 
 module Felsenstein =
   functor (Mod: EVOL_MODEL) ->
@@ -26,27 +72,15 @@ module Felsenstein =
 
   end;;
 
-type atgc = A | T | G | C ;;
 
-module JCModel =
-struct
-  (* base type *)
-  type base = atgc;;
-
-  let string_of_base = function
-    | A -> "A"
-    | T -> "T"
-    | G -> "G"
-    | C -> "C"
-  ;;
-
-  let print_base base = print_string (string_of_base base);;
-
-  let transition a b = if a=b then -3./.4. else 1./.4. ;;
-end;;
+(* ========================
+   ||                    ||
+   ||       TESTS        ||
+   ||                    ||
+   ======================== *)
 
 module JCFelsenstein = Felsenstein (JCModel);;
 
 let test () =
-  JCFelsenstein.test A T
+  JCFelsenstein.test DNA.A DNA.T
 ;;
