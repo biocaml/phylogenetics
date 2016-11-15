@@ -2,7 +2,7 @@ MODULES = topoTree models
 # CMIS = $(MODULES:%=src/%.cmi)
 CMOS = $(MODULES:%=src/%.cmo)
 
-all: $(CMOS)
+all: mytest
 
 src/%.cmo: src/%.ml
 	ocamlc -c $<
