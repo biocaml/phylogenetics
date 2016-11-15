@@ -1,5 +1,7 @@
 # README #
 
 Currently implemented:
-* tree data structure w/ branch length and DNA bases at leaves;
-* tree pretty printer.
+* topology tree data structure w/ branch length and indexes at leaves :
+    * tree parser from post-order enumeration;
+    * pretty printer.
+* very basic structure for relevant evolution models.
