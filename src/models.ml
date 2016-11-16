@@ -20,6 +20,7 @@ end;;
 module type EVOL_MODEL =
 sig
   type base
+  val string_of_base: base -> string
   val transition: base -> base -> float
 end;;
 
@@ -45,7 +46,7 @@ end;;
 
 module JCModel =
 struct
-  type base = DNA.base
+  include DNA
 
   let transition a b = if a=b then -3./.4. else 1./.4.
 end;;
