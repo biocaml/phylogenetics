@@ -1,5 +1,5 @@
 (* #require "lacaml";; *)
-(* open Lacaml.S;; *)
+open Lacaml.S;;
 
 (* ========================
    ||                    ||
@@ -47,7 +47,6 @@ end;;
 module JCModel =
 struct
   include DNA
-
   let transition a b = if a=b then -3./.4. else 1./.4.
 end;;
 
@@ -61,6 +60,9 @@ end;;
 module Felsenstein =
   functor (Mod: EVOL_MODEL) ->
   struct
+
+    let rate_matrix = Mat.random 4 4 ;;
+
     (* ========= *)
     (*   TESTS   *)
     (* ========= *)
@@ -83,5 +85,4 @@ module Felsenstein =
 module JCFelsenstein = Felsenstein (JCModel);;
 
 let test () =
-  JCFelsenstein.test DNA.A DNA.T
-;;
+  JCFelsenstein.test DNA.A DNA.T;;

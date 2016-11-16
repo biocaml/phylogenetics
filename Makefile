@@ -1,14 +1,17 @@
 MODULES = topoTree models
 CMOS = $(MODULES:%=src/%.cmo)
 
+PACKAGES = lacaml
+COMPILER = ocamlfind ocamlc -package $(PACKAGES)
+
 all: mytest
 
 src/%.cmo: src/%.ml
-	ocamlc -c $<
+	$(COMPILER) -c $<
 
 mytest: test.ml $(CMOS)
-	ocamlc -c -I src/ $<
-	ocamlc $(CMOS) test.cmo -o $@
+	$(COMPILER) -c -I src/ $<
+	$(COMPILER) -o $@ -linkpkg $(CMOS) test.cmo
 
 test: mytest
 	@./mytest
