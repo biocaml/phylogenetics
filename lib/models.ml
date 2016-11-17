@@ -70,7 +70,9 @@ module Felsenstein =
       let printline () = print_string "==========================\n" in
       printline ();
       Printf.printf "%F %F\n" (Mod.transition b1 b1) (Mod.transition b1 b2);
-      printline ()
+      printline () ;
+      Lacaml_io.pp_fmat Format.std_formatter (rate_matrix); Printf.printf "\n" ;
+      printline () ;
     ;;
 
   end;;
@@ -85,4 +87,6 @@ module Felsenstein =
 module JCFelsenstein = Felsenstein (JCModel);;
 
 let test () =
-  JCFelsenstein.test DNA.A DNA.T;;
+  JCFelsenstein.test DNA.A DNA.T;
+
+
