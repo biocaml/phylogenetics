@@ -1,20 +1,17 @@
 MODULES = topoTree models
-CMOS = $(MODULES:%=src/%.cmo)
+MLLIBS = $(MODULES:%=lib/%.ml)
 
-PACKAGES = lacaml
-COMPILER = ocamlfind ocamlc -package $(PACKAGES)
+PACKAGES = 'lacaml'
+OCB = ocamlbuild -pkgs $(PACKAGES)
 
-all: mytest
 
-src/%.cmo: src/%.ml
-	$(COMPILER) -c $<
+all: test.native
 
-mytest: test.ml $(CMOS)
-	$(COMPILER) -c -I src/ $<
-	$(COMPILER) -o $@ -linkpkg $(CMOS) test.cmo
+test.native: $(MLLIBS)
+	$(OCB) -I src -I lib $@
 
-test: mytest
-	@./mytest
+test: test.native
+	./test.native
 
-clean :
-	@rm -rf mytest src/*.cmi src/*.cmo _build/ *.cmi *.cmo
+clean:
+	ocamlbuild -clean
