@@ -113,6 +113,10 @@ module Felsenstein =
 
 module JCFelsenstein = Felsenstein (JCModel);;
 
+let myvec = [|0.1;0.3;0.4;0.2|];;
+let initState = Vec.init 4 (function x -> myvec.(x-1));;
+let testProd = gemv JCFelsenstein.rate_matrix initState;;
+
 let test () =
   JCFelsenstein.test A T;
 
