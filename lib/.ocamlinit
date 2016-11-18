@@ -1,5 +1,0 @@
-#use "topfind";;
-#require "lacaml";;
-#directory "../_build/lib";;
-#load "topoTree.cmo"
-#load "models.cmo"
