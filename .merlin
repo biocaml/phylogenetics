@@ -1,4 +1,0 @@
-S src
-S lib
-B _build/lib
-PKG lacaml
