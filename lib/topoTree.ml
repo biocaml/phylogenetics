@@ -1,7 +1,5 @@
 module TopoTree =
 struct
-
-
   (* Type for evolutionary trees: binary trees
      whose edges are labelled with lengths (floats)
      and whose leaves are labelled with sequence indexes (ints)*)
