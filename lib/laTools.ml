@@ -7,6 +7,7 @@ sig
   type mat
   val testMat: mat
   val testId: unit -> mat
+  val init: int -> (int -> int -> float) -> mat
   val printMat: mat -> unit
   val mult: mat -> ?alpha:float -> mat -> mat
   val pow: mat ->  ?alpha:float -> int -> mat
@@ -21,6 +22,8 @@ struct
   let testMat = Mat.random 4 4
 
   let testId () = Mat.init_cols 4 4 (fun x y -> if x=y then 1. else 0.)
+
+  let init size f = Mat.init_rows size size f
 
   let printMat mat = (pp_mat Format.std_formatter mat; printf "\n")
 
