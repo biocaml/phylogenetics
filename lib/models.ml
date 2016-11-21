@@ -1,5 +1,5 @@
 open Printf;;
-open Biocaml_phylogeny.LaTools;;
+open LaTools;;
 
 (* ========================
    ||                    ||
@@ -88,7 +88,9 @@ module Felsenstein =
       Mod.transition (Mod.base_of_int (x-1)) (Mod.base_of_int (y-1))
     ;;
 
-    let rate_matrix = LATools.init 4 transition_of_int ;;
+    let rate_matrix () = LATools.init 4 transition_of_int ;;
+
+    let eMt t = LATools.exp (LATools.scalmul (rate_matrix ()) t);;
 
     (* ========= *)
     (*   TESTS   *)
@@ -98,8 +100,10 @@ module Felsenstein =
       printline ();
       Printf.printf "%F %F\n" (Mod.transition b1 b1) (Mod.transition b1 b2);
       printline () ;
-      LATools.printMat rate_matrix; Printf.printf "\n" ;
+      LATools.printMat (rate_matrix ()); Printf.printf "\n" ;
       printline () ;
+      LATools.printMat (eMt 1.2) ;
+      printline ()
     ;;
 
   end;;
