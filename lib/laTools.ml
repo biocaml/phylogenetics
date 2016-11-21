@@ -12,6 +12,7 @@ sig
   val pow: mat ->  ?alpha:float -> int -> mat
   val sum: mat -> mat -> mat
   val exp: mat -> mat
+  val scalmul: mat -> float -> mat
 end
 =
 struct
@@ -44,6 +45,8 @@ struct
       else
         acc
     in aux 1 a
+
+  let scalmul a f = (Mat.scal f a ; a)
 end
 
 
@@ -51,11 +54,13 @@ end
 
 (* test *)
 let test () =
-  let printline () = printf "\n==========================\n" in
-  let myMat = LATools.testMat in
+  let printline () = printf "==========================\n" in
+  let myMat = LATools.testMat in printline () ;
   LATools.printMat myMat ; printline () ;
   LATools.printMat (LATools.mult myMat myMat ~alpha:178.); printline () ;
-  LATools.printMat (LATools.pow myMat 4 ~alpha:378.); printline () ;;
+  LATools.printMat (LATools.pow myMat 4 ~alpha:378.); printline () ;
+  LATools.printMat (LATools.scalmul LATools.testId 3.5)
+;;
 
 let exptest () =
   let printline () = printf "==========================\n" in
@@ -63,4 +68,3 @@ let exptest () =
   LATools.printMat (LATools.exp LATools.testId) ;
   printline () ;
 ;;
-
