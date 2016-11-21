@@ -6,7 +6,7 @@ module LATools :
 sig
   type mat
   val testMat: mat
-  val testId: mat
+  val testId: unit -> mat
   val printMat: mat -> unit
   val mult: mat -> ?alpha:float -> mat -> mat
   val pow: mat ->  ?alpha:float -> int -> mat
@@ -20,7 +20,7 @@ struct
 
   let testMat = Mat.random 4 4
 
-  let testId = Mat.init_cols 4 4 (fun x y -> if x=y then 1. else 0.)
+  let testId () = Mat.init_cols 4 4 (fun x y -> if x=y then 1. else 0.)
 
   let printMat mat = (pp_mat Format.std_formatter mat; printf "\n")
 
@@ -59,12 +59,12 @@ let test () =
   LATools.printMat myMat ; printline () ;
   LATools.printMat (LATools.mult myMat myMat ~alpha:178.); printline () ;
   LATools.printMat (LATools.pow myMat 4 ~alpha:378.); printline () ;
-  LATools.printMat (LATools.scalmul LATools.testId 3.5)
+  LATools.printMat (LATools.scalmul (LATools.testId ()) 3.5)
 ;;
 
 let exptest () =
   let printline () = printf "==========================\n" in
   printline () ;
-  LATools.printMat (LATools.exp LATools.testId) ;
+  LATools.printMat (LATools.exp (LATools.testId ())) ;
   printline () ;
 ;;
