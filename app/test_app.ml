@@ -3,9 +3,9 @@
 
 (* let mat = Mat.random 4 4;; *)
 
-open Biocaml_phylogeny;;
+open Biocaml_phylogeny ;;
 
-
-TopoTree.TopoTree.test ();;
-Models.test ();;
-LaTools.test ();;
+TopoTree.test () ;;
+Models.test () ;;
+LaTools.test () ;;
+LaTools.exptest () ;;
