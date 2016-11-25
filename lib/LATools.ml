@@ -2,22 +2,7 @@ open Printf
 open Lacaml.S
 
 (* Linear algebra functions *)
-module LATools :
-sig
-  type mat
-  val testMat: mat
-  val testId: unit -> mat
-  val init: int -> (int -> int -> float) -> mat
-  val printMat: mat -> unit
-  val mult: mat -> ?alpha:float -> mat -> mat
-  val pow: mat ->  ?alpha:float -> int -> mat
-  val sum: mat -> mat -> mat
-  val exp: mat -> mat
-  val scalmul: mat -> float -> mat
-end
-=
-struct
-  type mat = Lacaml_float32.mat
+type mat = Lacaml_float32.mat
 
   let testMat = Mat.random 4 4
 
@@ -50,24 +35,20 @@ struct
     in aux 1 a
 
   let scalmul a f = (Mat.scal f a ; a)
-end
-
-
-
 
 (* test *)
 let test () =
   let printline () = printf "==========================\n" in
-  let myMat = LATools.testMat in printline () ;
-  LATools.printMat myMat ; printline () ;
-  LATools.printMat (LATools.mult myMat myMat ~alpha:178.); printline () ;
-  LATools.printMat (LATools.pow myMat 4 ~alpha:378.); printline () ;
-  LATools.printMat (LATools.scalmul (LATools.testId ()) 3.5)
+  let myMat = testMat in printline () ;
+  printMat myMat ; printline () ;
+  printMat (mult myMat myMat ~alpha:178.); printline () ;
+  printMat (pow myMat 4 ~alpha:378.); printline () ;
+  printMat (scalmul (testId ()) 3.5)
 ;;
 
 let exptest () =
   let printline () = printf "==========================\n" in
   printline () ;
-  LATools.printMat (LATools.exp (LATools.testId ())) ;
+  printMat (exp (testId ())) ;
   printline () ;
 ;;

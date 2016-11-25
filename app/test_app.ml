@@ -7,5 +7,5 @@ open Biocaml_phylogeny ;;
 
 TopoTree.test () ;;
 Models.test () ;;
-LaTools.test () ;;
-LaTools.exptest () ;;
+LATools.test () ;;
+LATools.exptest () ;;

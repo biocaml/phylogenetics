@@ -1,5 +1,5 @@
 open Printf;;
-open LaTools;;
+open LATools;;
 open TopoTree;;
 
 (* ========================
