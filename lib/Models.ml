@@ -1,6 +1,4 @@
 open Printf
-open LATools
-open TopoTree
 open DNA
 
 (* ========================
@@ -55,15 +53,21 @@ module Felsenstein =
   functor (Mod: EVOL_MODEL) ->
   struct
 
+    open TopoTree
+
     let transition_of_int x y =
       Mod.transition (Mod.base_of_int (x-1)) (Mod.base_of_int (y-1))
-
 
     let rate_matrix () = LATools.init 4 transition_of_int
 
     let eMt t = LATools.exp (LATools.scalmul (rate_matrix ()) t)
 
-    (* let felsenstein tree sequences =  *)
+    let known_vector b =
+      LATools.initvec 4 (fun x->if x=int_of_dna b then 1. else 0.)
+
+    let felsenstein t sequences = match t with
+    | Node (x,y) -> Some x
+    | Leaf i -> None
 
     (* ========= *)
     (*   TESTS   *)
@@ -85,7 +89,6 @@ module Felsenstein =
    ||       TESTS        ||
    ||                    ||
    ======================== *)
-
 module JCFelsenstein = Felsenstein (JCModel)
 
 (* let myvec = [|0.1;0.3;0.4;0.2|] *)

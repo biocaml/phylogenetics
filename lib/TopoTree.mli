@@ -1,4 +1,8 @@
-type tree
+type index = int
+and branch = float * tree
+and tree =
+  | Node of branch * branch
+  | Leaf of index
 
 val pretty_print: tree -> unit
 

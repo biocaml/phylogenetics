@@ -3,6 +3,7 @@ open Lacaml.S
 
 (* Linear algebra functions *)
 type mat = Lacaml_float32.mat
+type vec = Lacaml_float32.vec
 
 let testMat = Mat.random 4 4
 
@@ -10,7 +11,11 @@ let testId () = Mat.init_cols 4 4 (fun x y -> if x=y then 1. else 0.)
 
 let init size f = Mat.init_rows size size f
 
+let initvec size f = Vec.init size f
+
 let printMat mat = (pp_mat Format.std_formatter mat; printf "\n")
+
+let printVec vec = (pp_vec Format.std_formatter vec; printf "\n")
 
 let mult a ?alpha:(al=1.) b = gemm a b ~alpha:al
 
