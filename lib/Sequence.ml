@@ -1,3 +1,6 @@
 open DNA
 
-type sequence = (int*dna) list
+type base = dna
+type sequence = (int*base) list
+
+let get_base = List.assoc

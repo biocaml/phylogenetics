@@ -77,8 +77,6 @@ module Felsenstein =
       printline () ;
       LATools.printMat (eMt 1.2) ;
       printline ()
-
-
   end
 
 
