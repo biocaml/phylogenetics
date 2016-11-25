@@ -5,7 +5,7 @@ test: byte
 
 doc: default
 	mkdir -p doc
-	ocamlfind ocamldoc -I _build/lib -package lacaml lib/*
+	ocamlfind ocamldoc -package lacaml -I _build/lib/ lib/* -d doc -html
 
 ca: clean
 	rm -rf doc/
