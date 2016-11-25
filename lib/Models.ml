@@ -54,20 +54,29 @@ module Felsenstein =
   struct
 
     open TopoTree
+    open LATools
 
     let transition_of_int x y =
       Mod.transition (Mod.base_of_int (x-1)) (Mod.base_of_int (y-1))
 
-    let rate_matrix () = LATools.init 4 transition_of_int
+    let rate_matrix () = init 4 transition_of_int
 
-    let eMt t = LATools.exp (LATools.scalmul (rate_matrix ()) t)
+    let eMt t = exp (scalmul (rate_matrix ()) t)
 
     let known_vector b =
-      LATools.initvec 4 (fun x->if x=int_of_dna b then 1. else 0.)
+      initvec 4 (fun x->if x=int_of_dna b then 1. else 0.)
 
-    let felsenstein t sequences = match t with
-    | Node (x,y) -> Some x
-    | Leaf i -> None
+    let rec felsenstein t sequences =
+      let rec aux tr = match tr with
+        | Node ((f1,l), (f2,r)) -> vec_vec_add
+                                     (mat_vec_mult (eMt f1) (aux l))
+                                     (mat_vec_mult (eMt f2) (aux r))
+        | Leaf i -> known_vector (Sequence.get_base i sequences)
+      in let res = aux t in
+      begin
+        printVec res ;
+        sum_vec_elements res
+      end
 
     (* ========= *)
     (*   TESTS   *)
