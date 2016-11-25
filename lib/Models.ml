@@ -68,9 +68,13 @@ module Felsenstein =
 
     let rec felsenstein t sequences =
       let rec aux tr = match tr with
-        | Node ((f1,l), (f2,r)) -> vec_vec_add
-                                     (mat_vec_mult (eMt f1) (aux l))
-                                     (mat_vec_mult (eMt f2) (aux r))
+        | Node ((f1,l), (f2,r)) -> (
+            printf "Node %F %F\n" f1 f2;
+            let myvec = vec_vec_mul
+                (mat_vec_mul (eMt f1) (aux l))
+                (mat_vec_mul (eMt f2) (aux r))
+            in (printVec myvec ; printf"\n" ; myvec)
+          )
         | Leaf i -> known_vector (Sequence.get_base i sequences)
       in let res = aux t in
       begin
@@ -105,7 +109,13 @@ module JCFelsenstein = Felsenstein (JCModel)
 (* let testProd = gemv JCFelsenstein.rate_matrix initState *)
 
 let test () =
-  JCFelsenstein.test A T;
-  match TopoTree.tree_of_string "1.2;1.3;5.2;2.3;3;5;2" with
-  | Error e -> printf "Error: %s" e
-  | Ok t -> TopoTree.pretty_print t
+  let mytree =
+    match
+      TopoTree.tree_of_string "1.23357;0.0223917;0.157039;0.0431535;3;4;0.133751;0.0661129;2;0.121775;0.123267;1;0"
+    with
+      Ok t -> t | Error e -> TopoTree.Leaf 0 in
+  begin
+    ignore (JCFelsenstein.felsenstein mytree [(0,A);(1,T);(2,A);(3,G);(4,C)]) ;
+    (* JCFelsenstein.test A T; *)
+    (* TopoTree.pretty_print mytree *)
+  end

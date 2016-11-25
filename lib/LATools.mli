@@ -32,12 +32,15 @@ val initvec: int -> (int -> float) -> vec
 val mult: mat -> ?alpha:float -> mat -> mat
 
 (** TO DO *)
-val mat_vec_mult: mat -> vec -> vec
+val mat_vec_mul: mat -> vec -> vec
 
 (** TO DO *)
 val vec_vec_add: vec -> vec -> vec
 
-(** TO DO *)
+(** Element-wise product of two vectors. *)
+val vec_vec_mul: vec -> vec -> vec
+
+(** Sum of the elements of a vector. *)
 val sum_vec_elements: vec -> float
 
 (** Elevates a matrix to an integer power.

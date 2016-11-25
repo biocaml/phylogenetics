@@ -19,9 +19,11 @@ let printVec vec = (pp_vec Format.std_formatter vec; printf "\n")
 
 let mult a ?alpha:(al=1.) b = gemm a b ~alpha:al
 
-let mat_vec_mult m v = gemv m v
+let mat_vec_mul m v = gemv m v
 
 let vec_vec_add v1 v2 = Vec.add v1 v2
+
+let vec_vec_mul v1 v2 = Vec.mul v1 v2
 
 let sum_vec_elements  v = Vec.sum v
 
