@@ -1,5 +1,6 @@
 open Printf;;
 open LaTools;;
+open TopoTree;;
 
 (* ========================
    ||                    ||
@@ -123,3 +124,8 @@ module JCFelsenstein = Felsenstein (JCModel);;
 
 let test () =
   JCFelsenstein.test A T;
+  let mytree =  match TopoTree.tree_of_string "1.2;1.3;5.2;2.3;3;5;2" with
+    | Error e -> sprintf "Error: %s" e
+    | Ok t -> TopoTree.pretty_tree t
+  in
+  print_string mytree
