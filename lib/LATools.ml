@@ -44,11 +44,11 @@ let test () =
   printMat (mult myMat myMat ~alpha:178.); printline () ;
   printMat (pow myMat 4 ~alpha:378.); printline () ;
   printMat (scalmul (testId ()) 3.5)
-;;
+
 
 let exptest () =
   let printline () = printf "==========================\n" in
   printline () ;
   printMat (exp (testId ())) ;
   printline () ;
-;;
+
