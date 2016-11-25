@@ -93,6 +93,8 @@ module Felsenstein =
 
     let eMt t = LATools.exp (LATools.scalmul (rate_matrix ()) t);;
 
+    (* let felsenstein tree sequences =  *)
+
     (* ========= *)
     (*   TESTS   *)
     (* ========= *)
@@ -124,8 +126,6 @@ module JCFelsenstein = Felsenstein (JCModel);;
 
 let test () =
   JCFelsenstein.test A T;
-  let mytree =  match TopoTree.tree_of_string "1.2;1.3;5.2;2.3;3;5;2" with
-    | Error e -> sprintf "Error: %s" e
-    | Ok t -> TopoTree.pretty_tree t
-  in
-  print_string mytree
+  match TopoTree.tree_of_string "1.2;1.3;5.2;2.3;3;5;2" with
+    | Error e -> printf "Error: %s" e
+    | Ok t -> TopoTree.pretty_print t
