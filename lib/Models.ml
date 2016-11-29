@@ -69,10 +69,10 @@ module Felsenstein =
     let rec felsenstein t sequences =
       let rec aux tr = match tr with
         | Node ((f1,l), (f2,r)) -> vec_vec_mul
-                (mat_vec_mul (eMt f1) (aux l))
-                (mat_vec_mul (eMt f2) (aux r))
+                                     (mat_vec_mul (eMt f1) (aux l))
+                                     (mat_vec_mul (eMt f2) (aux r))
         | Leaf i ->
-           known_vector (Sequence.get_base i sequences)
+          known_vector (Sequence.get_base i sequences)
       in let res = aux t in
       begin
         printVec res ;
@@ -112,13 +112,16 @@ let test () =
     with
       Ok t -> t | Error e -> TopoTree.Leaf 0 in
   begin
-    ignore (JCFelsenstein.felsenstein mytree [(0,A);(1,T);(2,A);(3,G);(4,C)]) ;
+    ignore (JCFelsenstein.felsenstein mytree [(0,A);(1,T);(2,C);(3,G);(4,C)]) ;
     (* JCFelsenstein.test A T; *)
     (* TopoTree.pretty_print mytree *)
   end
 
 let t2 () =
-  let mytree = match TopoTree.tree_of_string "1.2;2.1;0;1"
+  let mytree = match TopoTree.tree_of_string "0.1;0.1;0.1;0.1;1;2;3;4"
     with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
-  let myseq = [(0,A);(1,T)] in
+  let myseq = [(1,C);(2,G);(3,C);(4,C)] in
   ignore (JCFelsenstein.felsenstein mytree myseq)
+
+let t3 () =
+  JCFelsenstein.eMt 0.1
