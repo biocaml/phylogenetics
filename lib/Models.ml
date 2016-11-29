@@ -64,18 +64,15 @@ module Felsenstein =
     let eMt t = exp (scalmul (rate_matrix ()) t)
 
     let known_vector b =
-      initvec 4 (fun x->if x=int_of_dna b then 1. else 0.)
+      initvec 4 (fun x->if x=(int_of_dna b + 1) then 1. else 0.)
 
     let rec felsenstein t sequences =
       let rec aux tr = match tr with
-        | Node ((f1,l), (f2,r)) -> (
-            printf "Node %F %F\n" f1 f2;
-            let myvec = vec_vec_mul
+        | Node ((f1,l), (f2,r)) -> vec_vec_mul
                 (mat_vec_mul (eMt f1) (aux l))
                 (mat_vec_mul (eMt f2) (aux r))
-            in (printVec myvec ; printf"\n" ; myvec)
-          )
-        | Leaf i -> known_vector (Sequence.get_base i sequences)
+        | Leaf i ->
+           known_vector (Sequence.get_base i sequences)
       in let res = aux t in
       begin
         printVec res ;
@@ -119,3 +116,9 @@ let test () =
     (* JCFelsenstein.test A T; *)
     (* TopoTree.pretty_print mytree *)
   end
+
+let t2 () =
+  let mytree = match TopoTree.tree_of_string "1.2;2.1;0;1"
+    with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
+  let myseq = [(0,A);(1,T)] in
+  ignore (JCFelsenstein.felsenstein mytree myseq)
