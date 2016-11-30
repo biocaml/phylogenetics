@@ -120,6 +120,7 @@ let test () =
 let t2 () =
   let mytree = match TopoTree.tree_of_string "0.1;0.1;0.1;0.1;1;2;3;4"
     with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
+  let _ =  TopoTree.pretty_print mytree in
   let myseq = [(1,C);(2,G);(3,C);(4,C)] in
   ignore (JCFelsenstein.felsenstein mytree myseq)
 

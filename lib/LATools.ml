@@ -37,7 +37,7 @@ let sum a b = Mat.add a b
 let rec fact n = if n=0 then 1 else n * (fact (n-1))
 
 let exp a =
-  let iterations = 150 in
+  let iterations = 15 in
   let rec aux i acc =
     if i<iterations then
       let factor = 1. /. (float_of_int (fact i)) in
