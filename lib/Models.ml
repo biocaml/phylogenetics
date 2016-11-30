@@ -59,12 +59,12 @@ module Felsenstein =
     let transition_of_int x y =
       Mod.transition (Mod.base_of_int (x-1)) (Mod.base_of_int (y-1))
 
-    let rate_matrix () = init 4 transition_of_int
+    let rate_matrix () = init_mat 4 transition_of_int
 
-    let eMt t = exp (scalmul (rate_matrix ()) t)
+    let eMt t = exp (scal_mat_mult (rate_matrix ()) t)
 
     let known_vector b =
-      initvec 4 (fun x->if x=(int_of_dna b + 1) then 1. else 0.)
+      init_vec 4 (fun x->if x=(int_of_dna b + 1) then 1. else 0.)
 
     let rec felsenstein t sequences =
       let rec aux tr = match tr with
@@ -75,7 +75,7 @@ module Felsenstein =
           known_vector (Sequence.get_base i sequences)
       in let res = aux t in
       begin
-        printVec res ;
+        print_vec res ;
         sum_vec_elements res
       end
 
@@ -87,9 +87,9 @@ module Felsenstein =
       printline ();
       Printf.printf "%F %F\n" (Mod.transition b1 b1) (Mod.transition b1 b2);
       printline () ;
-      LATools.printMat (rate_matrix ()); Printf.printf "\n" ;
+      LATools.print_mat (rate_matrix ()); Printf.printf "\n" ;
       printline () ;
-      LATools.printMat (eMt 1.2) ;
+      LATools.print_mat (eMt 1.2) ;
       printline ()
   end
 
@@ -118,11 +118,15 @@ let test () =
   end
 
 let t2 () =
-  let mytree = match TopoTree.tree_of_string "0.1;0.1;0.1;0.1;1;2;3;4"
+  let mytree = match TopoTree.tree_of_string "0.1;0.1;0.1;0.1;1;2;3"
     with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
   let _ =  TopoTree.pretty_print mytree in
   let myseq = [(1,C);(2,G);(3,C);(4,C)] in
   ignore (JCFelsenstein.felsenstein mytree myseq)
 
 let t3 () =
-  JCFelsenstein.eMt 0.1
+  let mytree = match TopoTree.tree_of_string "0.1;0.1;1;2"
+    with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
+  let _ =  TopoTree.pretty_print mytree in
+  let myseq = [(1,C);(2,G)] in
+  ignore (JCFelsenstein.felsenstein mytree myseq)
