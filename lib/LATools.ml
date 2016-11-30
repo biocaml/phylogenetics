@@ -15,9 +15,9 @@ let init_mat size f = Mat.init_rows size size f
 
 let init_vec size f = Vec.init size f
 
-let print_mat mat = (pp_mat Format.std_formatter mat; printf "\n")
+let print_mat mat = pp_mat Format.std_formatter mat; printf "\n"
 
-let print_vec vec = (pp_vec Format.std_formatter vec; printf "\n")
+let print_vec vec = pp_vec Format.std_formatter vec; printf "\n"
 
 let mult a ?alpha:(al=1.) b = gemm a b ~alpha:al
 
@@ -33,8 +33,8 @@ let rec pow a ?alpha:(al=1.) n =
   if n=0 then
     Mat.init_cols (Mat.dim1 a) (Mat.dim2 a) (fun x y -> if x=y then 1.0 else 0.0)
   else if n=1 then a
-  else if n=2 then mult a (pow a (n-1) ~alpha:al) ~alpha:al
-  else mult a (pow a (n-1) ~alpha:al)
+  else if n=2 then pow a (n-1) ~alpha:al |> mult a ~alpha:al
+  else pow a (n-1) ~alpha:al |> mult a
 
 let sum a b = Mat.add a b
 
@@ -70,6 +70,4 @@ let exptest ()  =
   printline () ;
   let mymat = Mat.init_cols 3 3 (fun x y ->
       if x=y || y=1 then 1. else 0.) in
-  print_mat (exp mymat)
-  (* print_mat (pow mymat mi ~alpha:(1./.(float_of_int (fact mi)))); *)
-  (* printline () *)
+  exp mymat |> print_mat
