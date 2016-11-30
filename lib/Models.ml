@@ -27,6 +27,7 @@ sig
   type base
   val base_of_int: int -> base
   val transition: base -> base -> float
+    val stat_dis: base -> float
 end
 
 
@@ -40,6 +41,7 @@ struct
   type base = dna
   let base_of_int = dna_of_int
   let transition a b = if a=b then -3./.4. else 1./.4.
+  let stat_dis a = 0.25
 end
 
 
@@ -61,6 +63,8 @@ module Felsenstein =
 
     let rate_matrix () = init_mat 4 transition_of_int
 
+    let stat_dis () = init_vec 4 (fun x -> Mod.stat_dis (Mod.base_of_int (x-1)))
+
     let eMt t = exp (scal_mat_mult (rate_matrix ()) t)
 
     let known_vector b =
@@ -75,8 +79,7 @@ module Felsenstein =
           known_vector (Sequence.get_base i sequences)
       in let res = aux t in
       begin
-        print_vec res ;
-        sum_vec_elements res
+        stat_dis () |> vec_vec_mul res |> sum_vec_elements
       end
 
     (* ========= *)
@@ -108,11 +111,13 @@ module JCFelsenstein = Felsenstein (JCModel)
 let test () =
   let mytree =
     match
-      TopoTree.tree_of_string "1.23357;0.0223917;0.157039;0.0431535;3;4;0.133751;0.0661129;2;0.121775;0.123267;1;0"
+      TopoTree.tree_of_string "1.23357;0.0223917;0.157039;0.0431535;4;3;0.133751;0.0661129;2;0.121775;0.123267;1;0"
     with
       Ok t -> t | Error e -> TopoTree.Leaf 0 in
+  let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in
   begin
-    ignore (JCFelsenstein.felsenstein mytree [(0,A);(1,T);(2,C);(3,G);(4,C)]) ;
+    TopoTree.pretty_print mytree ;
+    JCFelsenstein.felsenstein mytree myseq |> log |> printf "%F\n" ;
     (* JCFelsenstein.test A T; *)
     (* TopoTree.pretty_print mytree *)
   end
@@ -130,3 +135,6 @@ let t3 () =
   let _ =  TopoTree.pretty_print mytree in
   let myseq = [(1,C);(2,G)] in
   ignore (JCFelsenstein.felsenstein mytree myseq)
+
+let t4 () =
+  LATools.print_vec (JCFelsenstein.stat_dis ())
