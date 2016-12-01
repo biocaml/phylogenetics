@@ -1,5 +1,4 @@
 open Printf
-open DNA
 
 (* ========================
    ||                    ||
@@ -21,13 +20,17 @@ open DNA
 
 
 (* evolution models  *)
-module type EVOL_MODEL =
-sig
+module type EVOL_MODEL = sig
   (* include EVOL_BASE*)
-  type base
-  val base_of_int: int -> base
+  include Sequence.SEQUENCE
   val transition: base -> base -> float
-    val stat_dis: base -> float
+  val stat_dis: base -> float
+end
+
+module type FELSENSTEIN = sig
+  include EVOL_MODEL
+  type tree = TopoTree.tree
+  val felsenstein: tree -> sequence_table -> float
 end
 
 
@@ -36,10 +39,9 @@ end
    ||    BASIC MODELS    ||
    ||                    ||
    ======================== *)
-module JCModel =
+module JCModel:EVOL_MODEL =
 struct
-  type base = dna
-  let base_of_int = dna_of_int
+  include Sequence.DNA_Sequence
   let transition a b = if a=b then -3./.4. else 1./.4.
   let stat_dis a = 0.25
 end
@@ -51,50 +53,51 @@ end
    ||                    ||
    ======================== *)
 
-module Felsenstein =
-  functor (Mod: EVOL_MODEL) ->
-  struct
+module Felsenstein (Mod: EVOL_MODEL):FELSENSTEIN =
+struct
+  open TopoTree
+  open LATools
+  include Mod
 
-    open TopoTree
-    open LATools
+  type tree = TopoTree.tree
 
-    let transition_of_int x y =
-      Mod.transition (Mod.base_of_int (x-1)) (Mod.base_of_int (y-1))
+  let transition_of_int x y =
+    transition (base_of_int (x-1)) (base_of_int (y-1))
 
-    let rate_matrix () = init_mat 4 transition_of_int
+  let rate_matrix () = init_mat 4 transition_of_int
 
-    let stat_dis () = init_vec 4 (fun x -> Mod.stat_dis (Mod.base_of_int (x-1)))
+  let stat_dis_vec () = init_vec 4 (fun x -> Mod.stat_dis (Mod.base_of_int (x-1)))
 
-    let eMt t = exp (scal_mat_mult (rate_matrix ()) t)
+  let eMt t = exp (scal_mat_mult (rate_matrix ()) t)
 
-    let known_vector b =
-      init_vec 4 (fun x->if x=(int_of_dna b + 1) then 1. else 0.)
+  let known_vector b =
+    init_vec 4 (fun x->if x=(int_of_base b + 1) then 1. else 0.)
 
-    let rec felsenstein t sequences =
-      let rec aux tr = match tr with
-        | Node ((f1,l), (f2,r)) -> vec_vec_mul
-                                     (mat_vec_mul (eMt f1) (aux l))
-                                     (mat_vec_mul (eMt f2) (aux r))
-        | Leaf i ->
-          known_vector (Sequence.get_base i sequences)
-      in let res = aux t in
-      begin
-        stat_dis () |> vec_vec_mul res |> sum_vec_elements
-      end
+  let rec felsenstein t sequences =
+    let rec aux tr = match tr with
+      | Node ((f1,l), (f2,r)) -> vec_vec_mul
+                                   (mat_vec_mul (eMt f1) (aux l))
+                                   (mat_vec_mul (eMt f2) (aux r))
+      | Leaf i ->
+        known_vector (get_base i 0 sequences)
+    in let res = aux t in
+    begin
+      stat_dis_vec () |> vec_vec_mul res |> sum_vec_elements
+    end
 
-    (* ========= *)
-    (*   TESTS   *)
-    (* ========= *)
-    let test b1 b2 =
-      let printline () = print_string "==========================\n" in
-      printline ();
-      Printf.printf "%F %F\n" (Mod.transition b1 b1) (Mod.transition b1 b2);
-      printline () ;
-      LATools.print_mat (rate_matrix ()); Printf.printf "\n" ;
-      printline () ;
-      LATools.print_mat (eMt 1.2) ;
-      printline ()
-  end
+  (* ========= *)
+  (*   TESTS   *)
+  (* ========= *)
+  let test b1 b2 =
+    let printline () = print_string "==========================\n" in
+    printline ();
+    Printf.printf "%F %F\n" (Mod.transition b1 b1) (Mod.transition b1 b2);
+    printline () ;
+    LATools.print_mat (rate_matrix ()); Printf.printf "\n" ;
+    printline () ;
+    LATools.print_mat (eMt 1.2) ;
+    printline ()
+end
 
 
 (* ========================
@@ -104,37 +107,16 @@ module Felsenstein =
    ======================== *)
 module JCFelsenstein = Felsenstein (JCModel)
 
-(* let myvec = [|0.1;0.3;0.4;0.2|] *)
-(* let initState = Vec.init 4 (function x -> myvec.(x-1)) *)
-(* let testProd = gemv JCFelsenstein.rate_matrix initState *)
-
 let test () =
   let mytree =
     match
       TopoTree.tree_of_string "1.23357;0.0223917;0.157039;0.0431535;4;3;0.133751;0.0661129;2;0.121775;0.123267;1;0"
     with
       Ok t -> t | Error e -> TopoTree.Leaf 0 in
-  let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in
+  let myseq = ["C";"T";"T";"G";"G"] |> JCFelsenstein.table_of_string_list
+  in
+  (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)
   begin
     TopoTree.pretty_print mytree ;
     JCFelsenstein.felsenstein mytree myseq |> log |> printf "%F\n" ;
-    (* JCFelsenstein.test A T; *)
-    (* TopoTree.pretty_print mytree *)
   end
-
-let t2 () =
-  let mytree = match TopoTree.tree_of_string "0.1;0.1;0.1;0.1;1;2;3"
-    with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
-  let _ =  TopoTree.pretty_print mytree in
-  let myseq = [(1,C);(2,G);(3,C);(4,C)] in
-  ignore (JCFelsenstein.felsenstein mytree myseq)
-
-let t3 () =
-  let mytree = match TopoTree.tree_of_string "0.1;0.1;1;2"
-    with Ok t -> t | Error _ -> TopoTree.Leaf 0 in
-  let _ =  TopoTree.pretty_print mytree in
-  let myseq = [(1,C);(2,G)] in
-  ignore (JCFelsenstein.felsenstein mytree myseq)
-
-let t4 () =
-  LATools.print_vec (JCFelsenstein.stat_dis ())
