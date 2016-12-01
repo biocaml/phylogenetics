@@ -7,7 +7,7 @@ open Biocaml_phylogeny
 open Alcotest
 
 let seq_test () =
-  (check string) "get base from sequence" "C" (Sequence.test ())
+  (check string) "get base from sequence" "C" (Sequence.test_get_base ())
 
 let seq_tests = [
   "get", `Quick, seq_test

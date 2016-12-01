@@ -1,7 +1,5 @@
-type base = DNA.dna
+type 'a sequence = (int * 'a) list
 
-type sequence = (int * base) list
+val get_base: int -> 'a sequence -> 'a
 
-val get_base: int -> sequence -> base
-
-val test: unit -> string
+val test_get_base: unit -> string
