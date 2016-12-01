@@ -21,7 +21,7 @@ let lib =
     ~dir:"lib"
     ~style:(`Pack name)
     ~findlib_deps:[
-      "lacaml" ;
+      "lacaml, alcotest" ;
     ]
 
 let app =
