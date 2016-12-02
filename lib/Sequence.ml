@@ -59,8 +59,8 @@ module type SEQUENCE = sig
   val seq_of_string: string -> sequence
   val table_of_string_list: string list -> sequence_table
   val string_of_seq: sequence -> string
-  val pp_seq: sequence Fmt.t
-  val pp_table: sequence_table Fmt.t
+  val pp_seq: Format.formatter -> sequence -> unit
+  val pp_table: Format.formatter -> sequence_table -> unit
 end
 
 module Sequence (Base:BASE):(SEQUENCE with type base=Base.base)  = struct
