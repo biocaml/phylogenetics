@@ -58,6 +58,7 @@ module type SEQUENCE = sig
   val get_base: int -> int -> sequence_table -> base
   val seq_of_string: string -> sequence
   val table_of_string_list: string list -> sequence_table
+  val string_of_seq: sequence -> string
   val pp_seq: sequence Fmt.t
   val pp_table: sequence_table Fmt.t
 end
