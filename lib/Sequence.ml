@@ -8,7 +8,6 @@ module type BASE = sig
 end
 
 module DNA = struct
-  (** A simple module for DNA bases (not sequences)*)
   open Printf
 
   type base = A | T | G | C
@@ -42,8 +41,8 @@ end
 
 module type SEQUENCE = sig
   include BASE
-  type sequence
-  type sequence_table
+  type sequence = base list
+  type sequence_table = (int * sequence) list
   val get_base: int -> int -> sequence_table -> base
   val seq_of_string: string -> sequence
   val table_of_string_list: string list -> sequence_table
@@ -75,10 +74,3 @@ module Sequence (Base:BASE):SEQUENCE  = struct
 end
 
 module DNA_Sequence = Sequence (DNA)
-
-
-
-let test_get_base () =
-  let open DNA in
-  let myseq = DNA_Sequence.table_of_string_list ["ATT";"TGC";"GTC";"CGT"]
-  in DNA_Sequence.get_base 2 2 myseq |> DNA_Sequence.string_of_base
