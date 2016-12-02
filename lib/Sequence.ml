@@ -7,10 +7,12 @@ module type BASE = sig
   val string_of_base: base -> string
 end
 
-module DNA = struct
+type dna = A | T | G | C
+
+module DNA:(BASE with type base = dna) = struct
   open Printf
 
-  type base = A | T | G | C
+  type base = dna
 
   let string_of_base = function A -> "A" | T -> "T" | G -> "G" | C -> "C"
 
@@ -48,7 +50,7 @@ module type SEQUENCE = sig
   val table_of_string_list: string list -> sequence_table
 end
 
-module Sequence (Base:BASE):SEQUENCE  = struct
+module Sequence (Base:BASE):(SEQUENCE with type base=Base.base)  = struct
   include Base
   type sequence = base list
   type sequence_table = (int * sequence) list
