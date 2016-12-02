@@ -1,39 +1,39 @@
 open Biocaml_phylogeny
 open Alcotest
-open Sequence
 
-(** table_of_string_list *)
-let test_Sequence_table_of_string_list () =
-  let open DNA_Sequence in
-  let myseq = table_of_string_list ["ATT";"TGC";"GTC"] in
-  let myseq2 = [(0,[A;T;T]);
-                (1,[T;G;C]);
-                (2,[G;T;C])]
-  in
-  (check bool) "identical sequence tables" true (myseq2 = myseq)
+module Test_Sequence = struct
+  open Sequence
+  open DNA_Sequence
 
-let test_Sequence_seq_of_string () =
-  let open DNA_Sequence in
-  let s1 = [A;G;C;T] in
-  let s2 = seq_of_string "AGCT" in
-  (check bool) "identical sequences" true (s1=s2)
+  (* Reference data for tests (hand-crafted from raw DNA bases) *)
+  let mytab = [(0,[A;T;T]);
+               (1,[T;G;C]);
+               (2,[G;T;C])]
 
-(** get_base *)
-let test_Sequence_get_base () =
-  let open DNA_Sequence in
-  let aux =
-    let myseq = table_of_string_list ["ATT";"TGC";"GTC";"CGT"] in
-    get_base 2 2 myseq |> string_of_base
-  in
-  (check string) "get base from sequence" "C" aux
+  let myseq = [A;G;C;T]
 
-let seq_tests = [
-  "get_base", `Quick, test_Sequence_get_base ;
-  "table_of_string_list", `Quick, test_Sequence_table_of_string_list ;
-  "seq_of_string", `Quick, test_Sequence_seq_of_string
-]
+
+  (* Test functions *)
+  let test_table_of_string_list () =
+    let tmp = table_of_string_list ["ATT";"TGC";"GTC"] in
+    (check bool) "identical sequence tables" true (mytab = tmp)
+
+  let test_seq_of_string () =
+    let tmp = seq_of_string "AGCT" in
+    (check bool) "identical sequences" true (myseq = tmp)
+
+  let test_get_base () =
+    get_base 2 2 mytab |> string_of_base |>
+    (check string) "get base from sequence" "C"
+
+  let tests = [
+    "get_base", `Quick, test_get_base ;
+    "table_of_string_list", `Quick, test_table_of_string_list ;
+    "seq_of_string", `Quick, test_seq_of_string
+  ]
+end
 
 let () =
   Alcotest.run "All tests" [
-    "Sequence", seq_tests
+    "Sequence", Test_Sequence.tests
   ]
