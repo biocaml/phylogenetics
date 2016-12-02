@@ -1,3 +1,8 @@
+(** This modules holds a collection of functors and modules
+    to handle sequences, bases and sequence tables. *)
+
+(** Module to handle individual bases (eg, A, T, C, G).
+    Mostly conversion to/from strings and ints *)
 module type BASE = sig
   type base
   val base_of_string: string -> base
@@ -7,13 +12,16 @@ module type BASE = sig
   val string_of_base: base -> string
 end
 
+(** A single DNA base *)
 type dna = A | T | G | C
 
+(** DNA-specific implementation of the BASE signature *)
 module DNA:(BASE with type base = dna) = struct
   open Printf
 
   type base = dna
 
+  (** Returns a string with a single capital letter representing the base. *)
   let string_of_base = function A -> "A" | T -> "T" | G -> "G" | C -> "C"
 
   (** Creates a DNA base from a string containing only a single
@@ -26,6 +34,7 @@ module DNA:(BASE with type base = dna) = struct
     | "T" | "t" -> T
     | _ -> invalid_arg "base_of_string"
 
+  (** Converts a base into an int (alphabetical order, starting at 0) *)
   let int_of_base = function A -> 0 | C -> 1 | G -> 2 | T -> 3
 
   (** Creates a DNA base from an int between 0 and 3
@@ -38,6 +47,7 @@ module DNA:(BASE with type base = dna) = struct
     | x ->
       invalid_arg (sprintf "base_of_int: %d is not a correct base index" x)
 
+  (** Prints single base without line break. *)
   let print_base base = print_string (string_of_base base)
 end
 
@@ -48,6 +58,8 @@ module type SEQUENCE = sig
   val get_base: int -> int -> sequence_table -> base
   val seq_of_string: string -> sequence
   val table_of_string_list: string list -> sequence_table
+  val pp_seq: sequence Fmt.t
+  val pp_table: sequence_table Fmt.t
 end
 
 module Sequence (Base:BASE):(SEQUENCE with type base=Base.base)  = struct
@@ -73,6 +85,15 @@ module Sequence (Base:BASE):(SEQUENCE with type base=Base.base)  = struct
       | [] -> List.rev acc
       | s::t -> aux ((i, (seq_of_string s))::acc) (i+1) t
     in aux [] 0 l
+
+  let string_of_seq seq = List.map string_of_base seq |> String.concat ""
+
+  let pp_seq fmt seq = string_of_seq seq |> Format.fprintf fmt "%s"
+
+  let pp_table fmt tab =
+    List.map (function (x,y) -> Printf.sprintf "%d:%s" x (string_of_seq y)) tab
+    |> String.concat ";"
+    |> Format.fprintf fmt "%s"
 end
 
 module DNA_Sequence = Sequence (DNA)

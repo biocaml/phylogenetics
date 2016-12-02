@@ -12,15 +12,14 @@ module Test_Sequence = struct
 
   let myseq = [A;G;C;T]
 
-
   (* Test functions *)
   let test_table_of_string_list () =
-    let tmp = table_of_string_list ["ATT";"TGC";"GTC"] in
-    (check bool) "identical sequence tables" true (mytab = tmp)
+    table_of_string_list ["ATT";"TGC";"GTC"] |>
+    (check @@ testable pp_table (=)) "identical sequence tables" mytab
 
   let test_seq_of_string () =
-    let tmp = seq_of_string "AGCT" in
-    (check bool) "identical sequences" true (myseq = tmp)
+    seq_of_string "AGCT" |>
+    (check @@ testable pp_seq (=)) "identical sequences" myseq
 
   let test_get_base () =
     get_base 2 2 mytab |> string_of_base |>
