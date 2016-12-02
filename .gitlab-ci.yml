@@ -1,3 +1,0 @@
-rspec:
-  script:
-    - make test
