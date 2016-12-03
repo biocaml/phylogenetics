@@ -5,7 +5,7 @@
     Mostly conversion to/from strings and ints *)
 module type BASE = sig
   type base
-  val base_of_string: string -> base
+  val base_of_char: char -> base
   val base_of_int: int -> base
   val int_of_base: base -> int
   val print_base: base -> unit
@@ -24,15 +24,14 @@ module DNA:(BASE with type base = dna) = struct
   (** Returns a string with a single capital letter representing the base. *)
   let string_of_base = function A -> "A" | T -> "T" | G -> "G" | C -> "C"
 
-  (** Creates a DNA base from a string containing only a single
-      letter (uppercase/lowercase).
-      Raises invalid_arg in case of incorrect string parameter.*)
-  let base_of_string = function
-    | "A" | "a" -> A
-    | "C" | "c" -> C
-    | "G" | "g" -> G
-    | "T" | "t" -> T
-    | _ -> invalid_arg "base_of_string"
+  (** Creates a DNA base from a char (case insensitive).
+      Raises invalid_arg in case of incorrect char parameter.*)
+  let base_of_char = function
+    | 'A' | 'a' -> A
+    | 'C' | 'c' -> C
+    | 'G' | 'g' -> G
+    | 'T' | 't' -> T
+    | _ -> invalid_arg "base_of_char"
 
   (** Converts a base into an int (alphabetical order, starting at 0) *)
   let int_of_base = function A -> 0 | C -> 1 | G -> 2 | T -> 3
@@ -75,7 +74,7 @@ module Sequence (Base:BASE):(SEQUENCE with type base=Base.base)  = struct
       if (i >= String.length str) then
         List.rev acc
       else
-        match String.sub str i 1 |> base_of_string with
+        match base_of_char str.[i] with
         | b -> aux (i+1) (b::acc)
         | exception e -> invalid_arg "input string"
     in
