@@ -110,13 +110,14 @@ module JCFelsenstein = Felsenstein (JCModel)
 let test () =
   let mytree =
     match
-      TopoTree.tree_of_string "1.23357;0.0223917;0.157039;0.0431535;4;3;0.133751;0.0661129;2;0.121775;0.123267;1;0"
+      TopoTree.tree_of_string "0.0895312;0.0576168;1;0"
     with
       Ok t -> t | Error e -> TopoTree.Leaf 0 in
-  let myseq = ["C";"T";"T";"G";"G"] |> JCFelsenstein.table_of_string_list
+  let myseq = ["C";"C"] |> JCFelsenstein.table_of_string_list
   in
   (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)
   begin
-    TopoTree.pretty_print mytree ;
-    JCFelsenstein.felsenstein mytree myseq |> log |> printf "%F\n" ;
+    (* TopoTree.pretty_print mytree ; *)
+    JCFelsenstein.felsenstein mytree myseq |> log
+    |> printf "Returns:        %F\nShould return:\t-1.52971733717731\n" ;
   end
