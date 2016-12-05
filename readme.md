@@ -1,7 +1,7 @@
 # README #
 
 Currently implemented:
-* topology tree data structure w/ branch length and indexes at leaves :
-    * tree parser from post-order enumeration;
-    * pretty printer.
-* very basic structure for relevant evolution models.
+* topology tree data structure w/ branch length and indexes at leaves (including parser from post-order enumeration);
+* data structures for bases, sequences and sequence tables;
+* linear algebra functions (half wrappers around lacaml functions and half new functions);
+* first very basic Felsenstein pruning implementation (still being debugged/improved).
