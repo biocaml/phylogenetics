@@ -81,8 +81,8 @@ struct
       | Leaf i -> known_vector (get_base i 0 sequences)
     in let res = aux t in
     begin
+      (* print_vec res ; *)
       let myvec = stat_dis_vec () |> vec_vec_mul res in
-      (* print_vec myvec; *)
       sum_vec_elements myvec
     end
 
@@ -110,22 +110,16 @@ module JCFelsenstein = Felsenstein (JCModel)
 
 let test () =
   let mytree = TopoTree.tree_of_string "0.0895312;0.0576168;1;0" in
-  let myseq = ["C";"C"] |> JCFelsenstein.table_of_string_list
-  in
-  (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)
+  let myseq = ["C";"C"] |> JCFelsenstein.table_of_string_list in
   begin
-    (* TopoTree.pretty_print mytree ; *)
     JCFelsenstein.felsenstein mytree myseq |> log
-    |> printf "Returns:        %F\nShould return:\t-1.52971733717731\n" ;
+    |> printf "Returns: %F\nBio++..: -1.52971733717731\n" ;
   end
 
 let test2 () =
   let mytree = TopoTree.tree_of_string "0.1;0.1;1;0" in
-  let myseq = ["C";"G"] |> JCFelsenstein.table_of_string_list
-  in
-  (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)
+  let myseq = ["C";"G"] |> JCFelsenstein.table_of_string_list in
   begin
-    (* TopoTree.pretty_print mytree ; *)
     JCFelsenstein.felsenstein mytree myseq |> log
-    |> printf "Returns:        %F\nShould return:  -4.22471668644312\n" ;
+    |> printf "Returns.: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n" ;
   end
