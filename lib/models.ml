@@ -42,7 +42,7 @@ end
 module JCModel:EVOL_MODEL =
 struct
   include Sequence.DNA_Sequence
-  let transition a b = if a=b then -3./.4. else 1./.4.
+  let transition a b = if a=b then -.0.75 else 0.25
   let stat_dis a = 0.25
 end
 
@@ -78,11 +78,12 @@ struct
       | Node ((f1,l), (f2,r)) -> vec_vec_mul
                                    (mat_vec_mul (eMt f1) (aux l))
                                    (mat_vec_mul (eMt f2) (aux r))
-      | Leaf i ->
-        known_vector (get_base i 0 sequences)
+      | Leaf i -> known_vector (get_base i 0 sequences)
     in let res = aux t in
     begin
-      stat_dis_vec () |> vec_vec_mul res |> sum_vec_elements
+      let myvec = stat_dis_vec () |> vec_vec_mul res in
+      print_vec myvec;
+      sum_vec_elements myvec
     end
 
   (* ========= *)
@@ -120,4 +121,19 @@ let test () =
     (* TopoTree.pretty_print mytree ; *)
     JCFelsenstein.felsenstein mytree myseq |> log
     |> printf "Returns:        %F\nShould return:\t-1.52971733717731\n" ;
+  end
+
+let test2 () =
+  let mytree =
+    match
+      TopoTree.tree_of_string "0.1;0.1;1;0"
+    with
+      Ok t -> t | Error e -> TopoTree.Leaf 0 in
+  let myseq = ["C";"G"] |> JCFelsenstein.table_of_string_list
+  in
+  (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)
+  begin
+    (* TopoTree.pretty_print mytree ; *)
+    JCFelsenstein.felsenstein mytree myseq |> log
+    |> printf "Returns:        %F\nShould return:  -4.22471668644312\n" ;
   end
