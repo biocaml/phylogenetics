@@ -42,7 +42,7 @@ end
 module JCModel:EVOL_MODEL =
 struct
   include Sequence.DNA_Sequence
-  let transition a b = if a=b then -.0.75 else 0.25
+  let transition a b = if a=b then -1.0 else 1./.3. (*not sure why this convention*)
   let stat_dis a = 0.25
 end
 
@@ -68,7 +68,7 @@ struct
 
   let stat_dis_vec () = init_vec 4 (fun x -> Mod.stat_dis (Mod.base_of_int (x-1)))
 
-  let eMt t = exp (scal_mat_mult (rate_matrix ()) (4.0/.3.0*.t)) (*why?*)
+  let eMt t = exp (scal_mat_mult (rate_matrix ()) t)
 
   let known_vector b =
     init_vec 4 (fun x->if x=(int_of_base b + 1) then 1. else 0.)
