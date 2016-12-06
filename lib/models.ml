@@ -68,7 +68,7 @@ struct
 
   let stat_dis_vec () = init_vec 4 (fun x -> Mod.stat_dis (Mod.base_of_int (x-1)))
 
-  let eMt t = exp (scal_mat_mult (rate_matrix ()) t)
+  let eMt t = exp (scal_mat_mult (rate_matrix ()) (4.0/.3.0*.t)) (*why?*)
 
   let known_vector b =
     init_vec 4 (fun x->if x=(int_of_base b + 1) then 1. else 0.)
