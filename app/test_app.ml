@@ -43,7 +43,7 @@ module Test_Felsenstein = struct
 
   let test_felsenstein_tiny () =
     JCFelsenstein.felsenstein (TopoTree.tree_of_string "0.1;0.1;0;1") (JCFelsenstein.table_of_string_list ["C";"G"]) |> log |>
-    (check @@ testable (pp float) (float_compare 0.001)) "identical sequences" (-.4.48)
+    (check @@ testable (pp float) (float_compare 0.00001)) "identical sequences" (-4.22471668644312)
 
   let tests = [
     "felsenstein_tiny", `Quick, test_felsenstein_tiny
