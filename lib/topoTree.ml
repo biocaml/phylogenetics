@@ -56,8 +56,8 @@ let tree_of_string str =
 
   in
   match fulltree (List.map element_of_string (split_on_char ';' str)) with
-  | Ok (t, _) -> Ok t
-  | Error m -> Error m
+  | Ok (t, _) -> t
+  | Error m -> invalid_arg m
 
 (* Pretty printing functions for our tree type *)
 let indent n =
@@ -82,7 +82,7 @@ let pretty_print tree = print_string (pretty_tree tree)
 (* ======== *)
 let test () =
   let printline () = print_string "==========================\n" in
-  let print_treeresult = function Error m -> Printf.printf "Error: %s\n" m | Ok t -> print_string (pretty_tree t) in
+  let print_treeresult str = pretty_tree str |> print_string in
 
   printline ();
   let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;3" in (* this is incorrect on purpose *)

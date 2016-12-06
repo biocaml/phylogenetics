@@ -73,7 +73,7 @@ struct
   let known_vector b =
     init_vec 4 (fun x->if x=(int_of_base b + 1) then 1. else 0.)
 
-  let rec felsenstein t sequences =
+  let felsenstein t sequences =
     let rec aux tr = match tr with
       | Node ((f1,l), (f2,r)) -> vec_vec_mul
                                    (mat_vec_mul (eMt f1) (aux l))
@@ -82,7 +82,7 @@ struct
     in let res = aux t in
     begin
       let myvec = stat_dis_vec () |> vec_vec_mul res in
-      print_vec myvec;
+      (* print_vec myvec; *)
       sum_vec_elements myvec
     end
 
@@ -109,11 +109,7 @@ end
 module JCFelsenstein = Felsenstein (JCModel)
 
 let test () =
-  let mytree =
-    match
-      TopoTree.tree_of_string "0.0895312;0.0576168;1;0"
-    with
-      Ok t -> t | Error e -> TopoTree.Leaf 0 in
+  let mytree = TopoTree.tree_of_string "0.0895312;0.0576168;1;0" in
   let myseq = ["C";"C"] |> JCFelsenstein.table_of_string_list
   in
   (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)
@@ -124,11 +120,7 @@ let test () =
   end
 
 let test2 () =
-  let mytree =
-    match
-      TopoTree.tree_of_string "0.1;0.1;1;0"
-    with
-      Ok t -> t | Error e -> TopoTree.Leaf 0 in
+  let mytree = TopoTree.tree_of_string "0.1;0.1;1;0" in
   let myseq = ["C";"G"] |> JCFelsenstein.table_of_string_list
   in
   (* let myseq = [(0,C);(1,T);(2,T);(3,G);(4,G)] in *)

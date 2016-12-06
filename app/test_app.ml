@@ -1,6 +1,12 @@
 open Biocaml_phylogeny
 open Alcotest
 
+(** Function used to compare floats and tolerate relative imprecision.
+    Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
+let float_compare p f1 f2 =
+  let diff = f1-.f2 |> abs_float in
+  diff/.(abs_float f1) <= p
+
 module Test_Sequence = struct
   open Sequence
   open DNA_Sequence
@@ -32,7 +38,21 @@ module Test_Sequence = struct
   ]
 end
 
+module Test_Felsenstein = struct
+  open Models
+
+  let test_felsenstein_tiny () =
+    JCFelsenstein.felsenstein (TopoTree.tree_of_string "0.1;0.1;0;1") (JCFelsenstein.table_of_string_list ["C";"G"]) |> log |>
+    (check @@ testable (pp float) (float_compare 0.001)) "identical sequences" (-.4.48)
+
+  let tests = [
+    "felsenstein_tiny", `Quick, test_felsenstein_tiny
+  ]
+
+end
+
 let () =
   Alcotest.run "All tests" [
-    "Sequence", Test_Sequence.tests
+    "Sequence", Test_Sequence.tests;
+    "Felsenstein", Test_Felsenstein.tests;
   ]
