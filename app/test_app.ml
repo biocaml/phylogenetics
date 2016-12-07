@@ -8,27 +8,27 @@ let float_compare p f1 f2 =
   diff/.(abs_float f1) <= p
 
 module Test_Sequence = struct
-  open Sequence
-  open DNA_Sequence
+  module Align = Alignment.Make (Sequence.DNA)
+  module DNA = Sequence.DNA
 
   (* Reference data for tests (hand-crafted from raw DNA bases) *)
-  let mytab = [(0,[A;T;T]);
-               (1,[T;G;C]);
-               (2,[G;T;C])]
+  let mytab = Nucleotide.[(0,DNA.of_list [A;T;T]);
+                          (1,DNA.of_list [T;G;C]);
+                          (2,DNA.of_list [G;T;C])]
 
-  let myseq = [A;G;C;T]
+  let myseq = DNA.of_list Nucleotide.[A;G;C;T]
 
   (* Test functions *)
   let test_table_of_string_list () =
-    table_of_string_list ["ATT";"TGC";"GTC"] |>
-    (check @@ testable pp_table (=)) "identical sequence tables" mytab
+    Align.of_string_list ["ATT";"TGC";"GTC"] |>
+    (check @@ testable Align.pp (=)) "identical sequence tables" mytab
 
   let test_seq_of_string () =
-    seq_of_string "AGCT" |>
-    (check @@ testable pp_seq (=)) "identical sequences" myseq
+    DNA.of_string "AGCT" |>
+    (check @@ testable DNA.pp (=)) "identical sequences" myseq
 
   let test_get_base () =
-    get_base 2 2 mytab |> string_of_base |>
+    Align.get_base ~seq:2 ~pos:2 mytab |> Nucleotide.to_string |>
     (check string) "get base from sequence" "C"
 
   let tests = [
@@ -40,9 +40,10 @@ end
 
 module Test_Felsenstein = struct
   open Models
+  module Align = Alignment.Make (Sequence.DNA)
 
   let test_felsenstein_tiny () =
-    JCFelsenstein.felsenstein (TopoTree.tree_of_string "0.1;0.1;0;1") (JCFelsenstein.table_of_string_list ["C";"G"]) |> log |>
+    JCFelsenstein.felsenstein () (TopoTree.tree_of_string "0.1;0.1;0;1") (Align.of_string_list ["C";"G"]) |> log |>
     (check @@ testable (pp float) (float_compare 0.00001)) "identical sequences" (-4.22471668644312)
 
   let tests = [

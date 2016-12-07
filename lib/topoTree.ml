@@ -18,11 +18,8 @@ let split_on_char sep s =
   let rec aux sep s buf acc =
     match pop_char s with
     | None, _ -> List.rev (buf::acc)
-    | Some c, rest ->
-      if c = sep then
-        aux sep rest "" (buf::acc)
-      else
-        aux sep rest (String.concat "" [buf; String.make 1 c]) acc
+    | Some c, rest when c=sep -> aux sep rest "" (buf::acc)
+    | Some c, rest -> aux sep rest (String.concat "" [buf; String.make 1 c]) acc
   in aux sep s "" []
 
 type element = Int of int | Float of float
@@ -85,9 +82,9 @@ let test () =
   let print_treeresult str = pretty_tree str |> print_string in
 
   printline ();
+  let mytree = tree_of_string "3.;4.;1.;2.;11;5.;6.;12;13;7.;8.;16;9.;10.;14;15" in
+  print_treeresult mytree;
+  printline ();
   let mytree = tree_of_string "1.0;2.0;1;2.1;3.2;3" in (* this is incorrect on purpose *)
   print_treeresult mytree;
   printline ();
-  let mytree = tree_of_string "3.;4.;1.;2.;11;5.;6.;12;13;7.;8.;16;9.;10.;14;15" in
-  print_treeresult mytree;
-  printline ()
