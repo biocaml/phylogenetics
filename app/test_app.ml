@@ -12,9 +12,9 @@ module Test_Sequence = struct
   module DNA = Sequence.DNA
 
   (* Reference data for tests (hand-crafted from raw DNA bases) *)
-  let mytab = Nucleotide.[(0,DNA.of_list [A;T;T]);
-                          (1,DNA.of_list [T;G;C]);
-                          (2,DNA.of_list [G;T;C])]
+  let mytab = Align.of_assoc_list Nucleotide.[(0,DNA.of_list [A;T;T]);
+                                              (1,DNA.of_list [T;G;C]);
+                                              (2,DNA.of_list [G;T;C])]
 
   let myseq = DNA.of_list Nucleotide.[A;G;C;T]
 
@@ -40,10 +40,9 @@ end
 
 module Test_Felsenstein = struct
   open Models
-  module Align = Alignment.Make (Sequence.DNA)
 
   let test_felsenstein_tiny () =
-    JCFelsenstein.felsenstein () (TopoTree.tree_of_string "0.1;0.1;0;1") (Align.of_string_list ["C";"G"]) |> log |>
+    JCFelsenstein.felsenstein () (TopoTree.tree_of_string "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) |> log |>
     (check @@ testable (pp float) (float_compare 0.00001)) "identical sequences" (-4.22471668644312)
 
   let tests = [

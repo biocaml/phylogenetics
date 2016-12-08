@@ -1,8 +1,6 @@
-(** This modules holds a collection of functors and modules
-    to handle sequences, bases and sequence tables. *)
 open Sigs
 
-module Make (B:BASE)  = struct
+module Make (B:BASE) = struct
   type base = B.t
   type t = base list
 
@@ -19,7 +17,7 @@ module Make (B:BASE)  = struct
     in
     aux 0 []
 
-  let of_list l = l
+  let of_list l = l (* wow *)
 
   let to_string seq = List.map B.to_string seq |> String.concat ""
 

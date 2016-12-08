@@ -22,7 +22,9 @@ end
 module type ALIGNMENT = sig
   type t
   type base
+  type sequence
   val of_string_list: string list -> t
+  val of_assoc_list: (int*sequence) list -> t
   val pp: Format.formatter -> t -> unit
   val get_base: t -> seq:int -> pos:int -> base
 end

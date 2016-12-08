@@ -19,7 +19,7 @@ end
    ||      FUNCTORS      ||
    ||                    ||
    ======================== *)
-module Felsenstein (B:BASE) (E:EVOL_MODEL with type base=B.t)  =
+module Felsenstein (B:BASE) (E:EVOL_MODEL with type base=B.t) =
 struct
   open TopoTree
   open LATools

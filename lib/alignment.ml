@@ -1,6 +1,8 @@
 open Sigs
 
 module Make (S:SEQUENCE) = struct
+  type sequence = S.t
+  type base = S.base
   type t = (int * S.t) list
 
   let get_base tab ~seq ~pos = S.get (List.assoc seq tab) pos
@@ -10,6 +12,8 @@ module Make (S:SEQUENCE) = struct
       | [] -> List.rev acc
       | s::t -> aux ((i, (S.of_string s))::acc) (i+1) t
     in aux [] 0 l
+
+  let of_assoc_list l = l
 
   let pp fmt tab =
     List.map (function (x,y) -> Printf.sprintf "%d:%s" x (S.to_string y)) tab
