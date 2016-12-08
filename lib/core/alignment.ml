@@ -23,9 +23,8 @@ module Make (S:SEQUENCE) = struct
         |> of_string_list
     )
 
-
   let pp fmt tab =
-    List.map (function (x,y) -> Printf.sprintf "%d:%s" x (S.to_string y)) tab
-    |> String.concat ";"
+    List.map (function (x,y) -> Printf.sprintf "%d: %s" x (S.to_string y)) tab
+    |> String.concat " ; "
     |> Format.fprintf fmt "%s"
 end
