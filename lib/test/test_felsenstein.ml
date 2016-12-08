@@ -1,5 +1,6 @@
 open Biocaml_phylogeny_core
 open Alcotest
+open Biocaml_ez
 open Models
 
 (** Function used to compare floats and tolerate relative imprecision.

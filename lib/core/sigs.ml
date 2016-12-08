@@ -25,6 +25,7 @@ module type ALIGNMENT = sig
   type sequence
   val of_string_list: string list -> t
   val of_assoc_list: (int*sequence) list -> t
+  val of_fasta: string -> t
   val pp: Format.formatter -> t -> unit
   val get_base: t -> seq:int -> pos:int -> base
 end
