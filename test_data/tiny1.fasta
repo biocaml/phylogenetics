@@ -1,5 +1,7 @@
 #Best fasta file in the universe
 >T0
-AT
+ATT
 >T1
-GC
+TGC
+>T3
+GTC
