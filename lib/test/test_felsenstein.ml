@@ -1,13 +1,12 @@
 open Biocaml_phylogeny_core
 open Alcotest
+open Models
 
 (** Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
 let float_compare p f1 f2 =
   let diff = f1-.f2 |> abs_float in
   diff/.(abs_float f1) <= p
-
-open Models
 
 let test_felsenstein_tiny () =
   JCFelsenstein.felsenstein () (TopoTree.tree_of_string "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) |> log |>
