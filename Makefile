@@ -1,7 +1,7 @@
 include $(shell opam config var solvuu-build:lib)/solvuu.mk
 
 test: byte
-	./test.byte
+	./_build/app/test.byte
 
 doc: default
 	mkdir -p doc
