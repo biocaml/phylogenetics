@@ -1,3 +1,5 @@
+(** Module for phylogenetic trees. *)
+
 type index = int
 and branch = float * t
 and t =
@@ -6,6 +8,6 @@ and t =
 
 val pp: Format.formatter -> t -> unit
 
-val tree_of_string: string -> t
+val of_string: string -> t
 
 val test: unit -> unit

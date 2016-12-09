@@ -10,7 +10,7 @@ let float_compare p f1 f2 =
   diff/.(abs_float f1) <= p
 
 let test_felsenstein_tiny () =
-  JCFelsenstein.felsenstein () (TopoTree.tree_of_string "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) |> log |>
+  JCFelsenstein.felsenstein () (TopoTree.of_string "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) |> log |>
   (check @@ testable (pp float) (float_compare 0.00001)) "identical log likelihoods" (-4.22471668644312)
 
 let tests = [

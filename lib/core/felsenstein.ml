@@ -42,7 +42,7 @@ end
 module JCFelsenstein = Felsenstein (Models.JC69)
 
 let test () =
-  let mytree = TopoTree.tree_of_string "0.0895312;0.0576168;1;0" in
+  let mytree = TopoTree.of_string "0.0895312;0.0576168;1;0" in
   let myseq = ["C";"C"] |> JCFelsenstein.Align.of_string_list in
   begin
     JCFelsenstein.felsenstein () mytree myseq |> log
@@ -50,7 +50,7 @@ let test () =
   end
 
 let test2 () =
-  let mytree = TopoTree.tree_of_string "0.1;0.1;1;0" in
+  let mytree = TopoTree.of_string "0.1;0.1;1;0" in
   let myseq = ["C";"G"] |> JCFelsenstein.Align.of_string_list in
   begin
     JCFelsenstein.felsenstein () mytree myseq |> log
