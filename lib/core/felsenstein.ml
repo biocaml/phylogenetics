@@ -13,7 +13,8 @@ struct
 
   let rate_matrix e = init_mat B.alphabet_size  (transition_of_int e)
 
-  let stat_dis_vec e = init_vec B.alphabet_size (fun x -> E.stat_dis e (B.of_int (x-1)))
+  let stat_dis_vec e = init_vec B.alphabet_size
+      @@ fun x -> E.stat_dis e (B.of_int (x-1))
 
   let eMt e t = exp (scal_mat_mult (rate_matrix e) t)
 
@@ -28,11 +29,7 @@ struct
           (mat_vec_mul (eMt e f2) (aux r))
       | Leaf i -> known_vector (Align.get_base sequences ~seq:i ~pos:0)
     in let res = aux t in
-    begin
-      (* print_vec res ; *)
-      let myvec = stat_dis_vec e |> vec_vec_mul res in
-      sum_vec_elements myvec
-    end
+    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements
 end
 
 
