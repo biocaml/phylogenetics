@@ -50,12 +50,13 @@ let log_vec v = Vec.log v
 
 let unlog_vec v = Vec.exp v
 
-let scal_mat_mult a f = (Mat.scal f a ; a)
+let scal_mat_mul a f = (Mat.scal f a ; a)
+
+let scal_vec_mul v s = (scal s v ; v)
 
 let min_vec v = Vec.min v
 
 let max_vec v = Vec.max v
-
 
 
 (* ===========TESTS=========== *)

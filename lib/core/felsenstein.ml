@@ -17,7 +17,7 @@ struct
   let stat_dis_vec e = init_vec Base.alphabet_size
     @@ fun x -> E.stat_dis e (Base.of_int (x-1))
 
-  let eMt e t = exp (scal_mat_mult (rate_matrix e) t)
+  let eMt e t = exp (scal_mat_mul (rate_matrix e) t)
 
   let known_vector b =
     init_vec Base.alphabet_size

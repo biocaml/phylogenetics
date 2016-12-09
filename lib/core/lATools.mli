@@ -47,7 +47,9 @@ val sum: mat -> mat -> mat
 val exp: mat -> mat
 
 (** Multiplication of a matrix by a scalar. *)
-val scal_mat_mult: mat -> float -> mat
+val scal_mat_mul: mat -> float -> mat
+
+val scal_vec_mul: vec -> float -> vec
 
 (** Element-wise logarithm of matrix *)
 val log_mat: mat -> mat
