@@ -36,21 +36,21 @@ struct
      if it is too small (below threshold t) then
      it shifts it by the max absolute value and returns
      shifted_vector, shift*)
-  let shift t v = (v, 0.0)
+  let shift t acc v = (scal_vec_add v 1.0, acc -. 1.0)
 
   let felsenstein_log param tree seq =
     let rec aux tr =
-      let local_res = match tr with
+      match tr with
         | Node ((f1,l), (f2,r)) -> node f1 l f2 r
         | Leaf i -> leaf i
-      in shift 0.0 local_res
 
-    and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector |> log_vec
+    and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector |> log_vec, 0.
 
     and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
-        vec_vec_add
-          (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
-          (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
+      vec_vec_add
+        (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
+        (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
+      |> shift 0.0 (s_l +. s_r)
 
     in let statdis = stat_dis_vec param |> log_vec in
     match aux tree with (x,y) ->
