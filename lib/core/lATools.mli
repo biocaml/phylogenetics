@@ -62,6 +62,10 @@ val log_vec: vec -> vec
 (** Element-wise exponential of matrix*)
 val unlog_vec: vec -> vec
 
+val min_vec: vec -> float
+
+val max_vec: vec -> float
+
 
 (** {6 Printing and tests}*)
 (** Prints a matrix to the standard output (display may be messy). *)

@@ -36,7 +36,11 @@ struct
      if it is too small (below threshold t) then
      it shifts it by the max absolute value and returns
      shifted_vector, shift*)
-  let shift t acc v = (scal_vec_add v 1.0, acc -. 1.0)
+  let shift t acc v =
+    let min_e = min_vec v in
+    if min_e > t then (v, acc)
+    else
+      (scal_vec_add v min_e, acc -. min_e)
 
   let felsenstein_log param tree seq =
     let rec aux tr =
@@ -50,11 +54,12 @@ struct
       vec_vec_add
         (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
         (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
-      |> shift 0.0 (s_l +. s_r)
+      |> shift (-1.0) (s_l +. s_r)
 
     in let statdis = stat_dis_vec param |> log_vec in
     match aux tree with (x,y) ->
-      scal_vec_add x y |> vec_vec_add statdis |> unlog_vec |> sum_vec_elements |> log
+      scal_vec_add x y |> vec_vec_add statdis |> unlog_vec
+      |> sum_vec_elements |> log
 end
 
 
