@@ -45,8 +45,8 @@ struct
   let felsenstein_log param tree seq =
     let rec aux tr =
       match tr with
-        | Node ((f1,l), (f2,r)) -> node f1 l f2 r
-        | Leaf i -> leaf i
+      | Node ((f1,l), (f2,r)) -> node f1 l f2 r
+      | Leaf i -> leaf i
 
     and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector |> log_vec, 0.
 
@@ -54,7 +54,7 @@ struct
       vec_vec_add
         (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
         (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
-      |> shift (-1.0) (s_l +. s_r)
+      |> shift (-100.0) (s_l +. s_r)
 
     in let statdis = stat_dis_vec param |> log_vec in
     match aux tree with (x,y) ->
@@ -86,4 +86,17 @@ let test2 () =
     |> printf "Normal..: %F\n" ;
     JCFelsenstein.felsenstein_log () mytree myseq
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
+  end
+
+let test3 () =
+  let mytree = TopoTree.of_string
+      "1.2;2.1;1.3;1.4;0;1.0;1.1;1;2;2.1;1.9;3;1.2;1.3;1.3;1.4;4;5;6"
+  in let myseq =
+       ["C";"G";"C";"T";"A";"T";"G"]
+       |> JCFelsenstein.Align.of_string_list
+  in begin
+    JCFelsenstein.felsenstein () mytree myseq
+    |> printf "Normal..: %F\n" ;
+    JCFelsenstein.felsenstein_log () mytree myseq
+    |> printf "Log.....: %F\n"
   end
