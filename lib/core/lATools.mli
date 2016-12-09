@@ -51,6 +51,8 @@ val scal_mat_mul: mat -> float -> mat
 
 val scal_vec_mul: vec -> float -> vec
 
+val scal_vec_add: vec -> float -> vec
+
 (** Element-wise logarithm of matrix *)
 val log_mat: mat -> mat
 

@@ -30,21 +30,31 @@ struct
         Align.get_base sequences ~seq:i ~pos:0
         |> known_vector
     in let res = aux t in
-    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements
+    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log
+
+  (* takes a vector in log space ;
+     if it is too small (below threshold t) then
+     it shifts it by the max absolute value and returns
+     shifted_vector, shift*)
+  let shift t v = (v, 0.0)
 
   let felsenstein_log param tree seq =
-    let rec aux tr = match tr with
-      | Node ((f1,l), (f2,r)) ->
+    let rec aux tr =
+      let local_res = match tr with
+        | Node ((f1,l), (f2,r)) -> node f1 l f2 r
+        | Leaf i -> leaf i
+      in shift 0.0 local_res
 
+    and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector |> log_vec
+
+    and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
         vec_vec_add
-          (mat_vec_mul (eMt param f1) (aux l |> unlog_vec) |> log_vec)
-          (mat_vec_mul (eMt param f2) (aux r |> unlog_vec) |> log_vec)
+          (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
+          (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
 
-      | Leaf i ->
-        Align.get_base seq ~seq:i ~pos:0
-        |> known_vector |> log_vec
     in let statdis = stat_dis_vec param |> log_vec in
-    aux tree |> vec_vec_add statdis |> unlog_vec |> sum_vec_elements |> log
+    match aux tree with (x,y) ->
+      scal_vec_add x y |> vec_vec_add statdis |> unlog_vec |> sum_vec_elements |> log
 end
 
 
@@ -59,7 +69,7 @@ let test () =
   let mytree = TopoTree.of_string "0.0895312;0.0576168;1;0" in
   let myseq = ["C";"C"] |> JCFelsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein () mytree myseq |> log
+    JCFelsenstein.felsenstein () mytree myseq
     |> printf "Returns: %F\nBio++..: -1.52971733717731\n" ;
   end
 
@@ -67,7 +77,7 @@ let test2 () =
   let mytree = TopoTree.of_string "0.1;0.1;1;0" in
   let myseq = ["C";"G"] |> JCFelsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein () mytree myseq |> log
+    JCFelsenstein.felsenstein () mytree myseq
     |> printf "Normal..: %F\n" ;
     JCFelsenstein.felsenstein_log () mytree myseq
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"

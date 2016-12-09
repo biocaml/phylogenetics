@@ -54,6 +54,8 @@ let scal_mat_mul a f = (Mat.scal f a ; a)
 
 let scal_vec_mul v s = (scal s v ; v)
 
+let scal_vec_add v s = Vec.add_const s v
+
 let min_vec v = Vec.min v
 
 let max_vec v = Vec.max v
