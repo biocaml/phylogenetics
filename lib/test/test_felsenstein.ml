@@ -1,7 +1,7 @@
 open Biocaml_phylogeny_core
 open Alcotest
 open Biocaml_ez
-open Models
+open Felsenstein
 
 (** Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
