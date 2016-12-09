@@ -1,25 +1,26 @@
 open Printf
 open Sigs
 
-module Felsenstein (B:BASE) (E:EVOL_MODEL with type base=B.t) =
+module Felsenstein (E:EVOL_MODEL) =
 struct
   open TopoTree
   open LATools
 
-  module Align = Alignment.Make (Sequence.Make (B))
+  module Base = E.Base
+  module Align = Alignment.Make (Sequence.Make (Base))
 
   let transition_of_int e x y =
-    E.transition e (B.of_int (x-1)) (B.of_int (y-1))
+    E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
 
-  let rate_matrix e = init_mat B.alphabet_size  (transition_of_int e)
+  let rate_matrix e = init_mat Base.alphabet_size  (transition_of_int e)
 
-  let stat_dis_vec e = init_vec B.alphabet_size
-      @@ fun x -> E.stat_dis e (B.of_int (x-1))
+  let stat_dis_vec e = init_vec Base.alphabet_size
+      @@ fun x -> E.stat_dis e (Base.of_int (x-1))
 
   let eMt e t = exp (scal_mat_mult (rate_matrix e) t)
 
   let known_vector b =
-    init_vec B.alphabet_size (fun x->if x=B.to_int b + 1 then 1. else 0.)
+    init_vec Base.alphabet_size (fun x->if x=Base.to_int b + 1 then 1. else 0.)
 
   let felsenstein e t (sequences:Align.t) =
     let rec aux tr = match tr with
@@ -38,7 +39,7 @@ end
    ||       TESTS        ||
    ||                    ||
    ======================== *)
-module JCFelsenstein = Felsenstein (Nucleotide) (Models.JC69)
+module JCFelsenstein = Felsenstein (Models.JC69)
 
 let test () =
   let mytree = TopoTree.tree_of_string "0.0895312;0.0576168;1;0" in

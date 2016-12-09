@@ -34,8 +34,8 @@ end
 (* evolution models  *)
 module type EVOL_MODEL = sig
   type t
-  type base
-  val transition: t -> base -> base -> float
-  val stat_dis: t -> base -> float
+  module Base:BASE
+  val transition: t -> Base.t -> Base.t -> float
+  val stat_dis: t -> Base.t -> float
 end
 
