@@ -3,9 +3,10 @@ include $(shell opam config var solvuu-build:lib)/solvuu.mk
 test: byte
 	./_build/app/test_app.byte
 
-merlin:
-	rm -f .merlin
+bug:
+	rm -f .merlin .ocamlinit
 	make .merlin
+	make .ocamlinit
 
 doc: default
 	mkdir -p doc

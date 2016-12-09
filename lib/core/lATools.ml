@@ -44,11 +44,11 @@ let exp a =
       acc
   in aux 0 (Mat.make0 (Mat.dim1 a) (Mat.dim2 a))
 
-let log_mat = Mat.log
+let log_mat m = Mat.log m
 
-let log_vec = Vec.log
+let log_vec v = Vec.log v
 
-let unlog_vec = Vec.exp
+let unlog_vec v = Vec.exp v
 
 let scal_mat_mult a f = (Mat.scal f a ; a)
 
