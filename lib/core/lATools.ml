@@ -44,4 +44,17 @@ let exp a =
       acc
   in aux 0 (Mat.make0 (Mat.dim1 a) (Mat.dim2 a))
 
+let log_mat = Mat.log
+
+let log_vec = Vec.log
+
+let unlog_vec = Vec.exp
+
 let scal_mat_mult a f = (Mat.scal f a ; a)
+
+
+
+(* ===========TESTS=========== *)
+let test () =
+  let testvec = init_vec 4 (function 1->2.|2->1.5|3->1.2|4->2.1) in
+  testvec |> log_vec |> pp_vec Format.std_formatter

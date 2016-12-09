@@ -25,10 +25,8 @@ val init_vec: int -> (int -> float) -> vec
     multiplied by scalar alpha.*)
 val mult: mat -> ?alpha:float -> mat -> mat
 
-(** TO DO *)
 val mat_vec_mul: mat -> vec -> vec
 
-(** TO DO *)
 val vec_vec_add: vec -> vec -> vec
 
 (** Element-wise product of two vectors. *)
@@ -51,6 +49,14 @@ val exp: mat -> mat
 (** Multiplication of a matrix by a scalar. *)
 val scal_mat_mult: mat -> float -> mat
 
+(** Element-wise logarithm of matrix *)
+val log_mat: mat -> mat
+
+(** Element-wise logarithm of vector *)
+val log_vec: vec -> vec
+
+(** Element-wise exponential of matrix*)
+val unlog_vec: vec -> vec
 
 
 (** {6 Printing and tests}*)
