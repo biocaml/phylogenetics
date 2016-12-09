@@ -1,11 +1,11 @@
 type index = int
-and branch = float * tree
-and tree =
+and branch = float * t
+and t =
   | Node of branch * branch
   | Leaf of index
 
-val pretty_print: tree -> unit
+val pp: Format.formatter -> t -> unit
 
-val tree_of_string: string -> tree
+val tree_of_string: string -> t
 
 val test: unit -> unit

@@ -2,8 +2,8 @@
    whose edges are labelled with lengths (floats)
    and whose leaves are labelled with sequence indexes (ints)*)
 type index = int
-and branch = float * tree
-and tree =
+and branch = float * t
+and t =
   | Node of branch * branch
   | Leaf of index
 
@@ -71,7 +71,7 @@ let pretty_tree tree =
   in
   aux tree 0
 
-let pretty_print tree = print_string (pretty_tree tree)
+let pp fmt tree = pretty_tree tree |> Format.fprintf fmt "%s"
 
 
 (* ======== *)
