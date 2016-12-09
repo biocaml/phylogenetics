@@ -56,35 +56,19 @@ let of_string str =
   | Ok (t, _) -> t
   | Error m -> invalid_arg m
 
-(* Pretty printing functions for our tree type *)
-let indent n =
-  let f x = ' ' in
-  String.init (4*n) f
-
-let pretty_tree tree =
+(* Pretty printing *)
+let pp fmt tree =
   let rec aux tree level =
+    let indent n =
+      let f x = ' ' in
+      String.init (4*n) f
+    in
     match tree with
     | Leaf (index) ->
       Printf.sprintf "Index: %s\n" (string_of_int index)
     | Node ((f1,b1),(f2,b2)) ->
-      Printf.sprintf "Node\n%s=(%F)=> %s%s=(%F)=> %s" (indent level) f1 (aux b1 (level+1)) (indent level) f2 (aux b2 (level+1))
+      Printf.sprintf "Node\n%s=(%F)=> %s%s=(%F)=> %s"
+        (indent level) f1 (aux b1 (level+1))
+        (indent level) f2 (aux b2 (level+1))
   in
-  aux tree 0
-
-let pp fmt tree = pretty_tree tree |> Format.fprintf fmt "%s"
-
-
-(* ======== *)
-(*   TEST   *)
-(* ======== *)
-let test () =
-  let printline () = print_string "==========================\n" in
-  let print_treeresult str = pretty_tree str |> print_string in
-
-  printline ();
-  let mytree = of_string "3.;4.;1.;2.;11;5.;6.;12;13;7.;8.;16;9.;10.;14;15" in
-  print_treeresult mytree;
-  printline ();
-  let mytree = of_string "1.0;2.0;1;2.1;3.2;3" in (* this is incorrect on purpose *)
-  print_treeresult mytree;
-  printline ();
+  aux tree 0 |> Format.fprintf fmt "%s"

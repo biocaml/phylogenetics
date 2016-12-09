@@ -9,5 +9,3 @@ and t =
 val pp: Format.formatter -> t -> unit
 
 val of_string: string -> t
-
-val test: unit -> unit

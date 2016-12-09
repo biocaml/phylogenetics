@@ -4,7 +4,8 @@ open Alcotest
 let mytree = TopoTree.Node (
     (0.135, TopoTree.Node (
         (0.11, TopoTree.Leaf 0),
-        (0.18, TopoTree.Leaf 1))
+        (0.18, TopoTree.Leaf 1)
+      )
     ),
     (0.23, TopoTree.Leaf 2)
   )
