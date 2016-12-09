@@ -9,18 +9,15 @@ struct
   module Base = E.Base
   module Align = Alignment.Make (Sequence.Make (Base))
 
-  let transition_of_int e x y =
-    E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
-
-  let rate_matrix e = init_mat Base.alphabet_size  (transition_of_int e)
+  let rate_matrix e = init_mat Base.alphabet_size
+    @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
 
   let stat_dis_vec e = init_vec Base.alphabet_size
     @@ fun x -> E.stat_dis e (Base.of_int (x-1))
 
   let eMt e t = exp (scal_mat_mul (rate_matrix e) t)
 
-  let known_vector b =
-    init_vec Base.alphabet_size
+  let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
 
   let felsenstein e t (sequences:Align.t) =
