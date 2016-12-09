@@ -27,3 +27,5 @@ let of_int = function
 
 (** Prints single base without line break. *)
 let print_base base = print_string (to_string base)
+
+let alphabet_size = 4

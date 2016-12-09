@@ -7,6 +7,7 @@ module type BASE = sig
   val to_int: t -> int
   val print_base: t -> unit
   val to_string: t -> string
+  val alphabet_size: int
 end
 
 module type SEQUENCE = sig

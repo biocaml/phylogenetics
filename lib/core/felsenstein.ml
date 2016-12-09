@@ -11,14 +11,14 @@ struct
   let transition_of_int e x y =
     E.transition e (B.of_int (x-1)) (B.of_int (y-1))
 
-  let rate_matrix e = init_mat 4 (transition_of_int e)
+  let rate_matrix e = init_mat B.alphabet_size  (transition_of_int e)
 
-  let stat_dis_vec e = init_vec 4 (fun x -> E.stat_dis e (B.of_int (x-1)))
+  let stat_dis_vec e = init_vec B.alphabet_size (fun x -> E.stat_dis e (B.of_int (x-1)))
 
   let eMt e t = exp (scal_mat_mult (rate_matrix e) t)
 
   let known_vector b =
-    init_vec 4 (fun x->if x=B.to_int b + 1 then 1. else 0.)
+    init_vec B.alphabet_size (fun x->if x=B.to_int b + 1 then 1. else 0.)
 
   let felsenstein e t (sequences:Align.t) =
     let rec aux tr = match tr with
