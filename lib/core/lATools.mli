@@ -11,12 +11,6 @@ type vec
 
 
 (** {6 Matrix creation} *)
-(** A matrix with random contents for test purposes. Call to generate matrix. *)
-val test_mat: mat
-
-(** The identity matrix (intended for tests). Call to generate matrix. *)
-val test_id: unit -> mat
-
 (** Initialises a square matrix from a int->int->float function. *)
 val init_mat: int -> (int -> int -> float) -> mat
 
@@ -61,14 +55,7 @@ val scal_mat_mult: mat -> float -> mat
 
 (** {6 Printing and tests}*)
 (** Prints a matrix to the standard output (display may be messy). *)
-val print_mat: mat -> unit
+val pp_mat: Format.formatter -> mat -> unit
 
 (** Prints a vector to the standard output. *)
-val print_vec: vec -> unit
-
-(** Functions which performs various tests
-    and displays results to standard output *)
-val test: unit -> unit
-
-(** Tests the exponentiation function specifically. *)
-val exptest: unit -> unit
+val pp_vec: Format.formatter -> vec -> unit
