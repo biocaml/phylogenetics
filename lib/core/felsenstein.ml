@@ -30,7 +30,7 @@ struct
         Align.get_base sequences ~seq:i ~pos:0
         |> known_vector
     in let res = aux t in
-    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log
+    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements
 
   (* takes a vector in log space ;
      if it is too small (below threshold t) then
@@ -59,7 +59,7 @@ struct
     in let statdis = stat_dis_vec param |> log_vec in
     match aux tree with (x,y) ->
       scal_vec_add x y |> vec_vec_add statdis |> unlog_vec
-      |> sum_vec_elements |> log
+      |> sum_vec_elements
 end
 
 
@@ -88,13 +88,16 @@ let test2 () =
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
   end
 
+let mytree = TopoTree.of_string
+    "0.21;0.1;0.3;0.4;0;0.8;0.1;1;2;0.12;0.9;3;0.2;0.3;0.3;0.4;4;5;6"
+
+let myseq =
+  ["C";"G";"C";"T";"A";"T";"G"]
+  |> JCFelsenstein.Align.of_string_list
+
+
 let test3 () =
-  let mytree = TopoTree.of_string
-      "1.2;2.1;1.3;1.4;0;1.0;1.1;1;2;2.1;1.9;3;1.2;1.3;1.3;1.4;4;5;6"
-  in let myseq =
-       ["C";"G";"C";"T";"A";"T";"G"]
-       |> JCFelsenstein.Align.of_string_list
-  in begin
+  begin
     JCFelsenstein.felsenstein () mytree myseq
     |> printf "Normal..: %F\n" ;
     JCFelsenstein.felsenstein_log () mytree myseq
