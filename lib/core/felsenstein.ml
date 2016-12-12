@@ -30,19 +30,19 @@ struct
         Align.get_base sequences ~seq:i ~pos:0
         |> known_vector
     in let res = aux t in
-    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log 
+    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log
 
   (* takes a vector in log space ;
      if it is too small (below threshold t) then
      it shifts it by the max absolute value and returns
      shifted_vector, shift*)
   let shift t acc v =
-    let min_e = min_vec v in
-    if min_e > t then (v, acc)
+    let max_e = max_vec v in
+    if max_e > t then (v, acc)
     else
-      (scal_vec_add v (-.min_e), acc +. min_e)
+      (scal_vec_add v (-.max_e), acc +. max_e)
 
-  let felsenstein_log param tree seq =
+  let felsenstein_logshift param tree seq =
     let rec aux tr =
       match tr with
       | Node ((f1,l), (f2,r)) -> node f1 l f2 r
@@ -60,6 +60,32 @@ struct
     match aux tree with (x,y) ->
       scal_vec_add x y |> vec_vec_add statdis |> unlog_vec
       |> sum_vec_elements |> log
+
+
+  (* Same as shift but divides/multiplies instead of adding/substracting *)
+  let shift_mult t acc v =
+    let max_e = max_vec v in
+    if max_e > t then (v, acc)
+    else
+      (scal_vec_mul v (1.0/.max_e), acc *. max_e)
+
+  let felsenstein_shift param tree seq =
+    let rec aux tr =
+      match tr with
+      | Node ((f1,l), (f2,r)) -> node f1 l f2 r
+      | Leaf i -> leaf i
+
+    and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector, 1.
+
+    and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
+      vec_vec_mul
+        (mat_vec_mul (eMt param f1) v_l)
+        (mat_vec_mul (eMt param f2) v_r)
+      |> shift_mult (0.1) (s_l *. s_r)
+
+    in let statdis = stat_dis_vec param in
+    match aux tree with (x,y) ->
+      scal_vec_mul x y |> vec_vec_mul statdis |> sum_vec_elements |> log
 end
 
 
@@ -84,7 +110,7 @@ let test2 () =
   begin
     JCFelsenstein.felsenstein () mytree myseq
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_log () mytree myseq
+    JCFelsenstein.felsenstein_logshift () mytree myseq
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
   end
 
@@ -100,6 +126,8 @@ let test3 () =
   begin
     JCFelsenstein.felsenstein () mytree myseq
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_log () mytree myseq
-    |> printf "Log.....: %F\n"
+    JCFelsenstein.felsenstein_logshift () mytree myseq
+    |> printf "LogShift: %F\n" ;
+    JCFelsenstein.felsenstein_shift () mytree myseq
+    |> printf "Shift...: %F\n"
   end
