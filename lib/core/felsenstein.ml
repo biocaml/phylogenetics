@@ -32,15 +32,21 @@ struct
     in let res = aux t in
     stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log
 
+  let shift vec_op div sum thre acc v =
+    if min_vec v > thre then (v, acc)
+    else
+      let mv = max_vec v in
+      (vec_op v (div mv), sum acc mv)
+
   (* takes a vector in log space ;
      if it is too small (below threshold t) then
      it shifts it by the max absolute value and returns
      shifted_vector, shift*)
-  let shift t acc v =
-    let max_e = max_vec v in
-    if max_e > t then (v, acc)
-    else
-      (scal_vec_add v (-.max_e), acc +. max_e)
+  (* let shift_add t acc v = *)
+  (*   let max_e = max_vec v in *)
+  (*   if max_e > t then (v, acc) *)
+  (*   else *)
+  (*     (scal_vec_add v (-.max_e), acc +. max_e) *)
 
   let felsenstein_logshift param tree seq =
     let rec aux tr =
@@ -54,7 +60,7 @@ struct
       vec_vec_add
         (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
         (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
-      |> shift (-10.0) (s_l +. s_r)
+      |> shift (scal_vec_add) ((-.) 0.) (+.) (-10.0) (s_l +. s_r)
 
     in let statdis = stat_dis_vec param |> log_vec in
     match aux tree with (x,y) ->
@@ -63,11 +69,11 @@ struct
 
 
   (* Same as shift but divides/multiplies instead of adding/substracting *)
-  let shift_mult t acc v =
-    let max_e = max_vec v in
-    if max_e > t then (v, acc)
-    else
-      (scal_vec_mul v (1.0/.max_e), acc *. max_e)
+  (* let shift_mult t acc v = *)
+  (*   let max_e = max_vec v in *)
+  (*   if max_e > t then (v, acc) *)
+  (*   else *)
+  (*     (scal_vec_mul v (1.0/.max_e), acc *. max_e) *)
 
   let felsenstein_shift param tree seq =
     let rec aux tr =
@@ -81,7 +87,7 @@ struct
       vec_vec_mul
         (mat_vec_mul (eMt param f1) v_l)
         (mat_vec_mul (eMt param f2) v_r)
-      |> shift_mult (0.1) (s_l *. s_r)
+      |> shift (scal_vec_mul) ((/.) 1.) ( *. ) (0.1) (s_l *. s_r)
 
     in let statdis = stat_dis_vec param in
     match aux tree with (x,y) ->
