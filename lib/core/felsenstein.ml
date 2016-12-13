@@ -32,66 +32,58 @@ struct
     in let res = aux t in
     stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log
 
-  let shift vec_op div sum thre acc v =
-    if min_vec v > thre then (v, acc)
+  let shift_generic vec_op div sum thre acc1 acc2 v =
+    if min_vec v > thre then (v, sum acc1 acc2)
     else
       let mv = max_vec v in
-      (vec_op v (div mv), sum acc mv)
+      (vec_op v (div mv), sum (sum acc1 acc2) mv)
 
-  (* takes a vector in log space ;
-     if it is too small (below threshold t) then
-     it shifts it by the max absolute value and returns
-     shifted_vector, shift*)
-  (* let shift_add t acc v = *)
-  (*   let max_e = max_vec v in *)
-  (*   if max_e > t then (v, acc) *)
-  (*   else *)
-  (*     (scal_vec_add v (-.max_e), acc +. max_e) *)
+  let unshift vec_op (v, acc) = vec_op v acc
 
-  let felsenstein_logshift param tree seq =
+  let id x = x
+
+  let felsenstein_generic shift unshift combine post zero pre param tree seq =
     let rec aux tr =
       match tr with
       | Node ((f1,l), (f2,r)) -> node f1 l f2 r
       | Leaf i -> leaf i
 
-    and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector |> log_vec, 0.
+    and leaf i = Align.get_base seq ~seq:i ~pos:0
+                 |> known_vector |> post |> shift zero zero
 
     and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
-      vec_vec_add
-        (mat_vec_mul (eMt param f1) (unlog_vec v_l) |> log_vec)
-        (mat_vec_mul (eMt param f2) (unlog_vec v_r) |> log_vec)
-      |> shift (scal_vec_add) ((-.) 0.) (+.) (-10.0) (s_l +. s_r)
-
-    in let statdis = stat_dis_vec param |> log_vec in
-    match aux tree with (x,y) ->
-      scal_vec_add x y |> vec_vec_add statdis |> unlog_vec
-      |> sum_vec_elements |> log
-
-
-  (* Same as shift but divides/multiplies instead of adding/substracting *)
-  (* let shift_mult t acc v = *)
-  (*   let max_e = max_vec v in *)
-  (*   if max_e > t then (v, acc) *)
-  (*   else *)
-  (*     (scal_vec_mul v (1.0/.max_e), acc *. max_e) *)
-
-  let felsenstein_shift param tree seq =
-    let rec aux tr =
-      match tr with
-      | Node ((f1,l), (f2,r)) -> node f1 l f2 r
-      | Leaf i -> leaf i
-
-    and leaf i = Align.get_base seq ~seq:i ~pos:0 |> known_vector, 1.
-
-    and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
-      vec_vec_mul
-        (mat_vec_mul (eMt param f1) v_l)
-        (mat_vec_mul (eMt param f2) v_r)
-      |> shift (scal_vec_mul) ((/.) 1.) ( *. ) (0.1) (s_l *. s_r)
+      combine
+        (mat_vec_mul (eMt param f1) (pre v_l) |> post)
+        (mat_vec_mul (eMt param f2) (pre v_r) |> post)
+      |> shift s_l s_r
 
     in let statdis = stat_dis_vec param in
-    match aux tree with (x,y) ->
-      scal_vec_mul x y |> vec_vec_mul statdis |> sum_vec_elements |> log
+    aux tree |> unshift |> pre |> vec_vec_mul statdis |> sum_vec_elements |> log
+
+  let felsenstein = felsenstein_generic
+      (fun x y z-> z, None)
+      (function (x,y) -> x)
+      vec_vec_mul
+      id
+      None
+      id
+
+  let felsenstein_logshift = felsenstein_generic
+      (shift_generic scal_vec_add ((-.) 0.) (+.) (-1.0))
+      (unshift scal_vec_add)
+      vec_vec_add
+      log_vec
+      0.0
+      unlog_vec
+
+  let felsenstein_shift = felsenstein_generic
+      (shift_generic scal_vec_mul ((/.) 1.) ( *. ) (0.1))
+      (unshift scal_vec_mul)
+      vec_vec_mul
+      id
+      1.0
+      id
+
 end
 
 
