@@ -32,7 +32,7 @@ struct
 
 
   (* ======================= *)
-  (* | Generic felsenstein | *)
+  (* | Generic Felsenstein | *)
   (* ======================= *)
   let felsenstein
       ?shift:(shift=(fun x y z->z, 1.0))
