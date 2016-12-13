@@ -20,18 +20,6 @@ struct
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
 
-  let felsenstein e t (sequences:Align.t) =
-    let rec aux tr = match tr with
-      | Node ((f1,l), (f2,r)) ->
-        vec_vec_mul
-          (mat_vec_mul (eMt e f1) (aux l))
-          (mat_vec_mul (eMt e f2) (aux r))
-      | Leaf i ->
-        Align.get_base sequences ~seq:i ~pos:0
-        |> known_vector
-    in let res = aux t in
-    stat_dis_vec e |> vec_vec_mul res |> sum_vec_elements |> log
-
   let shift_generic vec_op div sum thre acc1 acc2 v =
     if min_vec v > thre then (v, sum acc1 acc2)
     else
