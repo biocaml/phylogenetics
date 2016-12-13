@@ -1,5 +1,6 @@
 open Printf
 open Sigs
+open Core_kernel.Std
 
 module Felsenstein (E:EVOL_MODEL) =
 struct
@@ -7,7 +8,7 @@ struct
   open LATools
 
   module Base = E.Base
-  module Align = Alignment.Make (Sequence.Make (Base))
+  module Align = Alignment.Make (Seq.Make (Base))
 
   let rate_matrix e = init_mat Base.alphabet_size
     @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
@@ -28,8 +29,6 @@ struct
 
   let unshift vec_op (v, acc) = vec_op v acc
 
-  let id x = x
-
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
@@ -38,10 +37,11 @@ struct
       ?shift:(shift=(fun x y z->z, 1.0))
       ?unshift:(unshift=(function (x,y)-> x))
       ?combine:(combine=vec_vec_mul)
-      ?post:(post=id)
-      ?pre:(pre=id)
+      ?post:(post=Core_kernel.Std.ident)
+      ?pre:(pre=Core_kernel.Std.ident)
       ?zero:(zero=1.0)
-      param tree seq =
+      param tree seq
+    =
 
     let rec aux tr =
       match tr with

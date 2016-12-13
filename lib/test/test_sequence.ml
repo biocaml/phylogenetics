@@ -1,7 +1,7 @@
 open Biocaml_phylogeny_core
 open Alcotest
 
-module DNA = Sequence.DNA
+module DNA = Seq.DNA
 
 let myseq = DNA.of_list Nucleotide.[A;G;C;T]
 

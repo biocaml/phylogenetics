@@ -25,7 +25,7 @@ let make_lib ?findlib_deps ?internal_deps lib_name =
 let make_app = Project.app ~thread
 
 let core_lib = make_lib "core"
-    ~findlib_deps:["lacaml" ; "biocaml.ez"]
+    ~findlib_deps:["lacaml" ; "biocaml.ez" ; "core_kernel"]
 
 let test_lib = make_lib "test"
     ~findlib_deps:["alcotest"]
