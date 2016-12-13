@@ -30,7 +30,19 @@ struct
 
   let id x = x
 
-  let felsenstein_generic shift unshift combine post pre zero param tree seq =
+
+  (* ======================= *)
+  (* | Generic felsenstein | *)
+  (* ======================= *)
+  let felsenstein
+      ?shift:(shift=(fun x y z->z, 1.0))
+      ?unshift:(unshift=(function (x,y)-> x))
+      ?combine:(combine=vec_vec_mul)
+      ?post:(post=id)
+      ?pre:(pre=id)
+      ?zero:(zero=1.0)
+      param tree seq =
+
     let rec aux tr =
       match tr with
       | Node ((f1,l), (f2,r)) -> node f1 l f2 r
@@ -48,23 +60,20 @@ struct
     in let statdis = stat_dis_vec param in
     aux tree |> unshift |> pre |> vec_vec_mul statdis |> sum_vec_elements |> log
 
-  let felsenstein = felsenstein_generic
-      (fun x y z-> z, None)
-      (function (x,y) -> x)
-      vec_vec_mul
-      id id None
 
-  let felsenstein_logshift = felsenstein_generic
-      (shift_generic scal_vec_add ((-.) 0.) (+.) (-1.0))
-      (unshift scal_vec_add)
-      vec_vec_add
-      log_vec unlog_vec 0.0
+  (* ============================ *)
+  (* | Specific implementations | *)
+  (* ============================ *)
+  let felsenstein_logshift = felsenstein
+      ~shift:(shift_generic scal_vec_add ((-.) 0.) (+.) (-1.0))
+      ~unshift:(unshift scal_vec_add)
+      ~combine:vec_vec_add
+      ~post:log_vec ~pre:unlog_vec ~zero:0.0
 
-  let felsenstein_shift = felsenstein_generic
-      (shift_generic scal_vec_mul ((/.) 1.) ( *. ) (0.1))
-      (unshift scal_vec_mul)
-      vec_vec_mul
-      id id 1.0
+  let felsenstein_shift = felsenstein
+      ~shift:(shift_generic scal_vec_mul ((/.) 1.) ( *. ) (0.1))
+      ~unshift:(unshift scal_vec_mul)
+      ~combine:vec_vec_mul
 end
 
 
