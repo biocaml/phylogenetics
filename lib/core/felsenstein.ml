@@ -57,8 +57,8 @@ struct
         (mat_vec_mul (eMt param f2) (pre v_r) |> post)
       |> shift s_l s_r
 
-    in let statdis = stat_dis_vec param in
-    aux tree |> unshift |> pre |> vec_vec_mul statdis |> sum_vec_elements |> log
+    in let statdis = stat_dis_vec param |> post in
+    aux tree |> unshift |> combine statdis |> pre |> sum_vec_elements |> log
 
 
   (* ============================ *)
