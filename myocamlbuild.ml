@@ -13,11 +13,13 @@ let thread = ()
 
 let undash = String.map (function '-' -> '_' | c -> c)
 
-let make_lib ?findlib_deps ?internal_deps lib_name =
+let make_lib ?findlib_deps ?internal_deps ?ml_files ?mli_files lib_name =
   let wrap_name = sprintf "%s_%s" project_name lib_name in
   Project.lib wrap_name
     ~thread
     ?findlib_deps ?internal_deps
+    ?ml_files
+    ?mli_files
     ~dir:(sprintf "lib/%s" lib_name)
     ~style:(`Pack wrap_name)
     ~pkg:(sprintf "%s.%s" project_name lib_name)
@@ -26,6 +28,8 @@ let make_app = Project.app ~thread
 
 let core_lib = make_lib "core"
     ~findlib_deps:["lacaml" ; "biocaml.ez" ; "core_kernel"]
+    ~ml_files:(`Add ["newick_lexer.ml" ; "newick_parser.ml"])
+    ~mli_files:(`Add ["newick_parser.mli"])
 
 let test_lib = make_lib "test"
     ~findlib_deps:["alcotest"]
@@ -58,30 +62,4 @@ let items = [ test_app ; test_lib ; core_lib ]
 
 let () =
   let open Solvuu_build.Std.Project in
-
-  (* Compute graph to check for cycles and other errors. *)
-  ignore (Graph.of_list items);
-
-  let libs = filter_libs items in
-  let apps = filter_apps items in
-
-  Ocamlbuild_plugin.dispatch @@ function
-  | Ocamlbuild_plugin.After_rules -> (
-      Ocamlbuild_plugin.clear_rules();
-
-      List.iter libs ~f:build_lib;
-      List.iter apps ~f:build_app;
-
-      build_static_file ".merlin" (merlin_file items);
-      build_static_file ".ocamlinit" (ocamlinit_file items);
-      build_static_file "project.mk" (makefile items ~project_name);
-      (
-        match meta_file ~version libs with
-        | Some x -> Findlib.build_meta_file x
-        | None -> ()
-      );
-      build_static_file (sprintf "%s.install" project_name)
-        (install_file items);
-    )
-  | _ -> ()
-
+  solvuu1 ~project_name ~version items
