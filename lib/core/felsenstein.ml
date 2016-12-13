@@ -42,7 +42,7 @@ struct
 
   let id x = x
 
-  let felsenstein_generic shift unshift combine post zero pre param tree seq =
+  let felsenstein_generic shift unshift combine post pre zero param tree seq =
     let rec aux tr =
       match tr with
       | Node ((f1,l), (f2,r)) -> node f1 l f2 r
@@ -64,26 +64,19 @@ struct
       (fun x y z-> z, None)
       (function (x,y) -> x)
       vec_vec_mul
-      id
-      None
-      id
+      id id None
 
   let felsenstein_logshift = felsenstein_generic
       (shift_generic scal_vec_add ((-.) 0.) (+.) (-1.0))
       (unshift scal_vec_add)
       vec_vec_add
-      log_vec
-      0.0
-      unlog_vec
+      log_vec unlog_vec 0.0
 
   let felsenstein_shift = felsenstein_generic
       (shift_generic scal_vec_mul ((/.) 1.) ( *. ) (0.1))
       (unshift scal_vec_mul)
       vec_vec_mul
-      id
-      1.0
-      id
-
+      id id 1.0
 end
 
 
