@@ -75,7 +75,6 @@ struct
     felsenstein
       ~shift:(shift_generic scal_vec_mul ((/.) 1.) ( *. ) threshold)
       ~unshift:(unshift scal_vec_mul)
-      ~combine:vec_vec_mul
 end
 
 
