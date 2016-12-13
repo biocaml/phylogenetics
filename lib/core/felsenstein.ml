@@ -64,14 +64,16 @@ struct
   (* ============================ *)
   (* | Specific implementations | *)
   (* ============================ *)
-  let felsenstein_logshift = felsenstein
-      ~shift:(shift_generic scal_vec_add ((-.) 0.) (+.) (-1.0))
+  let felsenstein_logshift ?threshold:(threshold=(-1.0)) =
+    felsenstein
+      ~shift:(shift_generic scal_vec_add ((-.) 0.) (+.) threshold)
       ~unshift:(unshift scal_vec_add)
       ~combine:vec_vec_add
       ~post:log_vec ~pre:unlog_vec ~zero:0.0
 
-  let felsenstein_shift = felsenstein
-      ~shift:(shift_generic scal_vec_mul ((/.) 1.) ( *. ) (0.1))
+  let felsenstein_shift ?threshold:(threshold=0.1) =
+    felsenstein
+      ~shift:(shift_generic scal_vec_mul ((/.) 1.) ( *. ) threshold)
       ~unshift:(unshift scal_vec_mul)
       ~combine:vec_vec_mul
 end
