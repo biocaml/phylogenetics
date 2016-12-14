@@ -16,7 +16,7 @@ rule token = parse
   | ['0'-'9']+ '.' ['0'-'9']* as f
                { FLOAT (float_of_string f) }
 
-  | ['0''1'] as i { BOOT (int_of_char i) }
+  | ['0''1'] as i { BOOT (int_of_string (String.init 1 (fun x->i)) ) }
 
   | ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''-''_']* as lxm { IDENT(lxm) }
 
