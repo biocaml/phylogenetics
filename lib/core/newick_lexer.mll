@@ -18,7 +18,7 @@ rule token = parse
 
   | ['0''1'] as i { BOOT (int_of_char i) }
 
-  | ['A'-'Z''a'-'z''0'-'9''_']['A'-'Z''a'-'z''0'-'9''-''_']* as lxm { IDENT(lxm) }
+  | ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''-''_']* as lxm { IDENT(lxm) }
 
   | eof
       { EOI }

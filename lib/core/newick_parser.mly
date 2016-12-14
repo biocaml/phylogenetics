@@ -16,13 +16,13 @@
 %type <Newick.tree> tree
 
 %%
-
 tree:
-| LPAREN; branches = separated_nonempty_list(COMMA, branch); RPAREN { Node (branches, None) }
-| LPAREN; branches = separated_nonempty_list(COMMA, branch); RPAREN; i = BOOT { Node (branches, Some i) }
+| LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN { Node (branches, None) }
+| LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN i = BOOT { Node (branches, Some i) }
+| EOI { Node ([], None) }
 ;
 
 branch:
-| IDENT; COLON; FLOAT {{ id = Some $1 ; length = Some $3 ; tip = Node ([], None) }}
-| tree; COLON ; FLOAT {{ id = None ; length = Some $3 ; tip = $1 }}
+| IDENT COLON FLOAT {{ id = Some $1 ; length = Some $3 ; tip = Node ([], None) }}
+| tree COLON FLOAT {{ id = None ; length = Some $3 ; tip = $1 }}
 ;
