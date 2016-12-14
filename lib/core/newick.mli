@@ -1,4 +1,4 @@
-type tree = Node of branch list
+type tree = Node of branch list * int option
 and branch = {
   id : string option ;
   length : float option ;
