@@ -59,11 +59,3 @@ let scal_vec_add v s = Vec.add_const s v
 let min_vec v = Vec.min v
 
 let max_vec v = Vec.max v
-
-
-(* ===========TESTS=========== *)
-let testvec = init_vec 4 (function 1->2.|2->1.5|3->1.2|_->2.1)
-
-let test () = testvec |> log_vec |> pp_vec Format.std_formatter
-
-let test2 () = testvec |> min_vec

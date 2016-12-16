@@ -13,7 +13,7 @@ module Make (B:BASE) = struct
       else
         match B.of_char str.[i] with
         | b -> aux (i+1) (b::acc)
-        | exception e -> invalid_arg "input string"
+        | exception _ -> invalid_arg "input string"
     in
     aux 0 []
 
