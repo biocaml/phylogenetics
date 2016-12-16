@@ -36,7 +36,7 @@ let rec fact n = if n=0 || n=1 then 1 else n * (fact (n-1))
 
 let exp a =
   let rec aux i acc =
-    if i<25 then
+    if i<15 then
       let factor = 1. /. (float_of_int (fact i)) in
       let newacc = sum (pow a i ~alpha:factor) acc in
       (aux (i+1) newacc)

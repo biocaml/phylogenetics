@@ -43,7 +43,7 @@ let read_test_file path file =
 
   and list_cases path name (rmin, rmax) lmodels =
     List.range rmin (rmax+1)
-    |> List.map ~f:(fun i->Printf.sprintf "%s%d" name i)
+    |> List.map ~f:(fun i->Printf.sprintf "%s_%d" name i)
     |> List.cartesian_product lmodels
     |> List.map ~f:(function (x,y)->build_case path y x )
 
