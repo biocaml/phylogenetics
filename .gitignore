@@ -4,3 +4,4 @@ _build
 *.native
 *.byte
 *~
+./test_data/*.sh
