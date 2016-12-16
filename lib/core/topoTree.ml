@@ -29,7 +29,19 @@ let element_of_string s =
   else
     Int (int_of_string s)
 
-let of_string str =
+let of_newick str =
+  let aux = function
+    | Newick.Node (_,_) -> Leaf 0
+
+  in
+  Newick_parser.tree Newick_lexer.token (Lexing.from_string str)
+  |> aux
+
+let of_newick_file path =
+  Core_kernel.Std.In_channel.read_all path
+  |> of_newick
+
+let of_preorder str =
   let rec fulltree = function
     | [] -> Error "Empty token list."
     | token :: rest ->
@@ -60,7 +72,7 @@ let of_string str =
 let pp fmt tree =
   let rec aux tree level =
     let indent n =
-      let f x = ' ' in
+      let f _ = ' ' in
       String.init (4*n) f
     in
     match tree with

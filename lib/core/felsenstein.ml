@@ -34,8 +34,8 @@ struct
   (* | Generic Felsenstein | *)
   (* ======================= *)
   let felsenstein
-      ?shift:(shift=(fun x y z->z, 1.0))
-      ?unshift:(unshift=(function (x,y)-> x))
+      ?shift:(shift=(fun _ _ z->z, 1.0))
+      ?unshift:(unshift=(function (x,_)-> x))
       ?combine:(combine=vec_vec_mul)
       ?post:(post=Core_kernel.Std.ident)
       ?pre:(pre=Core_kernel.Std.ident)
@@ -86,7 +86,7 @@ end
 module JCFelsenstein = Felsenstein (Models.JC69)
 
 let test () =
-  let mytree = TopoTree.of_string "0.0895312;0.0576168;1;0" in
+  let mytree = TopoTree.of_preorder "0.0895312;0.0576168;1;0" in
   let myseq = ["C";"C"] |> JCFelsenstein.Align.of_string_list in
   begin
     JCFelsenstein.felsenstein () mytree myseq
@@ -94,7 +94,7 @@ let test () =
   end
 
 let test2 () =
-  let mytree = TopoTree.of_string "0.1;0.1;1;0" in
+  let mytree = TopoTree.of_preorder "0.1;0.1;1;0" in
   let myseq = ["C";"G"] |> JCFelsenstein.Align.of_string_list in
   begin
     JCFelsenstein.felsenstein () mytree myseq
@@ -103,7 +103,7 @@ let test2 () =
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
   end
 
-let mytree = TopoTree.of_string
+let mytree = TopoTree.of_preorder
     "0.21;0.1;0.3;0.4;0;0.8;0.1;1;2;0.12;0.9;3;0.2;0.3;0.3;0.4;4;5;6"
 
 let myseq =

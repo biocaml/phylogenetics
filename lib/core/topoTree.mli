@@ -8,4 +8,8 @@ and t =
 
 val pp: Format.formatter -> t -> unit
 
-val of_string: string -> t
+val of_preorder: string -> t
+
+val of_newick: string -> t
+
+val of_newick_file: string -> t
