@@ -47,8 +47,7 @@ let read_test_file path file =
     |> List.cartesian_product lmodels
     |> List.map ~f:(function (x,y)->build_case path y x )
 
-  and build_case path name model =
-    {
+  and build_case path name model = {
     name = name ;
     result = Printf.sprintf "%s/%s.%s" path name model |> read_all
              |> String.strip |> float_of_string ;
@@ -63,13 +62,13 @@ let read_test_file path file =
   |> aux path []
 
 
-let test_of_case_list l =
+let test_of_case_list l f desc =
   l
   |> List.map ~f:(
     function {name; result; tree; seq} ->
-      Printf.sprintf "felsenstein_%s" name, `Quick,(
+      Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,(
         fun () ->
-          JCFelsenstein.felsenstein () tree seq
+          f () tree seq
           |> (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihood" result
       )
   )
@@ -79,5 +78,6 @@ let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
   "felsenstein_small (normal vs logshift)", `Quick, test_felsenstein_small_normlog ;
   "felsenstein_small (normal vs shift)", `Quick, test_felsenstein_small_normshift ;
-] @ test_of_case_list (read_test_file "test_data" "small.test")
-
+] @ test_of_case_list (read_test_file "test_data" "small.test") JCFelsenstein.felsenstein "normal"
+  @ test_of_case_list (read_test_file "test_data" "small.test") JCFelsenstein.felsenstein_shift "shift"
+  @ test_of_case_list (read_test_file "test_data" "small.test") JCFelsenstein.felsenstein_logshift "log shift"
