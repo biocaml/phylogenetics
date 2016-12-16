@@ -37,5 +37,9 @@ module type EVOL_MODEL = sig
   module Base:BASE
   val transition: t -> Base.t -> Base.t -> float
   val stat_dis: t -> Base.t -> float
+  val has_decomposition: bool
+  val diag: int -> float
+  val diag_p: int -> int -> float
+  val diag_p_inv: int -> int -> float
 end
 
