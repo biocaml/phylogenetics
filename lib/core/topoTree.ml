@@ -7,6 +7,25 @@ and t =
   | Node of branch * branch
   | Leaf of index
 
+let of_newick str =
+  let rec aux = function
+    | Newick.Node (l::r::[],_) -> Node (branch l, branch r)
+    | _ -> invalid_arg "Non-binary or malformed newick tree."
+
+  and branch = function
+    | {Newick.id=Some s; Newick.length=Some l; _} ->
+      l, Leaf (try Scanf.sscanf s "T%d" (fun x->x)
+               with _ -> invalid_arg "Label is not T%d")
+    | {Newick.length=Some l; Newick.tip=t; _} -> l, aux t
+    | _ -> invalid_arg "Malformed branch in newick tree."
+
+  in
+  Newick_parser.tree Newick_lexer.token (Lexing.from_string str) |> aux
+
+let of_newick_file path =
+  Core_kernel.Std.In_channel.read_all path
+  |> of_newick
+
 (* Generation of tree from post-order enumeration of nodes
    (some preliminary functions are required)*)
 let pop_char s =
@@ -28,18 +47,6 @@ let element_of_string s =
     Float (float_of_string s)
   else
     Int (int_of_string s)
-
-let of_newick str =
-  let aux = function
-    | Newick.Node (_,_) -> Leaf 0
-
-  in
-  Newick_parser.tree Newick_lexer.token (Lexing.from_string str)
-  |> aux
-
-let of_newick_file path =
-  Core_kernel.Std.In_channel.read_all path
-  |> of_newick
 
 let of_preorder str =
   let rec fulltree = function
