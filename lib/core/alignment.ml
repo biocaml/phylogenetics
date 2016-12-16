@@ -19,8 +19,7 @@ module Make (S:SEQUENCE) = struct
   let of_fasta filename = Fasta.with_file filename ~f:(
       fun _ stream ->
         CFStream.Stream.to_list stream
-        |> List.map (fun item -> item.Biocaml_ez.Fasta.sequence)
-        |> of_string_list
+        |> List.map (fun item -> (Scanf.sscanf item.Biocaml_ez.Fasta.description "T%d" (fun x->x), S.of_string item.Biocaml_ez.Fasta.sequence))
     )
 
   let pp fmt tab =
