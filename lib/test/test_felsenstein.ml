@@ -78,6 +78,6 @@ let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
   "felsenstein_small (normal vs logshift)", `Quick, test_felsenstein_small_normlog ;
   "felsenstein_small (normal vs shift)", `Quick, test_felsenstein_small_normshift ;
-] @ test_of_case_list (read_test_file "test_data" "small.test") JCFelsenstein.felsenstein "normal"
-  @ test_of_case_list (read_test_file "test_data" "small.test") JCFelsenstein.felsenstein_shift "shift"
-  @ test_of_case_list (read_test_file "test_data" "small.test") JCFelsenstein.felsenstein_logshift "log shift"
+] @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein "normal"
+  @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_shift "shift"
+  @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_logshift "log shift"

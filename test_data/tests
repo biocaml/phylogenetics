@@ -1,0 +1,14 @@
+# Tree with 5 leaves
+small
+1-3
+JC69
+
+# Tree with 25 leaves
+med
+1-1
+JC69
+
+# Tree with 150 leaves (newick parser error for some reason)
+# big
+# 1-1
+# JC69
