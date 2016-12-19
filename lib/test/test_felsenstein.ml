@@ -49,6 +49,7 @@ let read_test_file path file =
   |> Core_kernel.Std.In_channel.read_lines
   |> List.filter ~f:(function "" -> false | s -> not (s.[0]='#'))
   |> aux path []
+  |> List.rev
 
 
 let test_of_case_list l f desc =
@@ -64,6 +65,8 @@ let test_of_case_list l f desc =
 
 let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
-] @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein "normal"
+] @ test_of_case_list (read_test_file "test_data" "minitests") JCFelsenstein.felsenstein "normal"
+  @ test_of_case_list (read_test_file "test_data" "minitests") JCFelsenstein.felsenstein_shift "shift"
+  @ test_of_case_list (read_test_file "test_data" "minitests") JCFelsenstein.felsenstein_logshift "log shift"
   @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_shift "shift"
   @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_logshift "log shift"
