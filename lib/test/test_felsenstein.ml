@@ -13,7 +13,7 @@ let float_compare p f1 f2 =
 let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods"
 
 let test_felsenstein_tiny () =
-  JCFelsenstein.felsenstein () (TopoTree.of_preorder "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) |>
+  JCFelsenstein.felsenstein () (TopoTree.of_preorder "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) 0 |>
   check_likelihood (-4.22471668644312)
 
 type test_case = {
@@ -57,7 +57,7 @@ let test_of_case_list l f desc =
     function {name; result; tree; seq} ->
       Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,(
         fun () ->
-          f () tree seq
+          f () tree seq 0
           |> check_likelihood result
       )
   )

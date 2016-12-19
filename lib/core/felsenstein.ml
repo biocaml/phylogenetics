@@ -55,7 +55,7 @@ struct
       ?combine:(combine=vec_vec_mul)
       ?in_f:(in_f=Core_kernel.Std.ident)
       ?out_f:(out_f=Core_kernel.Std.ident)
-      param tree seq
+      param tree seq site
     =
 
     let rec aux tr =
@@ -63,7 +63,7 @@ struct
       | Node ((f1,l), (f2,r)) -> node f1 l f2 r
       | Leaf i -> leaf i
 
-    and leaf i = Align.get_base seq ~seq:i ~pos:0
+    and leaf i = Align.get_base seq ~seq:i ~pos:site
                  |> known_vector |> in_f |> shift 0.0 0.0
 
     and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
@@ -103,7 +103,7 @@ let test () =
   let mytree = TopoTree.of_preorder "0.0895312;0.0576168;1;0" in
   let myseq = ["C";"C"] |> JCFelsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein () mytree myseq
+    JCFelsenstein.felsenstein () mytree myseq 0
     |> printf "Returns: %F\nBio++..: -1.52971733717731\n" ;
   end
 
@@ -111,9 +111,9 @@ let test2 () =
   let mytree = TopoTree.of_preorder "0.1;0.1;1;0" in
   let myseq = ["C";"G"] |> JCFelsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein () mytree myseq
+    JCFelsenstein.felsenstein () mytree myseq 0
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_logshift () mytree myseq
+    JCFelsenstein.felsenstein_logshift () mytree myseq 0
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
   end
 
@@ -127,10 +127,10 @@ let myseq =
 
 let test3 () =
   begin
-    JCFelsenstein.felsenstein () mytree myseq
+    JCFelsenstein.felsenstein () mytree myseq 0
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_logshift () mytree myseq
+    JCFelsenstein.felsenstein_logshift () mytree myseq 0
     |> printf "LogShift: %F\n" ;
-    JCFelsenstein.felsenstein_shift () mytree myseq
+    JCFelsenstein.felsenstein_shift () mytree myseq 0
     |> printf "Shift...: %F\n"
   end
