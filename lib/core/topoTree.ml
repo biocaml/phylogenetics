@@ -20,7 +20,16 @@ let of_newick str =
     | _ -> invalid_arg "Malformed branch in newick tree."
 
   in
-  Newick_parser.tree Newick_lexer.token (Lexing.from_string str) |> aux
+  let mybuf = Lexing.from_string str in
+  try
+    Newick_parser.tree Newick_lexer.token mybuf |> aux
+  with
+  | Newick_parser.Error ->
+    let open Lexing in
+    let pos = mybuf.lex_curr_p in
+    Printf.sprintf "Parser error (%s:%d:%d)" pos.pos_fname
+      pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
+    |> failwith
 
 let of_newick_file path =
   Core_kernel.Std.In_channel.read_all path

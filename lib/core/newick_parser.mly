@@ -10,8 +10,6 @@
 %token COMMA COLON SEMICOLON LPAREN RPAREN
 %token EOI EOL
 
-%nonassoc LPAREN
-
 %start tree
 %type <Newick.tree> tree
 
