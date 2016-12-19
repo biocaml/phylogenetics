@@ -34,25 +34,27 @@ struct
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
 
-  let shift_generic vec_op div sum thre acc1 acc2 v =
-    if min_vec v > thre then (v, sum acc1 acc2)
+  let shift_log thre acc1 acc2 v =
+    if min_vec v > thre then (v, acc1 +. acc2)
     else
       let mv = max_vec v in
-      (vec_op v (div mv), sum (sum acc1 acc2) mv)
+      (scal_vec_add v (0.0 -. mv), acc1 +. acc2 +. mv)
 
-  let unshift vec_op (v, acc) = vec_op v acc
+  let shift_normal thre acc1 acc2 v =
+    if min_vec v > thre then (v, acc1 +. acc2)
+    else
+      let mv = max_vec v in
+      (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv))
 
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
   (* ======================= *)
   let felsenstein
-      ?shift:(shift=(fun _ _ z->z, 1.0))
-      ?unshift:(unshift=(function (x,_)-> x))
+      ?shift:(shift=fun _ _ v->v,0.0)
       ?combine:(combine=vec_vec_mul)
-      ?post:(post=Core_kernel.Std.ident)
-      ?pre:(pre=Core_kernel.Std.ident)
-      ?zero:(zero=1.0)
+      ?in_f:(in_f=Core_kernel.Std.ident)
+      ?out_f:(out_f=Core_kernel.Std.ident)
       param tree seq
     =
 
@@ -62,16 +64,17 @@ struct
       | Leaf i -> leaf i
 
     and leaf i = Align.get_base seq ~seq:i ~pos:0
-                 |> known_vector |> post |> shift zero zero
+                 |> known_vector |> in_f |> shift 0.0 0.0
 
     and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
       combine
-        (mat_vec_mul (eMt param f1) (pre v_l) |> post)
-        (mat_vec_mul (eMt param f2) (pre v_r) |> post)
+        (mat_vec_mul (eMt param f1) (out_f v_l) |> in_f)
+        (mat_vec_mul (eMt param f2) (out_f v_r) |> in_f)
       |> shift s_l s_r
 
-    in let statdis = stat_dis_vec param |> post in
-    aux tree |> unshift |> combine statdis |> pre |> sum_vec_elements |> log
+    in let statdis = stat_dis_vec param |> in_f in
+    let res_vec, res_shift = aux tree in
+    res_vec |> combine statdis |> out_f |> sum_vec_elements |> log |> (+.) res_shift
 
 
   (* ============================ *)
@@ -79,15 +82,13 @@ struct
   (* ============================ *)
   let felsenstein_logshift ?threshold:(threshold=(-1.0)) =
     felsenstein
-      ~shift:(shift_generic scal_vec_add ((-.) 0.) (+.) threshold)
-      ~unshift:(unshift scal_vec_add)
+      ~shift:(shift_log threshold)
       ~combine:vec_vec_add
-      ~post:log_vec ~pre:unlog_vec ~zero:0.0
+      ~in_f:log_vec ~out_f:unlog_vec
 
   let felsenstein_shift ?threshold:(threshold=0.1) =
     felsenstein
-      ~shift:(shift_generic scal_vec_mul ((/.) 1.) ( *. ) threshold)
-      ~unshift:(unshift scal_vec_mul)
+      ~shift:(shift_normal threshold)
 end
 
 
