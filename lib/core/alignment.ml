@@ -1,12 +1,13 @@
 open Sigs
 open Biocaml_ez
+open Core_kernel.Std
 
 module Make (S:SEQUENCE) = struct
   type sequence = S.t
   type base = S.base
   type t = (int * S.t) list
 
-  let get_base tab ~seq ~pos = S.get (List.assoc seq tab) pos
+  let get_base tab ~seq ~pos = S.get (ListLabels.assoc seq tab) pos
 
   let of_string_list l =
     let rec aux acc i = function
@@ -19,11 +20,13 @@ module Make (S:SEQUENCE) = struct
   let of_fasta filename = Fasta.with_file filename ~f:(
       fun _ stream ->
         CFStream.Stream.to_list stream
-        |> List.map (fun item -> (Scanf.sscanf item.Biocaml_ez.Fasta.description "T%d" (fun x->x), S.of_string item.Biocaml_ez.Fasta.sequence))
+        |> List.map ~f:(fun item -> (Scanf.sscanf item.Biocaml_ez.Fasta.description "T%d" (fun x->x), S.of_string item.Biocaml_ez.Fasta.sequence))
     )
 
+  (* let check_lengths a = () *)
+
   let pp fmt tab =
-    List.map (function (x,y) -> Printf.sprintf "%d: %s" x (S.to_string y)) tab
-    |> String.concat " ; "
+    List.map ~f:(function (x,y) -> Printf.sprintf "%d: %s" x (S.to_string y)) tab
+    |> String.concat ~sep:" ; "
     |> Format.fprintf fmt "%s"
 end

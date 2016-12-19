@@ -34,18 +34,6 @@ struct
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
 
-  let shift_log thre acc1 acc2 v =
-    if min_vec v > thre then (v, acc1 +. acc2)
-    else
-      let mv = max_vec v in
-      (scal_vec_add v (0.0 -. mv), acc1 +. acc2 +. mv)
-
-  let shift_normal thre acc1 acc2 v =
-    if min_vec v > thre then (v, acc1 +. acc2)
-    else
-      let mv = max_vec v in
-      (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv))
-
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
@@ -80,15 +68,34 @@ struct
   (* ============================ *)
   (* | Specific implementations | *)
   (* ============================ *)
+  let shift_log thre acc1 acc2 v =
+    if min_vec v > thre then (v, acc1 +. acc2)
+    else
+      let mv = max_vec v in
+      (scal_vec_add v (0.0 -. mv), acc1 +. acc2 +. mv)
+
   let felsenstein_logshift ?threshold:(threshold=(-1.0)) =
     felsenstein
       ~shift:(shift_log threshold)
       ~combine:vec_vec_add
       ~in_f:log_vec ~out_f:unlog_vec
 
+  let shift_normal thre acc1 acc2 v =
+    if min_vec v > thre then (v, acc1 +. acc2)
+    else
+      let mv = max_vec v in
+      (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv))
+
   let felsenstein_shift ?threshold:(threshold=0.1) =
     felsenstein
       ~shift:(shift_normal threshold)
+
+
+  (* ======================= *)
+  (* | Multi-site versions | *)
+  (* ======================= *)
+  let multisite f param tree seq = ()
+
 end
 
 
