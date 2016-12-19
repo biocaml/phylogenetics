@@ -2,6 +2,7 @@
     and provide a few completely new functions (such as exponentiation)*)
 
 (** {6 Types} *)
+
 (** A square matrix of floats. *)
 type mat
 
@@ -11,6 +12,7 @@ type vec
 
 
 (** {6 Matrix creation} *)
+
 (** Initialises a square matrix from a int->int->float function. *)
 val init_mat: int -> (int -> int -> float) -> mat
 
@@ -20,6 +22,7 @@ val init_vec: int -> (int -> float) -> vec
 
 
 (** {6 Matrix and vector operations} *)
+
 (** Computes the product of two matrices.
     If optional argument alpha is provided then the result is also
     multiplied by scalar alpha.*)
@@ -68,6 +71,7 @@ val max_vec: vec -> float
 
 
 (** {6 Printing and tests}*)
+
 (** Prints a matrix to the standard output (display may be messy). *)
 val pp_mat: Format.formatter -> mat -> unit
 
