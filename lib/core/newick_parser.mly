@@ -8,7 +8,6 @@
 %token <string> IDENT
 %token <int> BOOT
 %token COMMA COLON SEMICOLON LPAREN RPAREN
-%token EOI EOL
 
 %start tree
 %type <Newick.tree> tree
