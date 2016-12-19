@@ -1,10 +1,13 @@
 open Sigs
+open Core_kernel.Std
 
 module Make (B:BASE) = struct
   type base = B.t
   type t = base list
 
-  let get seq i = List.nth seq i
+  let get seq i = match List.nth seq i with Some b->b | None->failwith "Base not found"
+
+  let length seq = List.length seq
 
   let of_string str =
     let rec aux i acc =
@@ -19,7 +22,7 @@ module Make (B:BASE) = struct
 
   let of_list l = l (* wow *)
 
-  let to_string seq = List.map B.to_string seq |> String.concat ""
+  let to_string seq = List.map ~f:B.to_string seq |> String.concat
 
   let pp fmt seq = to_string seq |> Format.fprintf fmt "%s"
 end

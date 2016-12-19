@@ -14,6 +14,7 @@ module type SEQUENCE = sig
   type base
   type t
   val get: t -> int -> base
+  val length: t -> int
   val of_list: base list -> t
   val of_string: string -> t
   val to_string: t -> string
