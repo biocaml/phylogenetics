@@ -94,7 +94,9 @@ struct
   (* ======================= *)
   (* | Multi-site versions | *)
   (* ======================= *)
-  let multisite f param tree seq = ()
+  let multisite f param tree seq =
+    let l = Align.length seq in
+    List.fold (List.range 0 l) ~init:0.0 ~f:(fun acc x -> (f param tree seq x) +. acc)
 
 end
 
@@ -128,7 +130,7 @@ let mytree = TopoTree.of_preorder
     "0.21;0.1;0.3;0.4;0;0.8;0.1;1;2;0.12;0.9;3;0.2;0.3;0.3;0.4;4;5;6"
 
 let myseq =
-  ["C";"G";"C";"T";"A";"T";"G"]
+  ["CA";"GA";"CC";"TA";"AC";"TC";"GA"]
   |> JCFelsenstein.Align.of_string_list
 
 
