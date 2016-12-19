@@ -39,11 +39,12 @@ struct
   (* | Generic Felsenstein | *)
   (* ======================= *)
   let felsenstein
-      ?shift:(shift=fun _ _ v->v,0.0)
-      ?combine:(combine=vec_vec_mul)
-      ?in_f:(in_f=Core_kernel.Std.ident)
-      ?out_f:(out_f=Core_kernel.Std.ident)
-      param tree seq site
+      ?(shift=fun _ _ v->v,0.0)
+      ?(combine=vec_vec_mul)
+      ?(in_f=Core_kernel.Std.ident)
+      ?(out_f=Core_kernel.Std.ident)
+      ~site
+      () param tree seq
     =
 
     let rec aux tr =
@@ -74,11 +75,12 @@ struct
       let mv = max_vec v in
       (scal_vec_add v (0.0 -. mv), acc1 +. acc2 +. mv)
 
-  let felsenstein_logshift ?threshold:(threshold=(-1.0)) =
+  let felsenstein_logshift ?threshold:(threshold=(-1.0)) ~site () =
     felsenstein
       ~shift:(shift_log threshold)
       ~combine:vec_vec_add
       ~in_f:log_vec ~out_f:unlog_vec
+      ~site:site ()
 
   let shift_normal thre acc1 acc2 v =
     if min_vec v > thre then (v, acc1 +. acc2)
@@ -86,17 +88,22 @@ struct
       let mv = max_vec v in
       (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv))
 
-  let felsenstein_shift ?threshold:(threshold=0.1) =
+  let felsenstein_shift ?threshold:(threshold=0.1) ~site () =
     felsenstein
       ~shift:(shift_normal threshold)
+      ~site:site ()
 
 
   (* ======================= *)
   (* | Multi-site versions | *)
   (* ======================= *)
-  let multisite f param tree seq =
+  let multisite (f: site:int -> E.t -> TopoTree.t -> Align.t -> float) param tree seq =
     let l = Align.length seq in
-    List.fold (List.range 0 l) ~init:0.0 ~f:(fun acc x -> (f param tree seq x) +. acc)
+    List.fold (List.range 0 l) ~init:0.0 ~f:(fun acc x -> (f ~site:x param tree seq) +. acc)
+
+  let multi_felsenstein () = multisite (felsenstein ())
+  let multi_felsenstein_shift () = multisite (felsenstein_shift ())
+  let multi_felsenstein_logshift () = multisite (felsenstein_logshift ())
 
 end
 
@@ -112,7 +119,7 @@ let test () =
   let mytree = TopoTree.of_preorder "0.0895312;0.0576168;1;0" in
   let myseq = ["C";"C"] |> JCFelsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein () mytree myseq 0
+    JCFelsenstein.felsenstein ~site:0 () () mytree myseq
     |> printf "Returns: %F\nBio++..: -1.52971733717731\n" ;
   end
 
@@ -120,9 +127,9 @@ let test2 () =
   let mytree = TopoTree.of_preorder "0.1;0.1;1;0" in
   let myseq = ["C";"G"] |> JCFelsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein () mytree myseq 0
+    JCFelsenstein.felsenstein ~site:0 () () mytree myseq
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_logshift () mytree myseq 0
+    JCFelsenstein.felsenstein_logshift ~site:0 () () mytree myseq
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
   end
 
@@ -136,10 +143,10 @@ let myseq =
 
 let test3 () =
   begin
-    JCFelsenstein.felsenstein () mytree myseq 0
+    JCFelsenstein.felsenstein ~site:0 () () mytree myseq
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_logshift () mytree myseq 0
+    JCFelsenstein.felsenstein_logshift ~site:0 () () mytree myseq
     |> printf "LogShift: %F\n" ;
-    JCFelsenstein.felsenstein_shift () mytree myseq 0
+    JCFelsenstein.felsenstein_shift ~site:0 () () mytree myseq
     |> printf "Shift...: %F\n"
   end

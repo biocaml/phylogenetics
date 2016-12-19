@@ -2,7 +2,7 @@ open Biocaml_phylogeny_core
 open Alcotest
 open Biocaml_ez
 open Core_kernel.Std
-open Felsenstein
+open Felsenstein.JCFelsenstein
 
 (** Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
@@ -13,14 +13,14 @@ let float_compare p f1 f2 =
 let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods"
 
 let test_felsenstein_tiny () =
-  JCFelsenstein.felsenstein () (TopoTree.of_preorder "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) 0 |>
+  felsenstein ~site:0 () () (TopoTree.of_preorder "0.1;0.1;0;1") (Align.of_string_list ["C";"G"]) |>
   check_likelihood (-4.22471668644312)
 
 type test_case = {
   name: string ;
   result: float ;
   tree: TopoTree.t ;
-  seq: JCFelsenstein.Align.t ;
+  seq: Align.t ;
 }
 
 let read_test_file path file =
@@ -41,7 +41,7 @@ let read_test_file path file =
     result = Printf.sprintf "%s/%s.%s" path name model |> read_all
              |> String.strip |> float_of_string ;
     tree = Printf.sprintf "%s/%s.tree" path name |> TopoTree.of_newick_file ;
-    seq = Printf.sprintf "%s/%s.seq" path name |> JCFelsenstein.Align.of_fasta ;
+    seq = Printf.sprintf "%s/%s.seq" path name |> Align.of_fasta ;
   }
 
   in
@@ -57,16 +57,21 @@ let test_of_case_list l f desc =
     function {name; result; tree; seq} ->
       Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,(
         fun () ->
-          f () tree seq 0
+          f () tree seq
           |> check_likelihood result
       )
   )
 
+let test_of_filename file =
+ test_of_case_list (read_test_file "test_data" file)
 
 let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
-] @ test_of_case_list (read_test_file "test_data" "minitests") JCFelsenstein.felsenstein "normal"
-  @ test_of_case_list (read_test_file "test_data" "minitests") JCFelsenstein.felsenstein_shift "shift"
-  @ test_of_case_list (read_test_file "test_data" "minitests") JCFelsenstein.felsenstein_logshift "log shift"
-  @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_shift "shift"
-  @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_logshift "log shift"
+] @ test_of_filename "test_single_small" (felsenstein ~site:0 ()) "normal"
+  @ test_of_filename "test_single_small" (felsenstein_shift ~site:0 ()) "shift"
+  @ test_of_filename "test_single_small" (felsenstein_logshift ~site:0 ()) "log shift"
+  @ test_of_filename "test_single_big" (felsenstein_shift ~site:0 ()) "shift"
+  @ test_of_filename "test_single_big" (felsenstein_logshift ~site:0 ()) "log shift"
+  @ test_of_filename "test_multi" (multi_felsenstein ()) "normal"
+  @ test_of_filename "test_multi" (multi_felsenstein_shift ()) "shift"
+  @ test_of_filename "test_multi" (multi_felsenstein_logshift ()) "log shift"
