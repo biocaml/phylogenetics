@@ -10,22 +10,11 @@ let float_compare p f1 f2 =
   let diff = f1-.f2 |> Pervasives.abs_float in
   diff/.(Pervasives.abs_float f1) <= p
 
+let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods"
+
 let test_felsenstein_tiny () =
   JCFelsenstein.felsenstein () (TopoTree.of_preorder "0.1;0.1;0;1") (JCFelsenstein.Align.of_string_list ["C";"G"]) |>
-  (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "expected log likelihoods" (-4.22471668644312)
-
-let tree_small = TopoTree.of_preorder "0.21;0.1;0.3;0.4;0;0.8;0.1;1;2;0.12;0.9;3;0.2;0.3;0.3;0.4;4;5;6"
-let seq_small  = ["C";"G";"C";"T";"A";"T";"G"] |> JCFelsenstein.Align.of_string_list
-let ref_small = JCFelsenstein.felsenstein () tree_small seq_small
-
-let test_felsenstein_small_normlog () =
-  JCFelsenstein.felsenstein_logshift () tree_small seq_small |>
-  (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods" ref_small
-
-let test_felsenstein_small_normshift () =
-  JCFelsenstein.felsenstein_shift () tree_small seq_small |>
-  (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods" ref_small
-
+  check_likelihood (-4.22471668644312)
 
 type test_case = {
   name: string ;
@@ -63,21 +52,18 @@ let read_test_file path file =
 
 
 let test_of_case_list l f desc =
-  l
-  |> List.map ~f:(
+  List.map l ~f:(
     function {name; result; tree; seq} ->
       Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,(
         fun () ->
           f () tree seq
-          |> (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihood" result
+          |> check_likelihood result
       )
   )
 
 
 let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
-  "felsenstein_small (normal vs logshift)", `Quick, test_felsenstein_small_normlog ;
-  "felsenstein_small (normal vs shift)", `Quick, test_felsenstein_small_normshift ;
 ] @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein "normal"
   @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_shift "shift"
   @ test_of_case_list (read_test_file "test_data" "tests") JCFelsenstein.felsenstein_logshift "log shift"
