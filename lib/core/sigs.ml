@@ -30,6 +30,7 @@ module type ALIGNMENT = sig
   val of_fasta: string -> t
   val pp: Format.formatter -> t -> unit
   val get_base: t -> seq:int -> pos:int -> base
+  val length: t -> int
 end
 
 (* evolution models  *)

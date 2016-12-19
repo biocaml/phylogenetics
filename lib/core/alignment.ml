@@ -23,7 +23,14 @@ module Make (S:SEQUENCE) = struct
         |> List.map ~f:(fun item -> (Scanf.sscanf item.Biocaml_ez.Fasta.description "T%d" (fun x->x), S.of_string item.Biocaml_ez.Fasta.sequence))
     )
 
-  (* let check_lengths a = () *)
+  let check_lengths = function
+    | [] -> true
+    | (_,h)::t -> let l=S.length h in
+      List.fold t ~init:true ~f:(fun acc (_,x) -> (S.length x = l) && acc)
+
+  let length = function
+    | [] -> 0
+    | (_,h)::_ as l -> if check_lengths l then S.length h else failwith "Uneven sequences in alignment"
 
   let pp fmt tab =
     List.map ~f:(function (x,y) -> Printf.sprintf "%d: %s" x (S.to_string y)) tab
