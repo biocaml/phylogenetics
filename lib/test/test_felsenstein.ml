@@ -27,7 +27,11 @@ let read_test_file path file =
   let open Core_kernel.Std.In_channel in
   let rec aux path acc = function
     | name::range::models::t ->
-      aux path ((list_cases path name (Scanf.sscanf range "%d-%d" (fun x y->x,y)) (String.split models ~on:' '))@acc) t
+      let new_acc = list_cases path name
+          (Scanf.sscanf range "%d-%d" (fun x y->x,y))
+          (String.split models ~on:' ')
+      in
+      aux path (acc@new_acc) t
     | _ -> acc
 
   and list_cases path name (rmin, rmax) lmodels =
@@ -49,18 +53,13 @@ let read_test_file path file =
   |> Core_kernel.Std.In_channel.read_lines
   |> List.filter ~f:(function "" -> false | s -> not (s.[0]='#'))
   |> aux path []
-  |> List.rev
-
 
 let of_testfile file f desc =
   read_test_file "test_data" file
   |> List.map ~f:(
-    function {name; result; tree; seq} ->
-      Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,(
-        fun () ->
-          f () tree seq
-          |> check_likelihood result
-      )
+    fun {name; result; tree; seq} ->
+      Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,
+      (fun () -> f () tree seq |> check_likelihood result)
   )
 
 let tests = [
