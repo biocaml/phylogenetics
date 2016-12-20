@@ -47,8 +47,7 @@ struct
       () param tree seq
     =
 
-    let rec aux tr =
-      match tr with
+    let rec aux = function
       | Node ((f1,l), (f2,r)) -> node f1 l f2 r
       | Leaf i -> leaf i
 

@@ -52,8 +52,9 @@ let read_test_file path file =
   |> List.rev
 
 
-let test_of_case_list l f desc =
-  List.map l ~f:(
+let of_testfile file f desc =
+  read_test_file "test_data" file
+  |> List.map ~f:(
     function {name; result; tree; seq} ->
       Printf.sprintf "felsenstein_%s (%s vs bio++)" name desc, `Quick,(
         fun () ->
@@ -62,16 +63,13 @@ let test_of_case_list l f desc =
       )
   )
 
-let test_of_filename file =
- test_of_case_list (read_test_file "test_data" file)
-
 let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
-] @ test_of_filename "test_single_small" (felsenstein ~site:0 ()) "normal"
-  @ test_of_filename "test_single_small" (felsenstein_shift ~site:0 ()) "shift"
-  @ test_of_filename "test_single_small" (felsenstein_logshift ~site:0 ()) "log shift"
-  @ test_of_filename "test_single_big" (felsenstein_shift ~site:0 ()) "shift"
-  @ test_of_filename "test_single_big" (felsenstein_logshift ~site:0 ()) "log shift"
-  @ test_of_filename "test_multi" (multi_felsenstein ()) "normal"
-  @ test_of_filename "test_multi" (multi_felsenstein_shift ()) "shift"
-  @ test_of_filename "test_multi" (multi_felsenstein_logshift ()) "log shift"
+] @ of_testfile "test_single_small" (felsenstein ~site:0 ()) "normal"
+  @ of_testfile "test_single_small" (felsenstein_shift ~site:0 ()) "shift"
+  @ of_testfile "test_single_small" (felsenstein_logshift ~site:0 ()) "log shift"
+  @ of_testfile "test_single_big" (felsenstein_shift ~site:0 ()) "shift"
+  @ of_testfile "test_single_big" (felsenstein_logshift ~site:0 ()) "log shift"
+  @ of_testfile "test_multi" (multi_felsenstein ()) "normal"
+  @ of_testfile "test_multi" (multi_felsenstein_shift ()) "shift"
+  @ of_testfile "test_multi" (multi_felsenstein_logshift ()) "log shift"
