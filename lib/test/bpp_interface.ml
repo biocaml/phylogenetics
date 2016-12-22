@@ -14,6 +14,12 @@ let felsenstein_bpp ?(model="JC69") path tree seq =
     |> List.filter ~f:(fun l->String.prefix l 11 = "Initial log")
   in match line with
   | [l] -> Scanf.sscanf l "Initial log likelihood.................: %f" (fun x->x)
-  | _ -> failwith "Unexpected bppml output"
+  | _ -> begin
+      Printf.sprintf "ERROR (bpp_interface): Unexpected bppml output:\n%s"
+        (In_channel.read_all "tmp.data") |> prerr_endline;
+      failwith "Unexpected bppml output"
+    end
 
-  let test () = felsenstein_bpp "test_data" "small_1.tree" "small_1.seq";;
+
+
+let test () = felsenstein_bpp "test_data" "small_1.tree" "small_1.seq";;
