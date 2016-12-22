@@ -6,7 +6,8 @@ struct
   open TopoTree
   open LATools
   module Base = E.Base
-  module Align = Alignment.Make (Seq.Make (Base))
+  module Seq = Seq.Make (Base)
+  module Align = Alignment.Make (Seq)
 
   let rate_matrix e = init_mat Base.alphabet_size
     @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
