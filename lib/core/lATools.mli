@@ -69,6 +69,7 @@ val min_vec: vec -> float
 
 val max_vec: vec -> float
 
+val get_vec: vec -> int -> float
 
 (** {6 Printing and tests}*)
 

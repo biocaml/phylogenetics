@@ -1,6 +1,6 @@
 open Core_kernel.Std
 
-(*  fails adter printing the content of a file with a message*)
+(*  fails after printing the content of a file with a message*)
 let fail_file ?(path="tmp.data") message =
   Printf.sprintf "ERROR (bpp_interface): %s:\n%s"
     message (In_channel.read_all path) |> prerr_endline;

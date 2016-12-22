@@ -59,3 +59,5 @@ let scal_vec_add v s = Vec.add_const s v
 let min_vec v = Vec.min v
 
 let max_vec v = Vec.max v
+
+let get_vec v i = v.{i}
