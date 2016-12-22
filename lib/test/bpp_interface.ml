@@ -42,10 +42,23 @@ let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
   in
   begin
     Out_channel.write_all "tmp.sh" ~data:script ;
-    Sys.command "bash tmp.sh" |> ignore
+    match Sys.command "bash tmp.sh" with
+    | 0 -> ()
+    | _ ->
+      begin
+        Printf.sprintf "ERROR (bpp_interface): bppseqgen failed with output:\n%s"
+          (In_channel.read_all "tmp.data") |> prerr_endline;
+        failwith "bppseqgen failed"
+      end
   end
 
 let test () = felsenstein_bpp
     ~path:"test_data"
     ~tree:"small_1.tree"
     "small_1.seq"
+
+let test2 () = seqgen_bpp
+    ~path:"test_data"
+    ~tree:"small_1.tree"
+    "tmp.seq"
+    15
