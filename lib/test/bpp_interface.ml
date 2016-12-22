@@ -1,18 +1,16 @@
 open Core_kernel.Std
 
-let felsenstein_bpp ?(model="JC69") ?(path=".") ~tree seq =
-  let fulltree = Printf.sprintf "%s/%s" path tree in
-  let fullseq = Printf.sprintf "%s/%s" path seq in
+let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
   let script = Printf.sprintf
       "bppml \
-       input.tree.file=%s \
-       input.sequence.file=%s \
-       alphabet=DNA \
+       input.tree.file=%s/%s \
+       input.sequence.file=%s/%s \
+       alphabet=%s \
        model=%s \
        output.tree.file=tmp.tree \
        optimization=None \
        > tmp.data"
-      fulltree fullseq model
+      path tree path seq alphabet model
   in
   begin
     Out_channel.write_all "tmp.sh" ~data:script ;
@@ -31,7 +29,21 @@ let felsenstein_bpp ?(model="JC69") ?(path=".") ~tree seq =
       end
   end
 
-
+let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
+  let script = Printf.sprintf
+      "bppseqgen \
+       input.tree.file=%s/%s \
+       output.sequence.file=%s/%s \
+       alphabet=%s \
+       model=%s \
+       number_of_sites=%d \
+       > tmp.data"
+      path tree path output alphabet model size
+  in
+  begin
+    Out_channel.write_all "tmp.sh" ~data:script ;
+    Sys.command "bash tmp.sh" |> ignore
+  end
 
 let test () = felsenstein_bpp
     ~path:"test_data"
