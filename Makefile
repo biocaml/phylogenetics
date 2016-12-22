@@ -13,4 +13,4 @@ doc: default
 	ocamlfind ocamldoc -package lacaml,biocaml -I _build/lib/core lib/core/* -d doc -html
 
 ca: clean
-	rm -rf doc/
+	rm -rf doc/ tmp*

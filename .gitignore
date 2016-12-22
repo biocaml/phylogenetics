@@ -5,3 +5,4 @@ _build
 *.byte
 *~
 test_data/new_xp.sh
+tmp*
