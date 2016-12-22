@@ -1,5 +1,11 @@
 open Core_kernel.Std
 
+(*  fails adter printing the content of a file with a message*)
+let fail_file ?(path="tmp.data") message =
+  Printf.sprintf "ERROR (bpp_interface): %s:\n%s"
+    message (In_channel.read_all path) |> prerr_endline;
+  failwith message
+
 let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
   let script = Printf.sprintf
       "bppml \
@@ -9,24 +15,19 @@ let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
        model=%s \
        output.tree.file=tmp.tree \
        optimization=None \
-       > tmp.data"
+       &> tmp.data"
       path tree path seq alphabet model
   in
   begin
     Out_channel.write_all "tmp.sh" ~data:script ;
-    Sys.command "bash tmp.sh" |> ignore ;
+    if Sys.command "bash tmp.sh" <> 0 then fail_file "bppml failed" ;
     match
       In_channel.read_lines "tmp.data"
       |> List.filter ~f:(fun l->String.prefix l 11 = "Initial log")
     with
     | [l] ->
       Scanf.sscanf l "Initial log likelihood.................: %f" (fun x->x)
-    | _ ->
-      begin
-        Printf.sprintf "ERROR (bpp_interface): Unexpected bppml output:\n%s"
-          (In_channel.read_all "tmp.data") |> prerr_endline;
-        failwith "Unexpected bppml output"
-      end
+    | _ -> fail_file "unexpected bppml output"
   end
 
 let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
@@ -37,23 +38,18 @@ let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
        alphabet=%s \
        model=%s \
        number_of_sites=%d \
-       > tmp.data"
+       &> tmp.data"
       path tree path output alphabet model size
   in
   begin
     Out_channel.write_all "tmp.sh" ~data:script ;
     match Sys.command "bash tmp.sh" with
     | 0 -> ()
-    | _ ->
-      begin
-        Printf.sprintf "ERROR (bpp_interface): bppseqgen failed with output:\n%s"
-          (In_channel.read_all "tmp.data") |> prerr_endline;
-        failwith "bppseqgen failed"
-      end
+    | _ -> fail_file "bppseqgen failed"
   end
 
 let test () = felsenstein_bpp
-    ~path:"test_data"
+    ~path:"test_dataz"
     ~tree:"small_1.tree"
     "small_1.seq"
 
