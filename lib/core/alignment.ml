@@ -39,9 +39,9 @@ module Make (S:SEQUENCE) = struct
 
   let to_file seq name =
     List.map seq ~f:(fun (i,seq) -> Printf.sprintf ">T%d\n%s" i (S.to_string seq))
-    |> Out_channel.write_lines name 
+    |> Out_channel.write_lines name
 end
 
-module DNASeq = Make (Seq.DNA)
-let myseq = DNASeq.of_string_list ["ATTGTC"; "AGGACC"]
-let test () = DNASeq.to_file myseq "tmp.seq"
+(* module DNASeq = Make (Seq.DNA) *)
+(* let myseq = DNASeq.of_string_list ["ATTGTC"; "AGGACC"] *)
+(* let test () = DNASeq.to_file myseq "tmp.seq" *)
