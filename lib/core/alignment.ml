@@ -56,17 +56,17 @@ module Make (S:SEQUENCE) = struct
   let equal x y = Hashtbl.equal x y (=)
 end
 
-module DNA_align = Make (Seq.DNA)
-let myalign = DNA_align.of_assoc_list [
-    (0, DNA_align.Sequence.of_string "ATTC");
-    (1, DNA_align.Sequence.of_string "TGCA")
-  ]
-let myalign2 = DNA_align.of_string_list ["ATTC"; "TGCA"]
-let myalign3 = DNA_align.of_fasta "test_data/tiny1.fasta"
-let test () = DNA_align.get_base ~seq:1 ~pos:0 myalign3
-let test2 () = DNA_align.length myalign2
-(* let test3 () = DNA_align.pp stdout myalign3 *)
-let test4 () = DNA_align.to_file myalign2 "tmp.fasta"
+(* odule DNA_align = Make (Seq.DNA) *)
+(* let myalign = DNA_align.of_assoc_list [ *)
+(*     (0, DNA_align.Sequence.of_string "ATTC"); *)
+(*     (1, DNA_align.Sequence.of_string "TGCA") *)
+(*   ] *)
+(* let myalign2 = DNA_align.of_string_list ["ATTC"; "TGCA"] *)
+(* let myalign3 = DNA_align.of_fasta "test_data/tiny1.fasta" *)
+(* let test () = DNA_align.get_base ~seq:1 ~pos:0 myalign3 *)
+(* let test2 () = DNA_align.length myalign2 *)
+(* (\* let test3 () = DNA_align.pp stdout myalign3 *\) *)
+(* let test4 () = DNA_align.to_file myalign2 "tmp.fasta" *)
 
 
 module Make_alist (S:SEQUENCE) = struct

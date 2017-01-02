@@ -33,13 +33,13 @@ struct
     |> Align.of_assoc_list
 end
 
-module JCSeqgen = Seqgen (Models.JC69)
+(* module JCSeqgen = Seqgen (Models.JC69) *)
 
-let test () =
-  JCSeqgen.draw_base (JCSeqgen.proba () (JCSeqgen.Base.of_int 0) 0.7)
-  |> JCSeqgen.Base.to_string
+(* let test () = *)
+(*   JCSeqgen.draw_base (JCSeqgen.proba () (JCSeqgen.Base.of_int 0) 0.7) *)
+(*   |> JCSeqgen.Base.to_string *)
 
-let test2 () =
-  let mytree = TopoTree.of_newick_file "test_data/small_1.tree" in
-  JCSeqgen.seqgen () mytree 15
-  |> JCSeqgen.Align.pp Format.std_formatter
+(* let test2 () = *)
+(*   let mytree = TopoTree.of_newick_file "test_data/small_1.tree" in *)
+(*   JCSeqgen.seqgen () mytree 15 *)
+(*   |> JCSeqgen.Align.pp Format.std_formatter *)

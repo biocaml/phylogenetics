@@ -48,13 +48,13 @@ let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
     | _ -> fail_file "bppseqgen failed"
   end
 
-let test () = felsenstein_bpp
-    ~path:"test_dataz"
-    ~tree:"small_1.tree"
-    "small_1.seq"
+(* let test () = felsenstein_bpp *)
+(*     ~path:"test_dataz" *)
+(*     ~tree:"small_1.tree" *)
+(*     "small_1.seq" *)
 
-let test2 () = seqgen_bpp
-    ~path:"test_data"
-    ~tree:"small_1.tree"
-    "tmp.seq"
-    15
+(* let test2 () = seqgen_bpp *)
+(*     ~path:"test_data" *)
+(*     ~tree:"small_1.tree" *)
+(*     "tmp.seq" *)
+    (* 15 *)
