@@ -7,11 +7,22 @@ module Make_hashtbl (S:SEQUENCE) = struct
   type base = S.base
   type sequence = S.t
   type t = (string, S.t) Hashtbl.t
+  module Sequence = S
+
+  let get_base tab ~seq ~pos = S.get (Hashtbl.find_exn tab seq) pos
 
   let of_assoc_list l =
     let align = Int.Table.create ~size:(List.length l) () in
-    List.iter ~f:(fun (i,s) -> Hashtbl.add_exn ~key:i ~data:s align) l
+    List.iter ~f:(fun (i,s) -> Hashtbl.add_exn ~key:i ~data:s align) l ;
+    align
 end
+
+module DNA_align = Make_hashtbl (Seq.DNA)
+let myalign = DNA_align.of_assoc_list [
+    (0, DNA_align.Sequence.of_string "ATTC");
+    (1, DNA_align.Sequence.of_string "TGCA")
+  ]
+let test () = DNA_align.get_base ~seq:1 ~pos:1 myalign
 
 
 module Make (S:SEQUENCE) = struct
