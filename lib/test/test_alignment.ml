@@ -11,11 +11,11 @@ let mytab = Align.of_assoc_list Nucleotide.[(0,DNA.of_list [A;T;T]);
 
 let test_of_string_list () =
   Align.of_string_list ["ATT";"TGC";"GTC"] |>
-  (check @@ testable Align.pp (=)) "identical sequence tables" mytab
+  (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
 let test_of_fasta () =
   Align.of_fasta "test_data/tiny1.fasta" |>
-  (check @@ testable Align.pp (=)) "identical sequence tables" mytab
+  (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
 let test_get_base () =
   Align.get_base ~seq:2 ~pos:2 mytab |> Nucleotide.to_string |>

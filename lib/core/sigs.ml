@@ -32,6 +32,7 @@ module type ALIGNMENT = sig
   val get_base: t -> seq:int -> pos:int -> base
   val length: t -> int
   val to_file: t -> string -> unit
+  val equal: t -> t -> bool
 end
 
 (* evolution models  *)

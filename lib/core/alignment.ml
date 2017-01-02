@@ -53,6 +53,7 @@ module Make (S:SEQUENCE) = struct
     |> List.map ~f:(fun (i,s) -> Printf.sprintf ">T%d\n%s" i (S.to_string s))
     |> Out_channel.write_lines filename
 
+  let equal x y = Hashtbl.equal x y (=)
 end
 
 module DNA_align = Make (Seq.DNA)
@@ -106,6 +107,8 @@ module Make_alist (S:SEQUENCE) = struct
   let to_file seq name =
     List.map seq ~f:(fun (i,seq) -> Printf.sprintf ">T%d\n%s" i (S.to_string seq))
     |> Out_channel.write_lines name
+
+  let equal = (=)
 end
 
 (* module DNASeq = Make (Seq.DNA) *)
