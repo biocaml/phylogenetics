@@ -23,7 +23,7 @@ module K80 = struct
   module Base = Nucleotide
   let transversion a b =
     let open Base in
-    match (of_int a, of_int b) with
+    match (a, b) with
     | (A,G) | (G,A) | (T,C) | (C,T) -> false
     | _ -> true
 
@@ -33,8 +33,19 @@ module K80 = struct
     else if transversion a b then (1./.(k+.2.))
     else k/.(k+.2.)
   let stat_dis _ _ = 0.25
+  let has_decomposition = true
   let diag k = function
     | 1 -> 0.0
     | 2 -> (-4.)/.(k+.2.)
     | _ -> (-2.*.k-.2.)/.(k+.2.)
+  let diag_p _ i j = match (i,j) with
+    | (_,1) | (3,2) | (4,2) | (2,4) | (4,3) -> 1.0
+    | (1,2) | (2,2) | (1,4) | (3,3) -> -1.0
+    | _ -> 0.0
+  let diag_p_inv _ i j = match (i,j) with
+    | (1,_) | (2,3) | (2,4) -> 0.25
+    | (2,_) -> -0.25
+    | (3,4) | (4,2) -> 0.5
+    | (3,3) | (4,1) -> -0.5
+    | _ -> 0.0
 end
