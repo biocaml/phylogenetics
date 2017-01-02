@@ -45,7 +45,7 @@ module Make (S:SEQUENCE) = struct
   let pp fmt x =
     Hashtbl.to_alist x
     |> List.map ~f:(fun (i,s) -> Printf.sprintf "%d: %s" i (S.to_string s))
-    |> String.concat ~sep:" ; "
+    |> String.concat ~sep:"\n"
     |> Format.fprintf fmt "%s"
 
   let to_file x filename =
