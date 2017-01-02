@@ -69,6 +69,8 @@ val min_vec: vec -> float
 
 val max_vec: vec -> float
 
+val compare: float -> mat -> mat -> bool
+
 val get_vec: vec -> int -> float
 
 (** {6 Printing and tests}*)

@@ -6,5 +6,6 @@ let () =
     "Sequence", Test_sequence.tests;
     "Alignment", Test_alignment.tests;
     "TopoTree", Test_topotree.tests;
+    "Models", Test_models.tests;
     "Felsenstein", Test_felsenstein.tests
   ]

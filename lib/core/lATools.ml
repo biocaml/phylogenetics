@@ -60,4 +60,14 @@ let min_vec v = Vec.min v
 
 let max_vec v = Vec.max v
 
+let compare p m1 m2 =
+  let diff = sum m1 (scal_mat_mul m2 (-1.)) in (* substract two matrices *)
+  let relative_diff = (* element-wise diff/m1 *)
+    mult diff (Mat.map (fun x -> 1./.x) m1)
+    |> Mat.abs
+  in
+  let maxdiff = Mat.fold_cols (fun acc vec -> max acc (max_vec vec)) 0.0 relative_diff in
+  Printf.printf "MAX RELATIVE DIFF = %f\n" maxdiff ;
+  maxdiff <= p
+
 let get_vec v i = v.{i}
