@@ -2,10 +2,22 @@ open Sigs
 open Biocaml_ez
 open Core_kernel.Std
 
-module Make (S:SEQUENCE) = struct
-  type sequence = S.t
+
+module Make_hashtbl (S:SEQUENCE) = struct
   type base = S.base
-  type t = (int * S.t) list
+  type sequence = S.t
+  type t = (string, S.t) Hashtbl.t
+
+  let of_assoc_list l =
+    let align = Int.Table.create ~size:(List.length l) () in
+    List.iter ~f:(fun (i,s) -> Hashtbl.add_exn ~key:i ~data:s align) l
+end
+
+
+module Make (S:SEQUENCE) = struct
+  type base = S.base
+  type sequence = S.t
+  type t = (int * sequence) list
 
   let get_base tab ~seq ~pos = S.get (ListLabels.assoc seq tab) pos
 
