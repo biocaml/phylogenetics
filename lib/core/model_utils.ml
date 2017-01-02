@@ -15,14 +15,14 @@ struct
   let stat_dis_vec e = init_vec Base.alphabet_size
     @@ fun x -> E.stat_dis e (Base.of_int (x-1))
 
-  let diag_p _ = init_mat Base.alphabet_size
-    @@ fun x y -> E.diag_p x y
+  let diag_p e = init_mat Base.alphabet_size
+    @@ fun x y -> E.diag_p e x y
 
-  let diag_p_inv _ = init_mat Base.alphabet_size
-    @@ fun x y -> E.diag_p_inv x y
+  let diag_p_inv e = init_mat Base.alphabet_size
+    @@ fun x y -> E.diag_p_inv e x y
 
-  let diag _ t = init_mat Base.alphabet_size
-    @@ fun x y -> if x=y then E.diag x |> ( *. ) t |> Pervasives.exp else 0.0
+  let diag e t = init_mat Base.alphabet_size
+    @@ fun x y -> if x=y then E.diag e x |> ( *. ) t |> Pervasives.exp else 0.0
 
   let eMt e t =
     if E.has_decomposition then
