@@ -24,11 +24,13 @@ struct
   let diag e t = init_mat Base.alphabet_size
     @@ fun x y -> if x=y then E.diag e x |> ( *. ) t |> Pervasives.exp else 0.0
 
+  let eMt_series e t = exp (scal_mat_mul (rate_matrix e) t)
+
   let eMt e t =
     if E.has_decomposition then
       mult (mult (diag_p e) (diag e t)) (diag_p_inv e)
     else
-      exp (scal_mat_mul (rate_matrix e) t)
+      eMt_series e t
 
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
