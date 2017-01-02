@@ -3,10 +3,10 @@ open Biocaml_ez
 open Core_kernel.Std
 
 
-module Make_hashtbl (S:SEQUENCE) = struct
+module Make (S:SEQUENCE) = struct
   type base = S.base
   type sequence = S.t
-  type t = (int, S.t) Hashtbl.t
+  type t = (int, sequence) Hashtbl.t
   module Sequence = S
 
   let get_base tab ~seq ~pos = S.get (Hashtbl.find_exn tab seq) pos
@@ -30,9 +30,32 @@ module Make_hashtbl (S:SEQUENCE) = struct
             Hashtbl.add_exn ~key:key ~data:data align) stream
       ) ;
     align
+
+  (* give length of sequences in alignment ;
+     fails if empty or length mismatch between sequences *)
+  let length x =
+    if Hashtbl.is_empty x then invalid_arg "empty alignment"
+    else Hashtbl.fold x ~init:0 ~f:(fun ~key:_ ~data acc ->
+        let l = S.length data in
+        if l=0 then invalid_arg "alignment with empty sequence"
+        else if acc<>0 && acc<>l then invalid_arg "sequence length mismatch"
+        else l
+      )
+
+  let pp fmt x =
+    Hashtbl.to_alist x
+    |> List.map ~f:(fun (i,s) -> Printf.sprintf "%d: %s" i (S.to_string s))
+    |> String.concat ~sep:" ; "
+    |> Format.fprintf fmt "%s"
+
+  let to_file x filename =
+    Hashtbl.to_alist x
+    |> List.map ~f:(fun (i,s) -> Printf.sprintf ">T%d\n%s" i (S.to_string s))
+    |> Out_channel.write_lines filename
+
 end
 
-module DNA_align = Make_hashtbl (Seq.DNA)
+module DNA_align = Make (Seq.DNA)
 let myalign = DNA_align.of_assoc_list [
     (0, DNA_align.Sequence.of_string "ATTC");
     (1, DNA_align.Sequence.of_string "TGCA")
@@ -40,9 +63,12 @@ let myalign = DNA_align.of_assoc_list [
 let myalign2 = DNA_align.of_string_list ["ATTC"; "TGCA"]
 let myalign3 = DNA_align.of_fasta "test_data/tiny1.fasta"
 let test () = DNA_align.get_base ~seq:1 ~pos:0 myalign3
+let test2 () = DNA_align.length myalign2
+(* let test3 () = DNA_align.pp stdout myalign3 *)
+let test4 () = DNA_align.to_file myalign2 "tmp.fasta"
 
 
-module Make (S:SEQUENCE) = struct
+module Make_alist (S:SEQUENCE) = struct
   type base = S.base
   type sequence = S.t
   type t = (int * sequence) list
