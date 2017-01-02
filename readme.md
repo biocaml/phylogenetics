@@ -10,6 +10,7 @@ Currently implemented:
 * linear algebra functions (half wrappers around lacaml functions and half new functions);
 * evolution models:
     * JC69
+    * K80 (untested)
 * felsenstein pruning w/ underflow avoidance
 * sequence generation from model
 * tests that compare results to bio++
