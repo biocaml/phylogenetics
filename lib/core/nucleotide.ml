@@ -13,14 +13,14 @@ let of_char = function
   | _ -> invalid_arg "base_of_char"
 
 (** Converts a base into an int (alphabetical order, starting at 0) *)
-let to_int = function A -> 0 | C -> 1 | G -> 2 | T -> 3
+let to_int = function A -> 0 | G -> 1 | C -> 2 | T -> 3
 
 (** Creates a DNA base from an int between 0 and 3
     Raises invalid_arg in case of incorrect int parameter.*)
 let of_int = function
   | 0 -> A
-  | 1 -> C
-  | 2 -> G
+  | 1 -> G
+  | 2 -> C
   | 3 -> T
   | x ->
     invalid_arg (Printf.sprintf "base_of_int: %d is not a correct base index" x)

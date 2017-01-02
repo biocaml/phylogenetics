@@ -17,3 +17,20 @@ module JC69 = struct
     else if i=j then 0.75
     else -0.25
 end
+
+
+module K80 = struct
+  module Base = Nucleotide
+  let transversion a b =
+    let open Base in
+    match (of_int a, of_int b) with
+    | (A,G) | (G,A) | (T,C) | (C,T) -> false
+    | _ -> true
+
+  type t = float (* transition/transversion rate *)
+  let transition k a b =
+    if a=b then -1.0 (* diagonal *)
+    else if transversion a b then (1./.(k+.2.))
+    else k/.(k+.2.)
+  let stat_dis _ _ = 0.25
+end
