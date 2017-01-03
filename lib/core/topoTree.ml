@@ -39,19 +39,6 @@ let of_newick_file path =
 
 (* Generation of tree from post-order enumeration of nodes
    (some preliminary functions are required)*)
-let pop_char s =
-  match String.length s with
-  | 0 -> None, ""
-  | l -> Some s.[0], String.sub s ~pos:1 ~len:(l-1)
-
-let split_on_char sep s =
-  let rec aux sep s buf acc =
-    match pop_char s with
-    | None, _ -> List.rev (buf::acc)
-    | Some c, rest when c=sep -> aux sep rest "" (buf::acc)
-    | Some c, rest -> aux sep rest (String.concat ~sep:"" [buf; String.make 1 c]) acc
-  in aux sep s "" []
-
 type element = Int of int | Float of float
 let element_of_string s =
   if String.contains s '.' then
@@ -82,7 +69,7 @@ let of_preorder str =
     | Error m -> Error (Printf.sprintf "Right returned unexpected result: <%s>" m)
 
   in
-  match fulltree (List.map ~f:element_of_string (split_on_char ';' str)) with
+  match fulltree (List.map ~f:element_of_string (String.split ~on:';' str)) with
   | Ok (t, _) -> t
   | Error m -> invalid_arg m
 
