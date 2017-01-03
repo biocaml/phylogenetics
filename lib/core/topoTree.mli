@@ -15,3 +15,5 @@ val of_newick: string -> t
 val of_newick_file: string -> t
 
 val make_random: int -> t
+
+val to_newick: t -> string

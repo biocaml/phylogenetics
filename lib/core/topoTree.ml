@@ -116,3 +116,18 @@ let make_random n =
   and rand_branch t = (Random.float 2.0, t)
   in aux (List.init n ~f:(fun i -> (Leaf i)))
 
+let to_newick t =
+  let rec aux = function
+    | Node ((f1,l),(f2,r)) ->
+      Printf.sprintf "(%s:%f,%s:%f)" (aux l) f1 (aux r) f2
+    | Leaf i -> Printf.sprintf "T%d" i
+  in aux t |> Printf.sprintf "%s;"
+
+(* let test () = *)
+(*   make_random 4 *)
+(*   |> to_newick *)
+
+(* let test2 () = *)
+(*   make_random 4 *)
+(*   |> to_newick *)
+(*   |> of_newick *)
