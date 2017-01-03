@@ -20,7 +20,7 @@ struct
     in
     Random.float 1.0 |> aux 1
 
-  let seqgen param tree size =
+  let seqgen_raw param tree size =
     let rec aux tree bl = match tree with
       | TopoTree.Leaf i -> [(i,bl)]
       | TopoTree.Node ((t1,l), (t2,r)) ->
@@ -29,8 +29,19 @@ struct
     in
     List.init size ~f:(fun _->draw_base (stat_dis_vec param))
     |> aux tree
+
+  let seqgen param tree size =
+    seqgen_raw param tree size
     |> List.map ~f:(fun (i,s)->(i,Seq.of_list s))
     |> Align.of_assoc_list
+
+  let seqgen_string_list param tree size =
+    let raw = seqgen_raw param tree size in
+    List.init (List.length raw) ~f:(
+      fun i ->
+        List.Assoc.find_exn raw i
+        |> Seq.of_list |> Seq.to_string
+    )
 end
 
 (* module JCSeqgen = Seqgen (Models.JC69) *)

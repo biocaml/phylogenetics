@@ -21,20 +21,20 @@ let test_felsenstein_tiny () =
 
 (* TODO finish functions below *)
 
-let build_felsenstein (model: (module Sigs.EVOL_MODEL)) =
-  let module M = (val model) in
-  let module FG = Felsenstein.Felsenstein (M) in
-  (module FG:Sigs.FELSENSTEIN)
-
 let test_felsenstein
     ?(model=(module Models.JC69:Sigs.EVOL_MODEL))
     ?(treesize=5)
     ?(seqsize=5)
+    ?(param="")
     comment
   =
-  let module F = (val build_felsenstein model) in
+  let module M = (val model) in
+  let module F = Felsenstein.Felsenstein (M) in
+  let module SG = Seqgen.Seqgen (M) in
+  let param = M.of_string param in
   let tree = TopoTree.make_random treesize in
- ()
+  let align =  SG.seqgen_string_list param tree seqsize |> F.Align.of_string_list in (* not very elegant :/ *)
+  F.multi_felsenstein_shift () param tree align
 
 
 

@@ -16,6 +16,7 @@ module JC69 = struct
     if i=1 then 0.25
     else if i=j then 0.75
     else -0.25
+  let of_string _ = ()
 end
 
 
@@ -48,4 +49,5 @@ module K80 = struct
     | (3,4) | (4,2) -> 0.5
     | (3,3) | (4,1) -> -0.5
     | _ -> 0.0
+  let of_string = float_of_string
 end
