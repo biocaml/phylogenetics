@@ -47,3 +47,9 @@ module type EVOL_MODEL = sig
   val diag_p_inv: t -> int -> int -> float
 end
 
+module type FELSENSTEIN = sig
+  type param
+  type tree
+  type align
+  val multi_felsenstein_shift: unit -> param -> tree -> align -> float
+end

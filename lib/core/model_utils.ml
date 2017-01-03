@@ -9,6 +9,10 @@ struct
   module Seq = Seq.Make (Base)
   module Align = Alignment.Make (Seq)
 
+  type tree = TopoTree.t
+  type align = Align.t
+  type param = E.t
+
   let rate_matrix e = init_mat Base.alphabet_size
     @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
 

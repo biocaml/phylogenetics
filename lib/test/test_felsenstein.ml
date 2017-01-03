@@ -16,6 +16,30 @@ let test_felsenstein_tiny () =
   felsenstein ~site:0 () () (TopoTree.of_preorder "0.1;0.1;0;1") (Align.of_string_list ["C";"G"]) |>
   check_likelihood (-4.22471668644312)
 
+
+
+
+(* TODO finish functions below *)
+
+let build_felsenstein (model: (module Sigs.EVOL_MODEL)) =
+  let module M = (val model) in
+  let module FG = Felsenstein.Felsenstein (M) in
+  (module FG:Sigs.FELSENSTEIN)
+
+let test_felsenstein
+    ?(model=(module Models.JC69:Sigs.EVOL_MODEL))
+    ?(treesize=5)
+    ?(seqsize=5)
+    comment
+  =
+  let module F = (val build_felsenstein model) in
+  let tree = TopoTree.make_random treesize in
+ ()
+
+
+
+
+
 type test_case = {
   name: string ;
   result: float ;
@@ -70,9 +94,9 @@ let test_K80_multi () =
        ~tree:"multi_1.tree"
        "multi_1.seq")
     Felsenstein.K80Felsenstein.(multi_felsenstein_shift () 2.0
-       (TopoTree.of_newick_file "test_data/multi_1.tree")
-       (Align.of_fasta "test_data/multi_1.seq")
-    )
+                                  (TopoTree.of_newick_file "test_data/multi_1.tree")
+                                  (Align.of_fasta "test_data/multi_1.seq")
+                               )
 
 let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
