@@ -1,3 +1,5 @@
+open Core_kernel.Std
+
 (* Type for evolutionary trees: binary trees
    whose edges are labelled with lengths (floats)
    and whose leaves are labelled with sequence indexes (ints)*)
@@ -40,14 +42,14 @@ let of_newick_file path =
 let pop_char s =
   match String.length s with
   | 0 -> None, ""
-  | l -> Some s.[0], String.sub s (1) (l-1)
+  | l -> Some s.[0], String.sub s ~pos:1 ~len:(l-1)
 
 let split_on_char sep s =
   let rec aux sep s buf acc =
     match pop_char s with
     | None, _ -> List.rev (buf::acc)
     | Some c, rest when c=sep -> aux sep rest "" (buf::acc)
-    | Some c, rest -> aux sep rest (String.concat "" [buf; String.make 1 c]) acc
+    | Some c, rest -> aux sep rest (String.concat ~sep:"" [buf; String.make 1 c]) acc
   in aux sep s "" []
 
 type element = Int of int | Float of float
@@ -80,7 +82,7 @@ let of_preorder str =
     | Error m -> Error (Printf.sprintf "Right returned unexpected result: <%s>" m)
 
   in
-  match fulltree (List.map element_of_string (split_on_char ';' str)) with
+  match fulltree (List.map ~f:element_of_string (split_on_char ';' str)) with
   | Ok (t, _) -> t
   | Error m -> invalid_arg m
 
@@ -89,7 +91,7 @@ let pp fmt tree =
   let rec aux tree level =
     let indent n =
       let f _ = ' ' in
-      String.init (4*n) f
+      String.init (4*n) ~f:f
     in
     match tree with
     | Leaf (index) ->
@@ -100,3 +102,17 @@ let pp fmt tree =
         (indent level) f2 (aux b2 (level+1))
   in
   aux tree 0 |> Format.fprintf fmt "%s"
+
+let make_random n =
+  let rec aux = function
+    | [t] -> t
+    | _::_ as l->
+      pick_two l ~f:(fun a b -> Node (rand_branch a, rand_branch b))
+      |> aux
+    | [] -> failwith "tree list should not be empty"
+  and pick_two l ~f = match List.permute l with
+    | a::b::tl -> (f a b)::tl
+    | _ -> failwith "tried to pick_two in too short a list"
+  and rand_branch t = (Random.float 2.0, t)
+  in aux (List.init n ~f:(fun i -> (Leaf i)))
+
