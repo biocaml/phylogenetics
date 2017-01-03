@@ -2,7 +2,7 @@ open Biocaml_phylogeny_core
 open Alcotest
 open Biocaml_ez
 open Core_kernel.Std
-open Felsenstein.JCFelsenstein
+open Felsenstein.JC69Felsenstein
 
 (** Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
@@ -62,8 +62,21 @@ let of_testfile file f desc =
       (fun () -> f () tree seq |> check_likelihood result)
   )
 
+let test_K80_multi () =
+  check_likelihood
+    (Bpp_interface.felsenstein_bpp
+       ~model:"\"K80(kappa=2.0)\""
+       ~path:"test_data"
+       ~tree:"multi_1.tree"
+       "multi_1.seq")
+    Felsenstein.K80Felsenstein.(multi_felsenstein_shift () 2.0
+       (TopoTree.of_newick_file "test_data/multi_1.tree")
+       (Align.of_fasta "test_data/multi_1.seq")
+    )
+
 let tests = [
   "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
+  "multi_shift K80", `Quick, test_K80_multi ;
 ] @ of_testfile "test_single_small" (felsenstein ~site:0 ()) "normal"
   @ of_testfile "test_single_small" (felsenstein_shift ~site:0 ()) "shift"
   @ of_testfile "test_single_small" (felsenstein_logshift ~site:0 ()) "log shift"
@@ -72,3 +85,4 @@ let tests = [
   @ of_testfile "test_multi" (multi_felsenstein ()) "normal"
   @ of_testfile "test_multi" (multi_felsenstein_shift ()) "shift"
   @ of_testfile "test_multi" (multi_felsenstein_logshift ()) "log shift"
+

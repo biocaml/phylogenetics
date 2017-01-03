@@ -86,23 +86,25 @@ end
    ||       TESTS        ||
    ||                    ||
    ======================== *)
-module JCFelsenstein = Felsenstein (Models.JC69)
+module JC69Felsenstein = Felsenstein (Models.JC69)
+
+module K80Felsenstein = Felsenstein (Models.K80)
 
 let test () =
   let mytree = TopoTree.of_preorder "0.0895312;0.0576168;1;0" in
-  let myseq = ["C";"C"] |> JCFelsenstein.Align.of_string_list in
+  let myseq = ["C";"C"] |> JC69Felsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein ~site:0 () () mytree myseq
+    JC69Felsenstein.felsenstein ~site:0 () () mytree myseq
     |> printf "Returns: %F\nBio++..: -1.52971733717731\n" ;
   end
 
 let test2 () =
   let mytree = TopoTree.of_preorder "0.1;0.1;1;0" in
-  let myseq = ["C";"G"] |> JCFelsenstein.Align.of_string_list in
+  let myseq = ["C";"G"] |> JC69Felsenstein.Align.of_string_list in
   begin
-    JCFelsenstein.felsenstein ~site:0 () () mytree myseq
+    JC69Felsenstein.felsenstein ~site:0 () () mytree myseq
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_logshift ~site:0 () () mytree myseq
+    JC69Felsenstein.felsenstein_logshift ~site:0 () () mytree myseq
     |> printf "Log.....: %F\nBio++...: -4.22471668644312\nHandbook: -4.21922774436879067\n"
   end
 
@@ -111,15 +113,15 @@ let mytree = TopoTree.of_preorder
 
 let myseq =
   ["CA";"GA";"CC";"TA";"AC";"TC";"GA"]
-  |> JCFelsenstein.Align.of_string_list
+  |> JC69Felsenstein.Align.of_string_list
 
 
 let test3 () =
   begin
-    JCFelsenstein.felsenstein ~site:0 () () mytree myseq
+    JC69Felsenstein.felsenstein ~site:0 () () mytree myseq
     |> printf "Normal..: %F\n" ;
-    JCFelsenstein.felsenstein_logshift ~site:0 () () mytree myseq
+    JC69Felsenstein.felsenstein_logshift ~site:0 () () mytree myseq
     |> printf "LogShift: %F\n" ;
-    JCFelsenstein.felsenstein_shift ~site:0 () () mytree myseq
+    JC69Felsenstein.felsenstein_shift ~site:0 () () mytree myseq
     |> printf "Shift...: %F\n"
   end
