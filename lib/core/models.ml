@@ -1,5 +1,7 @@
 open Sigs
 
+
+
 module JC69 = struct
   type t = unit
   module Base = Nucleotide
@@ -51,5 +53,14 @@ module K80 = struct
     | (3,3) | (4,1) -> -0.5
     | _ -> 0.0
   let of_string = float_of_string
-  let to_string k = Printf.sprintf "K80(%f)" k
+  let to_string k = Printf.sprintf "K80(kappa=%f)" k
 end
+
+type model = {model:(module EVOL_MODEL) ; param:string}
+
+let of_string str =
+  if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
+  else {
+    model = (module K80:EVOL_MODEL) ;
+    param = Scanf.sscanf str "K80(kappa=%f)" (fun x->string_of_float x)
+  }
