@@ -11,7 +11,7 @@ let float_compare p f1 f2 =
   diff/.(Pervasives.abs_float f1) <= p
 
 (** Compares two floats (which are supposed to be likelihood results) using the alcotest check *)
-let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods"
+let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "different log likelihoods!"
 
 (** Generates a random tree, a random sequence (using the provided model),
     runs both biocaml felsenstein and bppml, and checks that the results are identical*)
