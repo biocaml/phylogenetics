@@ -2,7 +2,6 @@ open Biocaml_phylogeny_core
 open Alcotest
 open Biocaml_ez
 open Core_kernel.Std
-open Felsenstein.JC69Felsenstein
 
 (** Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)

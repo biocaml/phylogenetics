@@ -1,17 +1,17 @@
 open Printf
-open Lacaml.S
+open Lacaml.D
 
 (* Linear algebra functions *)
-type mat = Lacaml_float32.mat
-type vec = Lacaml_float32.vec
+type mat = Lacaml_float64.mat
+type vec = Lacaml_float64.vec
 
 let init_mat size f = Mat.init_rows size size f
 
 let init_vec size f = Vec.init size f
 
-let pp_mat fmt mat = pp_mat fmt mat
+let pp_mat = pp_mat
 
-let pp_vec fmt vec = pp_vec fmt vec
+let pp_vec = pp_vec
 
 let mult a ?alpha:(al=1.) b = gemm a b ~alpha:al
 
@@ -71,3 +71,40 @@ let compare p m1 m2 =
   maxdiff <= p
 
 let get_vec v i = v.{i}
+
+let inverse m =
+  let tmp = lacpy m in
+  let tmp_vec = getrf tmp in
+  getri ~ipiv:tmp_vec tmp ;
+  tmp
+
+let diagonalize m =
+  let tmp = lacpy m in
+  match syevr ~vectors:true tmp with
+    (_,_,c,_) -> let ci = inverse c in
+    lacpy c,  mult (inverse c) (mult m c), lacpy ci
+
+    (* begin *)
+    (*   pp_mat Format.std_formatter c ; *)
+    (*   let tau = Vec.make 4 0.0 in *)
+    (*   let a = geqrf ~tau c in *)
+    (*   orgqr ~tau:a c ; *)
+    (*   c *)
+    (* end *)
+
+
+    let mymat () = Mat.init_rows 4 4 Models.JC69.(fun i j ->
+        transition () (Base.of_int (i-1)) (Base.of_int (j-1))
+      )
+
+(* let test () = *)
+(*   let p, pi = diagonalize (mymat ()) in *)
+(*   mult (mult pi (mymat ())) p *)
+
+let test () =
+  let m = Mat.random 4 4 in
+  mult (inverse m) m
+
+let test2 () =
+  diagonalize (mymat ())
+
