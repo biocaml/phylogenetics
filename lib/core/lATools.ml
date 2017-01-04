@@ -84,27 +84,18 @@ let diagonalize m =
     (_,_,c,_) -> let ci = inverse c in
     lacpy c,  mult (inverse c) (mult m c), lacpy ci
 
-    (* begin *)
-    (*   pp_mat Format.std_formatter c ; *)
-    (*   let tau = Vec.make 4 0.0 in *)
-    (*   let a = geqrf ~tau c in *)
-    (*   orgqr ~tau:a c ; *)
-    (*   c *)
-    (* end *)
-
-
-    let mymat () = Mat.init_rows 4 4 Models.JC69.(fun i j ->
-        transition () (Base.of_int (i-1)) (Base.of_int (j-1))
-      )
+let mymat () = Mat.init_rows 4 4 Models.JC69.(fun i j ->
+    transition () (Base.of_int (i-1)) (Base.of_int (j-1))
+  )
 
 (* let test () = *)
 (*   let p, pi = diagonalize (mymat ()) in *)
 (*   mult (mult pi (mymat ())) p *)
 
-let test () =
-  let m = Mat.random 4 4 in
-  mult (inverse m) m
+(* let test () = *)
+(*   let m = Mat.random 4 4 in *)
+(*   mult (inverse m) m *)
 
-let test2 () =
-  diagonalize (mymat ())
+(* let test2 () = *)
+(*   diagonalize (mym at ()) *)
 
