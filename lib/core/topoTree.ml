@@ -110,6 +110,9 @@ let to_newick t =
     | Leaf i -> Printf.sprintf "T%d" i
   in aux t |> Printf.sprintf "%s;"
 
+let to_newick_file t filename =
+  Out_channel.write_all filename ~data:(to_newick t)
+
 (* let test () = *)
 (*   make_random 4 *)
 (*   |> to_newick *)

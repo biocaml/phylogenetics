@@ -46,6 +46,7 @@ module type EVOL_MODEL = sig
   val diag_p: t -> int -> int -> float
   val diag_p_inv: t -> int -> int -> float
   val of_string: string -> t
+  val to_string: t -> string
 end
 
 module type FELSENSTEIN = sig

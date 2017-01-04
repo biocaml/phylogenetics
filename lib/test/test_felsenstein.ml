@@ -12,29 +12,27 @@ let float_compare p f1 f2 =
 
 let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods"
 
-let test_felsenstein_tiny () =
-  felsenstein ~site:0 () () (TopoTree.of_preorder "0.1;0.1;0;1") (Align.of_string_list ["C";"G"]) |>
-  check_likelihood (-4.22471668644312)
-
-
-
-
-(* TODO finish functions below *)
 
 let test_felsenstein
     ?(model=(module Models.JC69:Sigs.EVOL_MODEL))
     ?(treesize=5)
     ?(seqsize=5)
     ?(param="")
-    comment
+    ()
   =
   let module M = (val model) in
   let module F = Felsenstein.Felsenstein (M) in
   let module SG = Seqgen.Seqgen (M) in
   let param = M.of_string param in
   let tree = TopoTree.make_random treesize in
-  let align =  SG.seqgen_string_list param tree seqsize |> F.Align.of_string_list in (* not very elegant :/ *)
-  F.multi_felsenstein_shift () param tree align
+  let align =  SG.seqgen_string_list param tree seqsize |> F.Align.of_string_list in
+  let my_result = F.multi_felsenstein_shift () param tree align in
+  let bpp_result = begin
+    TopoTree.to_newick_file tree "tmp.tree" ; (* TODO unique file name *)
+    F.Align.to_file align "tmp.seq" ;
+    Bpp_interface.felsenstein_bpp ~model:(M.to_string param) ~tree:("tmp.tree") "tmp.seq"
+  end in
+  check_likelihood my_result bpp_result
 
 
 
@@ -99,7 +97,6 @@ let test_K80_multi () =
                                )
 
 let tests = [
-  "felsenstein_tiny", `Quick, test_felsenstein_tiny ;
   "multi_shift K80", `Quick, test_K80_multi ;
 ] @ of_testfile "test_single_small" (felsenstein ~site:0 ()) "normal"
   @ of_testfile "test_single_small" (felsenstein_shift ~site:0 ()) "shift"

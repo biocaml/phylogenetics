@@ -17,6 +17,7 @@ module JC69 = struct
     else if i=j then 0.75
     else -0.25
   let of_string _ = ()
+  let to_string _ = "JC69"
 end
 
 
@@ -50,4 +51,5 @@ module K80 = struct
     | (3,3) | (4,1) -> -0.5
     | _ -> 0.0
   let of_string = float_of_string
+  let to_string k = Printf.sprintf "K80(%f)" k
 end

@@ -17,3 +17,5 @@ val of_newick_file: string -> t
 val make_random: int -> t
 
 val to_newick: t -> string
+
+val to_newick_file: t -> string -> unit
