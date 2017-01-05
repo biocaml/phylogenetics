@@ -1,7 +1,7 @@
 include $(shell opam config var solvuu-build:lib)/solvuu.mk
 
-test: byte
-	./_build/app/test_app.byte
+test: native
+	./_build/app/test_app.native
 
 bug:
 	rm -f .merlin .ocamlinit
