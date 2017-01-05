@@ -16,8 +16,8 @@ struct
   let rate_matrix e = init_mat Base.alphabet_size
     @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
 
-  let stat_dis_vec e = init_vec Base.alphabet_size
-    @@ fun x -> E.stat_dis e (Base.of_int (x-1))
+  let stat_dist_vec e = init_vec Base.alphabet_size
+    @@ fun x -> E.stat_dist e (Base.of_int (x-1))
 
   let diag_p e = init_mat Base.alphabet_size
     @@ fun x y -> E.diag_p e x y

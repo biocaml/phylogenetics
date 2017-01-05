@@ -34,9 +34,9 @@ struct
         (mat_vec_mul (eMt param f2) (out_f v_r) |> in_f)
       |> shift s_l s_r
 
-    in let statdis = stat_dis_vec param |> in_f in
+    in let statdist = stat_dist_vec param |> in_f in
     let res_vec, res_shift = aux tree in
-    res_vec |> combine statdis |> out_f |> sum_vec_elements |> log |> (+.) res_shift
+    res_vec |> combine statdist |> out_f |> sum_vec_elements |> log |> (+.) res_shift
 
 
   (* ============================ *)

@@ -27,7 +27,7 @@ struct
         aux l (List.map bl ~f:(fun b->draw_base (proba param b t1)))
         @ aux r (List.map bl ~f:(fun b->draw_base (proba param b t2)))
     in
-    List.init size ~f:(fun _->draw_base (stat_dis_vec param))
+    List.init size ~f:(fun _->draw_base (stat_dist_vec param))
     |> aux tree
 
   let seqgen param tree size =

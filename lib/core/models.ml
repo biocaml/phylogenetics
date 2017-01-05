@@ -4,7 +4,7 @@ module JC69 = struct
   type t = unit
   module Base = Nucleotide
   let transition () a b = if a=b then -1.0 else 1./.3.
-  let stat_dis () _ = 0.25
+  let stat_dist () _ = 0.25
   let has_decomposition = true
   let diag () = function 1 -> 0.0 | _ -> -1.333333333333
   let diag_p () i j =
@@ -33,7 +33,7 @@ module K80 = struct
     if a=b then -1.0 (* diagonal *)
     else if transversion a b then (1./.(k+.2.))
     else k/.(k+.2.)
-  let stat_dis _ _ = 0.25
+  let stat_dist _ _ = 0.25
   let has_decomposition = true
   let diag k = function
     | 1 -> 0.0
@@ -68,7 +68,7 @@ module Make (M:TRANSITION_MATRIX) = struct
   let stat_dist_vec p = LATools.stat_dist (transition_mat p)
   let diagonalization_mats p = LATools.diagonalize (transition_mat p)
 
-  let stat_dis p b = LATools.get_vec (stat_dist_vec p) ((Base.to_int b)+1)
+  let stat_dist p b = LATools.get_vec (stat_dist_vec p) ((Base.to_int b)+1)
   let has_decomposition = true
   let diag p i = match diagonalization_mats p with
     | (_,m,_) -> LATools.get_mat m i i
