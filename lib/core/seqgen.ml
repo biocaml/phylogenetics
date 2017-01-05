@@ -1,10 +1,9 @@
-open Sigs
 open Core_kernel.Std
+open Sigs
 
 module Make (E:EVOL_MODEL) =
 struct
-  module Utils = Model_utils.Make (E)
-  include Utils
+  include Model_utils.Make (E)
 
   let proba param base t =
     LATools.mat_vec_mul (eMt param t) (known_vector base)
@@ -43,14 +42,3 @@ struct
         |> Seq.of_list |> Seq.to_string
     )
 end
-
-(* module JCSeqgen = Seqgen (Models.JC69) *)
-
-(* let test () = *)
-(*   JCSeqgen.draw_base (JCSeqgen.proba () (JCSeqgen.Base.of_int 0) 0.7) *)
-(*   |> JCSeqgen.Base.to_string *)
-
-(* let test2 () = *)
-(*   let mytree = TopoTree.of_newick_file "test_data/small_1.tree" in *)
-(*   JCSeqgen.seqgen () mytree 15 *)
-(*   |> JCSeqgen.Align.pp Format.std_formatter *)

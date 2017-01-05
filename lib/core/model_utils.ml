@@ -3,7 +3,6 @@ open Sigs
 module Make (E:EVOL_MODEL) =
 struct
   (* Setting up relevant data structures *)
-  open TopoTree
   open LATools
   module Base = E.Base
   module Seq = Seq.Make (Base)
@@ -34,5 +33,4 @@ struct
 
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
-
 end
