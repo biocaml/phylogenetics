@@ -2,6 +2,7 @@ open Biocaml_phylogeny_core
 open Alcotest
 
 module K80_Utils = Model_utils.Make (Models.K80)
+module K80_gen_Utils = Model_utils.Make (Models.K80_generated)
 module JC69_Utils = Model_utils.Make (Models.JC69)
 module JC69_gen_Utils = Model_utils.Make (Models.JC69_generated)
 open LATools
@@ -27,8 +28,15 @@ let test_JC69_generated () =
     (JC69_Utils.eMt () 0.1)
     (JC69_gen_Utils.eMt () 0.1)
 
+let test_K80_generated () =
+  compare_matrix
+    "identical exponential of transition matrix"
+    (K80_Utils.eMt 2.0 0.1)
+    (K80_gen_Utils.eMt 2.0 0.1)
+
 let tests = [
   "JC69 exponential", `Quick, test_JC69_exponential;
   "K80 exponential", `Quick, test_K80_exponential;
-  "JC69 manual vs generated", `Quick, test_JC69_generated
+  "JC69 manual vs generated", `Quick, test_JC69_generated;
+  "K80 manual vs generated", `Quick, test_K80_generated
 ]
