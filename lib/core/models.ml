@@ -56,14 +56,6 @@ end
 (** A record containing a model and a parameter *)
 type t = {model:(module EVOL_MODEL) ; param:string}
 
-(** Returns the module+parameters specified in a string using bpp format *)
-let of_string str =
-  if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
-  else {
-    model = (module K80:EVOL_MODEL) ;
-    param = Scanf.sscanf str "K80(kappa=%f)" (fun x->string_of_float x)
-  }
-
 (** If possible, creates a model module from a transition matrix *)
 module Make (M:TRANSITION_MATRIX) = struct
   include M
@@ -85,3 +77,21 @@ module Make (M:TRANSITION_MATRIX) = struct
   let diag_p_inv p i j = match diagonalization_mats p with
     | (_,_,m) -> LATools.get_mat m i j
 end
+
+module JC69_mat = struct
+  type t = unit
+  module Base = Nucleotide
+  let transition () a b = if a=b then -1.0 else 1./.3.
+  let of_string _ = ()
+  let to_string _ = "JC69"
+end
+
+module JC69_generated = Make (JC69_mat)
+
+(** Returns the module+parameters specified in a string using bpp format *)
+let of_string str =
+  if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
+  else {
+    model = (module K80:EVOL_MODEL) ;
+    param = Scanf.sscanf str "K80(kappa=%f)" (fun x->string_of_float x)
+  }
