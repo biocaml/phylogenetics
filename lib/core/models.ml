@@ -1,7 +1,5 @@
 open Sigs
 
-
-
 module JC69 = struct
   type t = unit
   module Base = Nucleotide
@@ -21,7 +19,6 @@ module JC69 = struct
   let of_string _ = ()
   let to_string _ = "JC69"
 end
-
 
 module K80 = struct
   module Base = Nucleotide
@@ -56,11 +53,17 @@ module K80 = struct
   let to_string k = Printf.sprintf "K80(kappa=%f)" k
 end
 
+(** A record containing a model and a parameter *)
 type model = {model:(module EVOL_MODEL) ; param:string}
 
+(** Returns the module+parameters specified in a string using bpp format *)
 let of_string str =
   if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
   else {
     model = (module K80:EVOL_MODEL) ;
     param = Scanf.sscanf str "K80(kappa=%f)" (fun x->string_of_float x)
   }
+
+(** If possible, creates a model module from a transition matrix *)
+let of_matrix m =
+  ()

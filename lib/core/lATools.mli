@@ -80,3 +80,7 @@ val pp_mat: Format.formatter -> mat -> unit
 
 (** Prints a vector to the standard output. *)
 val pp_vec: Format.formatter -> vec -> unit
+
+val diagonalize: mat -> mat * mat * mat
+
+val inverse: mat -> mat
