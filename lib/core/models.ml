@@ -65,5 +65,11 @@ let of_string str =
   }
 
 (** If possible, creates a model module from a transition matrix *)
-let of_matrix m =
-  ()
+(* let of_matrix m = *)
+(*   (module struct *)
+
+(*     module Base = Nucleotide *)
+
+(*     type t =  *)
+
+(*   end: Sigs.EVOL_MODEL) *)

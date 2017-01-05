@@ -48,10 +48,3 @@ module type EVOL_MODEL = sig
   val of_string: string -> t
   val to_string: t -> string
 end
-
-module type FELSENSTEIN = sig
-  type param
-  type tree
-  type align
-  val multi_felsenstein_shift: unit -> param -> tree -> align -> float
-end
