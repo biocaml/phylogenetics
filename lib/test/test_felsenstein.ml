@@ -22,8 +22,8 @@ let test_felsenstein
     ()
   =
   let module M = (val model) in
-  let module F = Felsenstein.Felsenstein (M) in
-  let module SG = Seqgen.Seqgen (M) in
+  let module F = Felsenstein.Make (M) in
+  let module SG = Seqgen.Make (M) in
   let param = M.of_string param in
   let tree = TopoTree.make_random treesize in
   let align =  SG.seqgen_string_list param tree seqsize |> F.Align.of_string_list in

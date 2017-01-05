@@ -1,7 +1,7 @@
 open Sigs
 open Core_kernel.Std
 
-module Seqgen (E:EVOL_MODEL) =
+module Make (E:EVOL_MODEL) =
 struct
   module Utils = Model_utils.Model_utils (E)
   include Utils

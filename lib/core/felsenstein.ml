@@ -2,7 +2,7 @@ open Printf
 open Sigs
 open Core_kernel.Std
 
-module Felsenstein (E:EVOL_MODEL) =
+module Make (E:EVOL_MODEL) =
 struct
   module Utils = Model_utils.Model_utils (E)
   include Utils
@@ -86,9 +86,9 @@ end
    ||       TESTS        ||
    ||                    ||
    ======================== *)
-module JC69Felsenstein = Felsenstein (Models.JC69)
+module JC69Felsenstein = Make (Models.JC69)
 
-module K80Felsenstein = Felsenstein (Models.K80)
+module K80Felsenstein = Make (Models.K80)
 
 let test () =
   let mytree = TopoTree.of_preorder "0.0895312;0.0576168;1;0" in

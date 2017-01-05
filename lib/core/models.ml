@@ -54,7 +54,7 @@ module K80 = struct
 end
 
 (** A record containing a model and a parameter *)
-type model = {model:(module EVOL_MODEL) ; param:string}
+type t = {model:(module EVOL_MODEL) ; param:string}
 
 (** Returns the module+parameters specified in a string using bpp format *)
 let of_string str =
