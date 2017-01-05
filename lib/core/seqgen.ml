@@ -3,7 +3,7 @@ open Core_kernel.Std
 
 module Make (E:EVOL_MODEL) =
 struct
-  module Utils = Model_utils.Model_utils (E)
+  module Utils = Model_utils.Make (E)
   include Utils
 
   let proba param base t =

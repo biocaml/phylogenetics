@@ -1,6 +1,6 @@
 open Sigs
 
-module Model_utils (E:EVOL_MODEL) =
+module Make (E:EVOL_MODEL) =
 struct
   (* Setting up relevant data structures *)
   open TopoTree
