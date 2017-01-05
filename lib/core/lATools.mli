@@ -84,3 +84,5 @@ val pp_vec: Format.formatter -> vec -> unit
 val diagonalize: mat -> mat * mat * mat
 
 val inverse: mat -> mat
+
+val stat_dist: mat -> vec

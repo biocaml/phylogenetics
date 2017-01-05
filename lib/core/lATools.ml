@@ -81,16 +81,26 @@ let inverse m =
 let diagonalize m =
   let tmp = lacpy m in
   match syevr ~vectors:true tmp with
-    (_,_,c,_) -> let ci = inverse c in
+  | (_,_,c,_) -> let ci = inverse c in
     lacpy c,  mult (inverse c) (mult m c), lacpy ci
 
-let mymat () = Mat.init_rows 4 4 Models.JC69.(fun i j ->
-    transition () (Base.of_int (i-1)) (Base.of_int (j-1))
-  )
+let stat_dist m =
+  (* copy matrix to avoid erasing original *)
+  let tmp = lacpy m in
+  (* get eigenvector for eigenvalue 0 *)
+  match syevr ~vectors:true ~range:(`V(-0.001,0.001)) tmp with
+  | (_,_,c,_) ->
+    let vec = Mat.col c 1 in
+    (* normalize so the sum of elements equals 1 *)
+    scal_vec_mul vec (1./.(sum_vec_elements vec))
+
+(* let mymat () = Mat.init_rows 4 4 Models.JC69.(fun i j -> *)
+(*     transition () (Base.of_int (i-1)) (Base.of_int (j-1)) *)
+(*   ) *)
 
 (* let test () = *)
-(*   let p, pi = diagonalize (mymat ()) in *)
-(*   mult (mult pi (mymat ())) p *)
+(*   let m = stat_dist (mymat ()) in *)
+(*   m *)
 
 (* let test () = *)
 (*   let m = Mat.random 4 4 in *)
