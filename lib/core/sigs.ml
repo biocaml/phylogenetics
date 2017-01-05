@@ -47,7 +47,6 @@ end
 module type EVOL_MODEL = sig
   include TRANSITION_MATRIX
   val stat_dist: t -> Base.t -> float
-  val has_decomposition: bool
   val diag: t -> int -> float
   val diag_p: t -> int -> int -> float
   val diag_p_inv: t -> int -> int -> float

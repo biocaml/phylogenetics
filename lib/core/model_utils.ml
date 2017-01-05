@@ -30,11 +30,7 @@ struct
 
   let eMt_series e t = exp (scal_mat_mul (rate_matrix e) t)
 
-  let eMt e t =
-    if E.has_decomposition then
-      mult (mult (diag_p e) (diag e t)) (diag_p_inv e)
-    else
-      eMt_series e t
+  let eMt e t = mult (mult (diag_p e) (diag e t)) (diag_p_inv e)
 
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
