@@ -36,10 +36,14 @@ module type ALIGNMENT = sig
 end
 
 (* evolution models  *)
-module type EVOL_MODEL = sig
+module type TRANSITION_MATRIX = sig
   type t
   module Base:BASE
   val transition: t -> Base.t -> Base.t -> float
+end
+
+module type EVOL_MODEL = sig
+  include TRANSITION_MATRIX
   val stat_dis: t -> Base.t -> float
   val has_decomposition: bool
   val diag: t -> int -> float
