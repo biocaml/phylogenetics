@@ -71,6 +71,7 @@ let compare p m1 m2 =
   maxdiff <= p
 
 let get_vec v i = v.{i}
+let get_mat m i j = m.{i,j}
 
 let inverse m =
   let tmp = lacpy m in

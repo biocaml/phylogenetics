@@ -73,6 +73,8 @@ val compare: float -> mat -> mat -> bool
 
 val get_vec: vec -> int -> float
 
+val get_mat: mat -> int -> int -> float
+
 (** {6 Printing and tests}*)
 
 (** Prints a matrix to the standard output (display may be messy). *)

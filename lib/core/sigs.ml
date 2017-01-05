@@ -40,6 +40,8 @@ module type TRANSITION_MATRIX = sig
   type t
   module Base:BASE
   val transition: t -> Base.t -> Base.t -> float
+  val of_string: string -> t
+  val to_string: t -> string
 end
 
 module type EVOL_MODEL = sig
@@ -49,6 +51,4 @@ module type EVOL_MODEL = sig
   val diag: t -> int -> float
   val diag_p: t -> int -> int -> float
   val diag_p_inv: t -> int -> int -> float
-  val of_string: string -> t
-  val to_string: t -> string
 end
