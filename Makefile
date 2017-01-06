@@ -3,6 +3,9 @@ include $(shell opam config var solvuu-build:lib)/solvuu.mk
 test: native
 	./_build/app/test_app.native
 
+bench: native
+	time ./_build/app/bench_app.native
+
 bug:
 	rm -f .merlin .ocamlinit
 	make .merlin
