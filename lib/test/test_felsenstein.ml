@@ -34,7 +34,7 @@ let test_felsenstein
     try
       Bpp_interface.felsenstein_bpp ~model:(Printf.sprintf "\"%s\"" (M.to_string param)) ~tree:("tmp.tree") "tmp.seq"
     with
-    | Failure s -> Printf.printf "\027[0;31mThere was an error with bppml: %s\027[0;0m\n" s; 0.0
+    | Failure s -> Printf.printf "\027[0;31mERROR\027[0;0m(felsenstein_bpp): %s\n" s; 0.0
   end in
   check_likelihood my_result bpp_result
 
