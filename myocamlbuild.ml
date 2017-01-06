@@ -41,7 +41,7 @@ let test_app = make_app "test_app"
 
 let bench_app = make_app "bench_app"
     ~file:"app/bench_app.ml"
-    ~internal_deps:[test_lib]
+    ~internal_deps:[test_lib; core_lib]
 
 (* let lib = *)
 (*   let name = "biocaml_phylogeny" in *)

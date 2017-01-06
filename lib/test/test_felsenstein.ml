@@ -31,7 +31,10 @@ let test_felsenstein
   let bpp_result = begin
     TopoTree.to_newick_file tree "tmp.tree" ; (* TODO unique file name *)
     F.Align.to_file align "tmp.seq" ;
-    Bpp_interface.felsenstein_bpp ~model:(Printf.sprintf "\"%s\"" (M.to_string param)) ~tree:("tmp.tree") "tmp.seq"
+    try
+      Bpp_interface.felsenstein_bpp ~model:(Printf.sprintf "\"%s\"" (M.to_string param)) ~tree:("tmp.tree") "tmp.seq"
+    with
+    | Failure s -> Printf.printf "\027[0;31mThere was an error with bppml: %s\027[0;0m\n" s; 0.0
   end in
   check_likelihood my_result bpp_result
 

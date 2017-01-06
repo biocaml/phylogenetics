@@ -41,7 +41,7 @@ struct
       let mv = max_vec v in
       (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv))
 
-  let felsenstein_single_shift ?threshold:(threshold=0.0) ~site () =
+  let felsenstein_single_shift ?threshold:(threshold=0.0000001) ~site () =
     felsenstein_single
       ~shift:(shift_normal threshold)
       ~site:site ()

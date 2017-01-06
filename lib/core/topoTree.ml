@@ -1,5 +1,7 @@
 open Core_kernel.Std
 
+let _ = Random.self_init ()
+
 (* Type for evolutionary trees: binary trees
    whose edges are labelled with lengths (floats)
    and whose leaves are labelled with sequence indexes (ints)*)
@@ -100,7 +102,7 @@ let make_random n =
   and pick_two l ~f = match List.permute l with
     | a::b::tl -> (f a b)::tl
     | _ -> failwith "tried to pick_two in too short a list"
-  and rand_branch t = (Random.float 2.0, t)
+  and rand_branch t = ((Random.float 0.5)+.0.25, t)
   in aux (List.init n ~f:(fun i -> (Leaf i)))
 
 let to_newick t =
