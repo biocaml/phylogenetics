@@ -31,6 +31,7 @@ module type ALIGNMENT = sig
   val pp: Format.formatter -> t -> unit
   val get_base: t -> seq:TopoTree.index -> pos:int -> base
   val length: t -> int
+  val nb_seq: t -> int
   val to_file: t -> string -> unit
   val equal: t -> t -> bool
 end

@@ -41,6 +41,8 @@ module Make (S:SEQUENCE) = struct
         else l
       )
 
+  let nb_seq x = Hashtbl.length x
+
   let pp fmt x =
     Hashtbl.to_alist x
     |> List.map ~f:(fun (i,s) -> Printf.sprintf "%s: %s" i (S.to_string s))
