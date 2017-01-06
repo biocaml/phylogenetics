@@ -101,7 +101,7 @@ let make_random n =
   and pick_two l ~f = match List.permute l with
     | a::b::tl -> (f a b)::tl
     | _ -> failwith "tried to pick_two in too short a list"
-  and rand_branch t = ((Random.float 0.5)+.0.25, t)
+  and rand_branch t = ((Random.float 0.5)+.0.00001, t)
   in aux (List.init n ~f:(fun i -> (Leaf (Printf.sprintf "T%d" i))))
 
 let to_newick t =
@@ -113,3 +113,10 @@ let to_newick t =
 
 let to_newick_file t filename =
   Out_channel.write_all filename ~data:(to_newick t)
+
+let mean_branch_length x =
+  let rec aux = function
+    | Node ((f1,l),(f2,r)) ->
+      (match aux l, aux r with ((bl1,c1),(bl2,c2)) -> f1+.f2+.bl1+.bl2, 2+c1+c2)
+    | Leaf _ -> 0.0, 0
+  in match aux x with a,b -> a/.(float_of_int b)
