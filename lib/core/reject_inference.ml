@@ -23,7 +23,7 @@ module JC69ri = Make(Models.K80)
 let myalign = JC69ri.Align.of_string_list ["A";"A";"A";"A"]
 
 let test () =
-  let prior_trees = JC69ri.generate_trees (JC69ri.Align.nb_seq myalign) 1000000 in
+  let prior_trees = JC69ri.generate_trees (JC69ri.Align.nb_seq myalign) 100000 in
   let post_trees = JC69ri.generate_aligns 2.0 prior_trees |> JC69ri.reject myalign in
   Printf.printf "Prior branch lengths: %f\nPosterior branch lengths: %f\n(Size = %d/%d)"
     (JC69ri.mean_branch_length prior_trees)

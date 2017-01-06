@@ -120,3 +120,46 @@ let mean_branch_length x =
       (match aux l, aux r with ((bl1,c1),(bl2,c2)) -> f1+.f2+.bl1+.bl2, 2+c1+c2)
     | Leaf _ -> 0.0, 0
   in match aux x with a,b -> a/.(float_of_int b)
+
+
+(* ========== *)
+(*  SAMPLERS  *)
+(* ========== *)
+let sample_float_uniform ?(min=0.0) max () = Random.float (max -. min) +. min
+
+let rec nb_branches = function
+  | Node ((_,l),(_,r)) -> 2 + nb_branches l + nb_branches r
+  | _ -> 0
+
+let rec set_branch_lengths tree lengths = match tree, lengths with
+  | (Leaf _ as l, []) -> l
+  | (Node ((_,l),(_,r)), l1::l2::tl) ->
+    Node (
+      (l1, set_branch_lengths l (List.sub tl ~pos:0 ~len:(nb_branches l))),
+      (l2, set_branch_lengths r (List.sub tl ~pos:(nb_branches l) ~len:(nb_branches r)))
+    )
+  | _ -> failwith "Branch list does not match tree"
+
+let rec get_branch_lengths = function
+  | Node ((l1,l),(l2,r)) -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
+  | _ -> []
+
+let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree =
+  get_branch_lengths tree
+  |> List.mapi ~f:(fun i l -> if branchs i then sampler () else l)
+  |> set_branch_lengths tree
+
+
+(* ========= *)
+(*   TESTS   *)
+(* ========= *)
+let mytree = of_preorder "0.1;0.2;0.3;0.4;0;1;2"
+
+let test0 () = get_branch_lengths mytree
+
+let test () =
+  sample_branch_lengths
+    ~branchs:(fun i -> i=2)
+    ~sampler:(sample_float_uniform 1.0)
+    mytree
+|> pp Format.std_formatter
