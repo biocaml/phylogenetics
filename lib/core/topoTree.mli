@@ -1,6 +1,6 @@
 (** Module for phylogenetic trees. *)
 
-type index = int
+type index = string
 and branch = float * t
 and t =
   | Node of branch * branch

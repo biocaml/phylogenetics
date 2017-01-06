@@ -2,10 +2,10 @@ open Core_kernel.Std
 
 let _ = Random.self_init ()
 
-(* Type for evolutionary trees: binary trees
-   whose edges are labelled with lengths (floats)
-   and whose leaves are labelled with sequence indexes (ints)*)
-type index = int
+(** Type for evolutionary trees: binary trees
+    whose edges are labelled with lengths (floats)
+    and whose leaves are labelled with sequence indexes (ints)*)
+type index = string
 and branch = float * t
 and t =
   | Node of branch * branch
@@ -18,8 +18,7 @@ let of_newick str =
 
   and branch = function
     | {Newick.id=Some s; Newick.length=Some l; _} ->
-      l, Leaf (try Scanf.sscanf s "T%d" (fun x->x)
-               with _ -> invalid_arg "Label is not T%d")
+      l, Leaf s
     | {Newick.length=Some l; Newick.tip=t; _} -> l, aux t
     | _ -> invalid_arg "Malformed branch in newick tree."
 
@@ -54,7 +53,7 @@ let of_preorder str =
     | token :: rest ->
       match token with
       | Float f -> node f rest
-      | Int i -> Ok (Leaf i, rest)
+      | Int i -> Ok (Leaf (Printf.sprintf "T%d" i), rest)
 
   and node f1 = function
     | (Float f2)::rest -> left f1 f2 rest
@@ -84,7 +83,7 @@ let pp fmt tree =
     in
     match tree with
     | Leaf (index) ->
-      Printf.sprintf "Index: %s\n" (string_of_int index)
+      Printf.sprintf "Index: %s\n" index
     | Node ((f1,b1),(f2,b2)) ->
       Printf.sprintf "Node\n%s=(%F)=> %s%s=(%F)=> %s"
         (indent level) f1 (aux b1 (level+1))
@@ -103,23 +102,14 @@ let make_random n =
     | a::b::tl -> (f a b)::tl
     | _ -> failwith "tried to pick_two in too short a list"
   and rand_branch t = ((Random.float 0.5)+.0.25, t)
-  in aux (List.init n ~f:(fun i -> (Leaf i)))
+  in aux (List.init n ~f:(fun i -> (Leaf (Printf.sprintf "T%d" i))))
 
 let to_newick t =
   let rec aux = function
     | Node ((f1,l),(f2,r)) ->
       Printf.sprintf "(%s:%f,%s:%f)" (aux l) f1 (aux r) f2
-    | Leaf i -> Printf.sprintf "T%d" i
+    | Leaf i -> i
   in aux t |> Printf.sprintf "%s;"
 
 let to_newick_file t filename =
   Out_channel.write_all filename ~data:(to_newick t)
-
-(* let test () = *)
-(*   make_random 4 *)
-(*   |> to_newick *)
-
-(* let test2 () = *)
-(*   make_random 4 *)
-(*   |> to_newick *)
-(*   |> of_newick *)

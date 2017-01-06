@@ -38,7 +38,7 @@ struct
     let raw = seqgen_raw param tree size in
     List.init (List.length raw) ~f:(
       fun i ->
-        List.Assoc.find_exn raw i
+        List.Assoc.find_exn raw (Printf.sprintf "T%d" i)
         |> Seq.of_list |> Seq.to_string
     )
 end

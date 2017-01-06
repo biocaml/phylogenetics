@@ -5,9 +5,9 @@ module DNA = Seq.DNA
 module Align = Alignment.Make (DNA)
 
 (* Reference data for tests (hand-crafted from raw DNA bases) *)
-let mytab = Align.of_assoc_list Nucleotide.[(0,DNA.of_list [A;T;T]);
-                                            (1,DNA.of_list [T;G;C]);
-                                            (2,DNA.of_list [G;T;C])]
+let mytab = Align.of_assoc_list Nucleotide.[("T0",DNA.of_list [A;T;T]);
+                                            ("T1",DNA.of_list [T;G;C]);
+                                            ("T2",DNA.of_list [G;T;C])]
 
 let test_of_string_list () =
   Align.of_string_list ["ATT";"TGC";"GTC"] |>
@@ -18,7 +18,7 @@ let test_of_fasta () =
   (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
 let test_get_base () =
-  Align.get_base ~seq:2 ~pos:2 mytab |> Nucleotide.to_string |>
+  Align.get_base ~seq:"T1" ~pos:2 mytab |> Nucleotide.to_string |>
   (check string) "get base from sequence" "C"
 
 let tests = [

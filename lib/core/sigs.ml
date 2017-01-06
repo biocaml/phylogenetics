@@ -26,10 +26,10 @@ module type ALIGNMENT = sig
   type base
   type sequence
   val of_string_list: string list -> t
-  val of_assoc_list: (int*sequence) list -> t
+  val of_assoc_list: (TopoTree.index*sequence) list -> t
   val of_fasta: string -> t
   val pp: Format.formatter -> t -> unit
-  val get_base: t -> seq:int -> pos:int -> base
+  val get_base: t -> seq:TopoTree.index -> pos:int -> base
   val length: t -> int
   val to_file: t -> string -> unit
   val equal: t -> t -> bool
