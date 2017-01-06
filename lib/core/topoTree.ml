@@ -144,7 +144,7 @@ let rec get_branch_lengths = function
   | Node ((l1,l),(l2,r)) -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
   | _ -> []
 
-let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree =
+let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree () =
   get_branch_lengths tree
   |> List.mapi ~f:(fun i l -> if branchs i then sampler () else l)
   |> set_branch_lengths tree
@@ -161,5 +161,5 @@ let test () =
   sample_branch_lengths
     ~branchs:(fun i -> i=2)
     ~sampler:(sample_float_uniform 1.0)
-    mytree
+    mytree ()
 |> pp Format.std_formatter

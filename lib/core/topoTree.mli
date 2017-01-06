@@ -26,5 +26,7 @@ val sample_float_uniform: ?min:float -> float -> unit -> float
 
 val nb_branches: t -> int
 
-val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> t -> t
+val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> t -> unit -> t
+
+val get_branch_lengths: t -> float list
 
