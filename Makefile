@@ -6,6 +6,9 @@ test: native
 bench: ./_build/app/bench_app.native
 	./_build/app/bench_app.native
 
+graph: bench
+	gnuplot reject_branch.plt
+
 bug:
 	rm -f .merlin .ocamlinit
 	make .merlin

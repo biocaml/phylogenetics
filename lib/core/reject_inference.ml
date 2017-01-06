@@ -27,16 +27,16 @@ let myalign = RI.Align.of_string_list ["A";"A";"A";"T"]
 
 let mybasetree = TopoTree.of_preorder "0.1;0.1;0.1;0.1;0;1;0.1;0.1;2;3"
 
-let mysampler = TopoTree.sample_branch_lengths ~branchs:(fun i -> i=5) ~sampler:(TopoTree.sample_float_uniform 1.0) mybasetree
+let mysampler = TopoTree.sample_branch_lengths ~branchs:(fun i -> i=5) ~sampler:(TopoTree.sample_float_uniform 5.0) mybasetree
 
-let test () =
-  let prior_trees = RI.generate_trees ~sampler:mysampler 1000000 in
+let test amount =
+  let prior_trees = RI.generate_trees ~sampler:mysampler amount in
   let post_trees = RI.reject 2.0 myalign prior_trees in
-  Printf.printf "Prior branch lengths: %f\nPosterior branch lengths: %f\n(Size = %d/%d)"
+  Printf.printf "Prior branch lengths: %f\nPosterior branch lengths: %f\n(Size = %d/%d)\n"
     (RI.mean_specific_branch 5 prior_trees)
     (RI.mean_specific_branch 5 post_trees)
     (List.length post_trees)
     (List.length prior_trees) ;
-  RI.get_branch 5 prior_trees |> List.map ~f:string_of_float |> Out_channel.write_lines "prior.txt" ;
-  RI.get_branch 5 post_trees |> List.map ~f:string_of_float |> Out_channel.write_lines "post.txt" ;
+  RI.get_branch 5 prior_trees |> List.map ~f:string_of_float |> Out_channel.write_lines "tmp_prior.txt" ;
+  RI.get_branch 5 post_trees |> List.map ~f:string_of_float |> Out_channel.write_lines "tmp_post.txt" ;
 
