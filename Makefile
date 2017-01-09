@@ -9,14 +9,9 @@ bench: ./_build/app/bench_app.native
 graph: bench
 	gnuplot reject_branch.plt
 
-bug:
-	rm -f .merlin .ocamlinit
-	make .merlin
-	make .ocamlinit
-
 doc: default
-	mkdir -p doc
-	ocamlfind ocamldoc -package lacaml,biocaml -I _build/lib/core lib/core/* -d doc -html
+	mkdir -p _build/doc
+	ocamlfind ocamldoc -package lacaml,biocaml -I _build/lib/core lib/core/sigs.ml lib/core/*.mli -d _build/doc -html
 
 ca: clean
 	rm -rf doc/ tmp* test_data/tmp*

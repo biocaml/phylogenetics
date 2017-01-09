@@ -43,26 +43,7 @@ let bench_app = make_app "bench_app"
     ~file:"app/bench_app.ml"
     ~internal_deps:[test_lib; core_lib]
 
-(* let lib = *)
-(*   let name = "biocaml_phylogeny" in *)
-(*   Project.lib name *)
-(*     ~annot ~bin_annot ~g ~short_paths ~thread *)
-(*     ~pkg:name *)
-(*     ~dir:"lib" *)
-(*     ~style:(`Pack name) *)
-(*     ~findlib_deps:[ *)
-(*       "lacaml, alcotest" ; *)
-(*     ] *)
-
-(* let app = *)
-(*   let name = "test" in *)
-(*   Project.app name *)
-(*     ~annot ~bin_annot ~g ~short_paths ~thread *)
-(*     ~file:(sprintf "app/%s_app.ml" (undash name)) *)
-(*     ~internal_deps:[lib_tests] *)
-
 let items = [ test_app ; bench_app ; test_lib ; core_lib ]
-
 
 let () =
   let open Solvuu_build.Std.Project in
