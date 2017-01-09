@@ -20,13 +20,9 @@ val to_newick: t -> string
 
 val to_newick_file: t -> string -> unit
 
-val mean_branch_length: t -> float
-
-val sample_float_uniform: ?min:float -> float -> unit -> float
-
 val nb_branches: t -> int
 
-val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> t -> unit -> t
-
 val get_branch_lengths: t -> float list
+
+val set_branch_lengths: t -> float list -> t
 

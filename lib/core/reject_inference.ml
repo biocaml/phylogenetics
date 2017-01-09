@@ -27,7 +27,7 @@ let myalign = RI.Align.of_string_list ["A";"A";"A";"T"]
 
 let mybasetree = TopoTree.of_preorder "0.1;0.1;0.1;0.1;0;1;0.1;0.1;2;3"
 
-let mysampler = TopoTree.sample_branch_lengths ~branchs:(fun i -> i=5) ~sampler:(TopoTree.sample_float_uniform 5.0) mybasetree
+let mysampler = Sample.sample_branch_lengths ~branchs:(fun i -> i=5) ~sampler:(Sample.sample_float_uniform 5.0) mybasetree
 
 let test amount =
   let prior_trees = RI.generate_trees ~sampler:mysampler amount in
