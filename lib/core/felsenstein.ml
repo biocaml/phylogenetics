@@ -15,8 +15,9 @@ struct
       param
     =
     (* specialization for param (to avoid computation of diag each time) *)
-    let _ = Printf.printf "call to felsenstein_single" in
+    let _ = Printf.printf "call to felsenstein_single<<\n" in
     let eMt_spec = eMt param in
+    let _ = Printf.printf ">>done\n" in
     fun ~site tree seq ->
       let rec aux = function
         | Node ((f1,l), (f2,r)) -> node f1 l f2 r
