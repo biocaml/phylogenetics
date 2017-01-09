@@ -1,6 +1,12 @@
+(** Tests of the felsenstein implementation. The results are compared to bppml
+    to check correctness. A variety of models and problem sizes are used to generate
+    trees and alignments which are submitted to our felsenstein implementation and
+    bppml.*)
 open Biocaml_phylogeny_core
 open Alcotest
 open Core_kernel.Std
+
+(** {6 Preliminary functions} *)
 
 (** Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
@@ -43,7 +49,8 @@ let test_felsenstein_str ?(model="JC69") ?(treesize=5) ?(seqsize=5) =
   test_felsenstein ~model:my_model.Models.model ~treesize ~seqsize ~param:my_model.Models.param
 
 
-(* TESTS *)
+(** {6 Test list} *)
+
 let models = ["JC69" ; "K80(kappa=2.0)" ; "K80(kappa=0.5)"]
 let tree_sizes = [10 ; 50 ; 250]
 let seq_sizes = [1 ; 10 ; 100 ]
