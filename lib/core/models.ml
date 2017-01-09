@@ -16,12 +16,21 @@ module Make (M:TRANSITION_MATRIX) = struct
   let diagonalization_mats p = LATools.diagonalize (transition_mat p)
 
   let stat_dist p b = LATools.get_vec (stat_dist_vec p) ((Base.to_int b)+1)
-  let diag p i = match diagonalization_mats p with
-    | (_,m,_) -> LATools.get_mat m i i
-  let diag_p p i j = match diagonalization_mats p with
-    | (m,_,_) -> LATools.get_mat m i j
-  let diag_p_inv p i j = match diagonalization_mats p with
-    | (_,_,m) -> LATools.get_mat m i j
+
+  let diag p =
+    let mats = diagonalization_mats p in
+    fun i -> match mats with
+      | (_,m,_) -> LATools.get_mat m i i
+
+  let diag_p p =
+    let mats = diagonalization_mats p in
+    fun i j -> match mats with
+      | (m,_,_) -> LATools.get_mat m i j
+
+  let diag_p_inv p =
+    let mats = diagonalization_mats p in
+    fun i j -> match mats with
+      | (_,_,m) -> LATools.get_mat m i j
 end
 
 module JC69_mat = struct
@@ -90,7 +99,7 @@ module K80_generated = Make (K80_mat)
 
 (** Returns the module+parameters specified in a string using bpp format *)
 let of_string str =
-  if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
+  if str = "JC69" then {model = (module JC69_generated:EVOL_MODEL) ; param = ""}
   else {
     model = (module K80:EVOL_MODEL) ;
     param = Scanf.sscanf str "K80(kappa=%f)" (fun x->string_of_float x)

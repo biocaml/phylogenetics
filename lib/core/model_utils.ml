@@ -13,22 +13,22 @@ struct
   type param = E.t
 
   let rate_matrix e = init_mat Base.alphabet_size
-    @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
+    @@ fun i j -> E.transition e (Base.of_int (i-1)) (Base.of_int (j-1))
 
   let stat_dist_vec e = init_vec Base.alphabet_size
-    @@ fun x -> E.stat_dist e (Base.of_int (x-1))
+    @@ fun i -> E.stat_dist e (Base.of_int (i-1))
 
   let diag_p e = init_mat Base.alphabet_size
-    @@ fun x y -> E.diag_p e x y
+    @@ fun i j -> E.diag_p e i j
 
   let diag_p_inv e = init_mat Base.alphabet_size
-    @@ fun x y -> E.diag_p_inv e x y
+    @@ fun i j -> E.diag_p_inv e i j
 
   let diag e =
-    let diag = E.diag e in
+    let d = E.diag e in
     fun t ->
       init_mat Base.alphabet_size
-      @@ fun x y -> if x=y then diag x |> ( *. ) t |> Pervasives.exp else 0.0
+      @@ fun i j -> if i=j then d i |> ( *. ) t |> Pervasives.exp else 0.0
 
   let eMt_series e t = exp (scal_mat_mul (rate_matrix e) t)
 

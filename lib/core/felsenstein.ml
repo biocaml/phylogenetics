@@ -12,24 +12,27 @@ struct
   (* ======================= *)
   let felsenstein_single
       ?(shift=fun _ _ v->v,0.0)
-      ~site
-      () param tree seq
+      param
     =
-    let rec aux = function
-      | Node ((f1,l), (f2,r)) -> node f1 l f2 r
-      | Leaf i -> leaf i
+    (* specialization for param (to avoid computation of diag each time) *)
+    let _ = Printf.printf "call to felsenstein_single" in
+    let eMt_spec = eMt param in
+    fun ~site tree seq ->
+      let rec aux = function
+        | Node ((f1,l), (f2,r)) -> node f1 l f2 r
+        | Leaf i -> leaf i
 
-    and leaf i = Align.get_base seq ~seq:i ~pos:site
-                 |> known_vector |> shift 0.0 0.0
+      and leaf i = Align.get_base seq ~seq:i ~pos:site
+                   |> known_vector |> shift 0.0 0.0
 
-    and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
-      vec_vec_mul
-        (mat_vec_mul (eMt param f1) v_l)
-        (mat_vec_mul (eMt param f2) v_r)
-      |> shift s_l s_r
+      and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
+        vec_vec_mul
+          (mat_vec_mul (eMt_spec f1) v_l)
+          (mat_vec_mul (eMt_spec f2) v_r)
+        |> shift s_l s_r
 
-    in let res_vec, res_shift = aux tree in
-    res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
+      in let res_vec, res_shift = aux tree in
+      res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
 
 
   (* ============================ *)
@@ -41,20 +44,20 @@ struct
       let mv = max_vec v in
       (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv))
 
-  let felsenstein_single_shift ?threshold:(threshold=0.0000001) ~site () =
+  let felsenstein_single_shift ?threshold:(threshold=0.0000001) param =
     felsenstein_single
       ~shift:(shift_normal threshold)
-      ~site:site ()
+      param
 
 
   (* ======================= *)
   (* | Multi-site versions | *)
   (* ======================= *)
-  let multisite (f: site:int -> E.t -> TopoTree.t -> Align.t -> float) param tree seq =
+  let multisite (f: site:int -> TopoTree.t -> Align.t -> float) tree seq =
     let l = Align.length seq in
-    List.fold (List.range 0 l) ~init:0.0 ~f:(fun acc x -> (f ~site:x param tree seq) +. acc)
+    List.fold (List.range 0 l) ~init:0.0 ~f:(fun acc x -> (f ~site:x tree seq) +. acc)
 
-  let felsenstein_noshift () = multisite (felsenstein_single ())
-  let felsenstein () = multisite (felsenstein_single_shift ())
+  let felsenstein_noshift param = multisite (felsenstein_single param)
+  let felsenstein param = multisite (felsenstein_single_shift param)
 
 end

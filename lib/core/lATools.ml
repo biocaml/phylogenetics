@@ -80,6 +80,7 @@ let inverse m =
   tmp
 
 let diagonalize m =
+  let _ = Printf.printf "CALL TO DIAG\n" in
   let tmp = lacpy m in
   match syevr ~vectors:true tmp with
   | (_,_,c,_) -> let ci = inverse c in
