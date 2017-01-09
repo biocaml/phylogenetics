@@ -11,7 +11,7 @@ graph: bench
 
 doc: default
 	mkdir -p _build/doc
-	ocamlfind ocamldoc -package lacaml,biocaml -I _build/lib/core lib/core/sigs.ml lib/core/*.mli -d _build/doc -html
+	ocamlfind ocamldoc -package lacaml,biocaml,alcotest,core -I _build/lib/core -I _build/lib lib/test/* lib/core/sigs.ml lib/core/*.mli -d _build/doc -html
 
 ca: clean
 	rm -rf doc/ tmp* test_data/tmp*
