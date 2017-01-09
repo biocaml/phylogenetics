@@ -11,7 +11,7 @@ type vec
 
 
 
-(** {6 Matrix creation} *)
+(** {6 Matrix and vector creation} *)
 
 (** Initialises a square matrix from a int->int->float function. *)
 val init_mat: int -> (int -> int -> float) -> mat
@@ -75,16 +75,17 @@ val get_vec: vec -> int -> float
 
 val get_mat: mat -> int -> int -> float
 
-(** {6 Printing and tests}*)
+val diagonalize: mat -> mat * mat * mat
+
+val inverse: mat -> mat
+
+val stat_dist: mat -> vec
+
+
+(** {6 Pretty printing}*)
 
 (** Prints a matrix to the standard output (display may be messy). *)
 val pp_mat: Format.formatter -> mat -> unit
 
 (** Prints a vector to the standard output. *)
 val pp_vec: Format.formatter -> vec -> unit
-
-val diagonalize: mat -> mat * mat * mat
-
-val inverse: mat -> mat
-
-val stat_dist: mat -> vec
