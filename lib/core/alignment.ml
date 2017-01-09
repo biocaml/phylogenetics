@@ -6,7 +6,8 @@ open Core_kernel.Std
 module Make (S:SEQUENCE) = struct
   type base = S.base
   type sequence = S.t
-  type t = (string, sequence) Hashtbl.t
+  type index = string
+  type t = (index, sequence) Hashtbl.t
   module Sequence = S
 
   let get_base tab ~seq ~pos = S.get (Hashtbl.find_exn tab seq) pos

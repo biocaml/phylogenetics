@@ -1,4 +1,6 @@
-(** Module to handle individual bases (eg, A, T, C, G).
+(** Compilation of module signatures used elsewhere. *)
+
+(** Module type for individual bases (eg, A, T, C, G).
     Mostly conversion to/from strings and ints *)
 module type BASE = sig
   type t
@@ -10,6 +12,7 @@ module type BASE = sig
   val alphabet_size: int
 end
 
+(** Module type for sequences of bases (eg, DNA). *)
 module type SEQUENCE = sig
   type base
   type t
@@ -21,22 +24,24 @@ module type SEQUENCE = sig
   val pp: Format.formatter -> t -> unit
 end
 
+(** Module type for alignments of sequences (eg, DNA alignment.) *)
 module type ALIGNMENT = sig
   type t
   type base
   type sequence
+  type index
   val of_string_list: string list -> t
-  val of_assoc_list: (TopoTree.index*sequence) list -> t
+  val of_assoc_list: (index*sequence) list -> t
   val of_fasta: string -> t
   val pp: Format.formatter -> t -> unit
-  val get_base: t -> seq:TopoTree.index -> pos:int -> base
+  val get_base: t -> seq:index -> pos:int -> base
   val length: t -> int
   val nb_seq: t -> int
   val to_file: t -> string -> unit
   val equal: t -> t -> bool
 end
 
-(* evolution models  *)
+(** Module type for transition matrix dependent on a parameter type. *)
 module type TRANSITION_MATRIX = sig
   type t
   module Base:BASE
@@ -45,6 +50,8 @@ module type TRANSITION_MATRIX = sig
   val to_string: t -> string
 end
 
+(** Evolution model with linear algebra functions to compute static distribution and
+    transition matrix diagonalization.*)
 module type EVOL_MODEL = sig
   include TRANSITION_MATRIX
   val stat_dist: t -> Base.t -> float
