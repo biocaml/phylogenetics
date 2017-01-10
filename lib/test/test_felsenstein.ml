@@ -32,7 +32,7 @@ let test_felsenstein
   let param = M.of_string param in
   let tree = TopoTree.make_random treesize in
   let align =  SG.seqgen_string_list param tree seqsize |> F.Align.of_string_list in
-  let my_result = F.felsenstein param tree align in
+  let my_result = F.felsenstein () param tree align in
   let bpp_result = begin
     TopoTree.to_newick_file tree "tmp.tree" ; (* TODO unique file name *)
     F.Align.to_file align "tmp.seq" ;

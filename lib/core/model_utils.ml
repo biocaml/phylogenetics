@@ -13,32 +13,23 @@ struct
   type param = E.t
 
   let rate_matrix e = init_mat Base.alphabet_size
-    @@ fun i j -> E.transition e (Base.of_int (i-1)) (Base.of_int (j-1))
+    @@ fun x y -> E.transition e (Base.of_int (x-1)) (Base.of_int (y-1))
 
   let stat_dist_vec e = init_vec Base.alphabet_size
-    @@ fun i -> E.stat_dist e (Base.of_int (i-1))
+    @@ fun x -> E.stat_dist e (Base.of_int (x-1))
 
-  let diag_p e =
-    let dp = E.diag_p e in
-    init_mat Base.alphabet_size
-    @@ fun i j -> dp i j
+  let diag_p e = init_mat Base.alphabet_size
+    @@ fun x y -> E.diag_p e x y
 
-  let diag_p_inv e =
-    let dpi = E.diag_p_inv e in
-    init_mat Base.alphabet_size
-    @@ fun i j -> dpi i j
+  let diag_p_inv e = init_mat Base.alphabet_size
+    @@ fun x y -> E.diag_p_inv e x y
 
-  let diag e =
-    let d = E.diag e in
-    fun t ->
-      init_mat Base.alphabet_size
-      @@ fun i j -> if i=j then d i |> ( *. ) t |> Pervasives.exp else 0.0
+  let diag e t = init_mat Base.alphabet_size
+    @@ fun x y -> if x=y then E.diag e x |> ( *. ) t |> Pervasives.exp else 0.0
 
   let eMt_series e t = exp (scal_mat_mul (rate_matrix e) t)
 
-  let eMt e =
-    let d, dp, dpi = diag e, diag_p e, diag_p_inv e in
-    fun t -> mult (mult dp (d t)) dpi
+  let eMt e t = mult (mult (diag_p e) (diag e t)) (diag_p_inv e)
 
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
