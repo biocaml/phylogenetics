@@ -49,12 +49,12 @@ let plot_distribs ?(nb=10) l =
 let pause () =
   In_channel.input_line In_channel.stdin |> ignore
 
-let test () =
-  let data = distrib_of_file "tmp_post.txt" in
-  plot_distrib data
+(* let test () = *)
+(*   let data = distrib_of_file "tmp_post.txt" in *)
+(*   plot_distrib data *)
 
-let test2 () =
-  plot_distribs [
-    distrib_of_file "tmp_prior.txt" ;
-    distrib_of_file "tmp_post.txt"
-  ]
+(* let test2 () = *)
+(*   plot_distribs [ *)
+(*     distrib_of_file "tmp_prior.txt" ; *)
+(*     distrib_of_file "tmp_post.txt" *)
+(*   ] *)
