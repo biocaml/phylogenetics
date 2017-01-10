@@ -21,3 +21,5 @@ val bins: ?nb:int -> distrib -> float list
 val plot_distrib: ?nb:int -> distrib -> unit
 
 val plot_distribs: ?nb:int -> distrib list -> unit
+
+val pause: unit -> unit

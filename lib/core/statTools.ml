@@ -46,6 +46,9 @@ let plot_distribs ?(nb=10) l =
         (bins ~nb x)
   ) |> Gp.plot_many gp
 
+let pause () =
+  In_channel.input_line In_channel.stdin |> ignore
+
 let test () =
   let data = distrib_of_file "tmp_post.txt" in
   plot_distrib data
