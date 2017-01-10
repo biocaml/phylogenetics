@@ -20,7 +20,7 @@ let distrib_extrema d =
   with
     (Some mi, Some ma) -> (mi, ma) | _ -> failwith "empty input distribution"
 
-let bins ?(nb=10) d =
+let bins ?(nb=20) d =
   let dmin, dmax = distrib_extrema d in
   let bin_size = (dmax -. dmin)/.(float_of_int nb) in
   let count i = List.count d ~f:(
@@ -30,16 +30,16 @@ let bins ?(nb=10) d =
     ) in
   List.init nb ~f:(
     fun x-> (float_of_int x +. 0.5) *. bin_size,
-            (count x |> float_of_int)
-            /. (List.length d |> float_of_int)
+            (nb * count x |> float_of_int)
+            /. (List.length d |> float_of_int |> ( *. ) (dmax -. dmin))
   )
 
-let plot_distrib ?(nb=10) d =
+let plot_distrib ?(nb=20) d =
   let gp = Gp.create () in
   Series.lines_xy ~title:"Plot a line" ~color:`Blue (bins ~nb d)
   |> Gp.plot gp
 
-let plot_distribs ?(nb=10) l =
+let plot_distribs ?(nb=20) l =
   let gp = Gp.create () in
   List.mapi l ~f:(
     fun i x -> Series.lines_xy
