@@ -36,6 +36,20 @@ let plot_distrib ?(nb=10) d =
   Series.lines ~title:"Plot a line" ~color:`Blue (bins ~nb d)
   |> Gp.plot gp
 
+let plot_distribs ?(nb=10) l =
+  let gp = Gp.create () in
+  List.mapi l ~f:(
+    fun i x -> Series.lines
+        ~title:(Printf.sprintf "distrib %d" i)
+        (bins ~nb x)
+  ) |> Gp.plot_many gp
+
 let test () =
   let data = distrib_of_file "tmp_post.txt" in
   plot_distrib data
+
+let test2 () =
+  plot_distribs [
+    distrib_of_file "tmp_prior.txt" ;
+    distrib_of_file "tmp_post.txt"
+  ]
