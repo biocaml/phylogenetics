@@ -29,19 +29,20 @@ let bins ?(nb=10) d =
         (x < ((float_of_int i)+.1.)*.bin_size)
     ) in
   List.init nb ~f:(
-    fun x-> (nb * count x |> float_of_int)
+    fun x-> (float_of_int x +. 0.5) *. bin_size,
+            (count x |> float_of_int)
             /. (List.length d |> float_of_int)
   )
 
 let plot_distrib ?(nb=10) d =
   let gp = Gp.create () in
-  Series.lines ~title:"Plot a line" ~color:`Blue (bins ~nb d)
+  Series.lines_xy ~title:"Plot a line" ~color:`Blue (bins ~nb d)
   |> Gp.plot gp
 
 let plot_distribs ?(nb=10) l =
   let gp = Gp.create () in
   List.mapi l ~f:(
-    fun i x -> Series.lines
+    fun i x -> Series.lines_xy
         ~title:(Printf.sprintf "distrib %d" i)
         (bins ~nb x)
   ) |> Gp.plot_many gp

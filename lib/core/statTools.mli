@@ -16,7 +16,7 @@ val distrib_extrema: distrib -> float * float
 
 (** {6 Plots} *)
 
-val bins: ?nb:int -> distrib -> float list
+val bins: ?nb:int -> distrib -> (float * float) list
 
 val plot_distrib: ?nb:int -> distrib -> unit
 
