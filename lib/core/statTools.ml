@@ -8,6 +8,8 @@ let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree () =
   |> List.mapi ~f:(fun i l -> if branchs i then sampler () else l)
   |> TopoTree.set_branch_lengths tree
 
+type distrib = float list
+
 let distrib_of_file path =
   In_channel.read_lines path
   |> List.map ~f:(float_of_string)
