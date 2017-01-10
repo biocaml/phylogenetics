@@ -67,7 +67,7 @@ let compare p m1 m2 =
     |> Mat.abs
   in
   let maxdiff = Mat.fold_cols (fun acc vec -> max acc (max_vec vec)) 0.0 relative_diff in
-  Printf.printf "MAX RELATIVE DIFF = %f\n" maxdiff ;
+  (* Printf.printf "MAX RELATIVE DIFF = %f\n" maxdiff ; *)
   maxdiff <= p
 
 let get_vec v i = v.{i}
@@ -80,7 +80,7 @@ let inverse m =
   tmp
 
 let diagonalize m =
-  let _ = Printf.printf "CALL TO DIAG\n" in
+  (* let _ = Printf.printf "CALL TO DIAG\n" in *)
   let tmp = lacpy m in
   match syevr ~vectors:true tmp with
   | (_,_,c,_) -> let ci = inverse c in
