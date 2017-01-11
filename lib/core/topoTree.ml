@@ -2,14 +2,20 @@ open Core_kernel.Std
 
 let _ = Random.self_init ()
 
-(** Type for evolutionary trees: binary trees
-    whose edges are labelled with lengths (floats)
-    and whose leaves are labelled with sequence indexes (ints)*)
+
+(* ======= *)
+(*  TYPES  *)
+(* ======= *)
 type index = string
 and branch = float * t
 and t =
   | Node of branch * branch
   | Leaf of index
+
+
+(* ======================= *)
+(*  CREATION / CONVERSION  *)
+(* ======================= *)
 
 let of_newick str =
   let rec aux = function
@@ -74,23 +80,6 @@ let of_preorder str =
   | Ok (t, _) -> t
   | Error m -> invalid_arg m
 
-(* Pretty printing *)
-let pp fmt tree =
-  let rec aux tree level =
-    let indent n =
-      let f _ = ' ' in
-      String.init (4*n) ~f:f
-    in
-    match tree with
-    | Leaf (index) ->
-      Printf.sprintf "Index: %s\n" index
-    | Node ((f1,b1),(f2,b2)) ->
-      Printf.sprintf "Node\n%s=(%F)=> %s%s=(%F)=> %s"
-        (indent level) f1 (aux b1 (level+1))
-        (indent level) f2 (aux b2 (level+1))
-  in
-  aux tree 0 |> Format.fprintf fmt "%s"
-
 let make_random n =
   let rec aux = function
     | [t] -> t
@@ -114,9 +103,10 @@ let to_newick t =
 let to_newick_file t filename =
   Out_channel.write_all filename ~data:(to_newick t)
 
-(* ========== *)
-(*  SAMPLERS  *)
-(* ========== *)
+
+(* ============================== *)
+(*  PARAMETERS / TRANSFORMATIONS  *)
+(* ============================== *)
 let rec nb_branches = function
   | Node ((_,l),(_,r)) -> 2 + nb_branches l + nb_branches r
   | _ -> 0
@@ -134,16 +124,29 @@ let rec get_branch_lengths = function
   | Node ((l1,l),(l2,r)) -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
   | _ -> []
 
+let reroot t bi = t
+
+
+(* ================= *)
+(*  PRETTY PRINTING  *)
+(* ================= *)
+let pp fmt tree =
+  let rec aux tree level =
+    let indent n =
+      let f _ = ' ' in
+      String.init (4*n) ~f:f
+    in
+    match tree with
+    | Leaf (index) ->
+      Printf.sprintf "Index: %s\n" index
+    | Node ((f1,b1),(f2,b2)) ->
+      Printf.sprintf "Node\n%s=(%F)=> %s%s=(%F)=> %s"
+        (indent level) f1 (aux b1 (level+1))
+        (indent level) f2 (aux b2 (level+1))
+  in
+  aux tree 0 |> Format.fprintf fmt "%s"
+
+
 (* ========= *)
 (*   TESTS   *)
 (* ========= *)
-(* let mytree = of_preorder "0.1;0.2;0.3;0.4;0;1;2" *)
-
-(* let test0 () = get_branch_lengths mytree *)
-
-(* let test () = *)
-(*   sample_branch_lengths *)
-(*     ~branchs:(fun i -> i=2) *)
-(*     ~sampler:(sample_float_uniform 1.0) *)
-(*     mytree () *)
-(* |> pp Format.std_formatter *)

@@ -4,6 +4,10 @@
 
 type index = string
 and branch = float * t
+
+(** Type for evolutionary trees: binary trees
+    whose edges are labelled with lengths (floats)
+    and whose leaves are labelled with sequence indexes (strings)*)
 and t =
   | Node of branch * branch
   | Leaf of index
@@ -24,13 +28,15 @@ val to_newick: t -> string
 val to_newick_file: t -> string -> unit
 
 
-(** {6 Parameters} *)
+(** {6 Parameters and transformations} *)
 
 val nb_branches: t -> int
 
 val get_branch_lengths: t -> float list
 
 val set_branch_lengths: t -> float list -> t
+
+val reroot: t -> int -> t
 
 
 (** {6 Pretty printers} *)
