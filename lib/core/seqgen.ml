@@ -3,10 +3,12 @@ open Sigs
 
 module Make (E:EVOL_MODEL) =
 struct
-  include Model_utils.Make (E)
+  include E
+  module Seq = Seq.Make (E.Base)
+  module Align = Alignment.Make (Seq)
 
   let proba param base t =
-    LATools.mat_vec_mul (eMt param t) (known_vector base)
+    LATools.mat_vec_mul (eMt_mat param t) (known_vector base)
 
   let draw_base vec =
     let open Base in

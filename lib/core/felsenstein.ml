@@ -5,7 +5,9 @@ open LATools
 
 module Make (E:EVOL_MODEL) =
 struct
-  include Model_utils.Make (E)
+  include E
+  module Seq = Seq.Make (E.Base)
+  module Align = Alignment.Make (Seq)
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
@@ -24,8 +26,8 @@ struct
 
     and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
       vec_vec_mul
-        (mat_vec_mul (eMt param f1) v_l)
-        (mat_vec_mul (eMt param f2) v_r)
+        (mat_vec_mul (eMt_mat param f1) v_l)
+        (mat_vec_mul (eMt_mat param f2) v_r)
       |> shift s_l s_r
 
     in let res_vec, res_shift = aux tree in

@@ -41,21 +41,17 @@ module type ALIGNMENT = sig
   val equal: t -> t -> bool
 end
 
-(** Module type for transition matrix dependent on a parameter type. *)
-module type TRANSITION_MATRIX = sig
+
+(** Evolution model with linear algebra functions to compute static distribution and
+    transition matrix diagonalization.*)
+module type EVOL_MODEL = sig
   type t
   module Base:BASE
   val transition: t -> Base.t -> Base.t -> float
   val of_string: string -> t
   val to_string: t -> string
-end
-
-(** Evolution model with linear algebra functions to compute static distribution and
-    transition matrix diagonalization.*)
-module type EVOL_MODEL = sig
-  include TRANSITION_MATRIX
-  val stat_dist: t -> Base.t -> float
-  val diag: t -> int -> float
-  val diag_p: t -> int -> int -> float
-  val diag_p_inv: t -> int -> int -> float
+  val eMt_mat: t -> float -> LATools.mat
+  val eMt_series: t -> float -> LATools.mat
+  val stat_dist_vec: t -> LATools.vec
+  val known_vector: Base.t -> LATools.vec
 end

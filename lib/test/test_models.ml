@@ -1,10 +1,10 @@
 open Biocaml_phylogeny_core
 open Alcotest
 
-module K80_Utils = Model_utils.Make (Models.K80)
-module K80_gen_Utils = Model_utils.Make (Models.K80_generated)
-module JC69_Utils = Model_utils.Make (Models.JC69)
-module JC69_gen_Utils = Model_utils.Make (Models.JC69_generated)
+module K80_Utils = Models.K80
+module K80_gen_Utils = Models.K80_generated
+module JC69_Utils = Models.JC69
+module JC69_gen_Utils = Models.JC69_generated
 open LATools
 
 let compare_matrix = check @@ testable LATools.pp_mat (LATools.compare 0.0001)
@@ -13,26 +13,26 @@ let compare_matrix = check @@ testable LATools.pp_mat (LATools.compare 0.0001)
 let test_JC69_exponential () =
   compare_matrix
     "identical exponential of transition matrix"
-    (JC69_Utils.eMt () 0.1)
+    (JC69_Utils.eMt_mat () 0.1)
     (JC69_Utils.eMt_series () 0.1)
 
 let test_K80_exponential () =
   compare_matrix
     "identical exponential of transition matrix"
-    (K80_Utils.eMt 2.0 0.1)
+    (K80_Utils.eMt_mat 2.0 0.1)
     (K80_Utils.eMt_series 2.0 0.1)
 
 let test_JC69_generated () =
   compare_matrix
     "identical exponential of transition matrix"
-    (JC69_Utils.eMt () 0.1)
-    (JC69_gen_Utils.eMt () 0.1)
+    (JC69_Utils.eMt_mat () 0.1)
+    (JC69_gen_Utils.eMt_mat () 0.1)
 
 let test_K80_generated () =
   compare_matrix
     "identical exponential of transition matrix"
-    (K80_Utils.eMt 2.0 0.1)
-    (K80_gen_Utils.eMt 2.0 0.1)
+    (K80_Utils.eMt_mat 2.0 0.1)
+    (K80_gen_Utils.eMt_mat 2.0 0.1)
 
 let tests = [
   "JC69 exponential", `Quick, test_JC69_exponential;
