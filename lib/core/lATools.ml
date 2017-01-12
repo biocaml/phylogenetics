@@ -84,8 +84,7 @@ let diagonalize m =
   (* let _ = Printf.printf "CALL TO DIAG\n" in *)
   let tmp = lacpy m in
   match syevr ~vectors:true tmp with
-  | (_,v,c,_) -> let ci = Mat.transpose_copy c in
-    lacpy c, v, ci
+  | (_,v,c,_) -> c, v, Mat.transpose_copy c
 
 let stat_dist m =
   (* copy matrix to avoid erasing original *)
