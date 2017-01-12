@@ -18,7 +18,7 @@ module type MODEL_WITH_DIAG = sig
   include TRANSITION_MATRIX
   val transition_mat: t -> mat
   val stat_dist_vec: t -> vec
-  val diag_mats: t -> (float -> mat) * mat * mat
+  val diag_mats: t -> mat * (float -> mat) * mat
 end
 
 (** A record containing a model and a parameter *)
@@ -33,16 +33,12 @@ type t = {model:(module EVOL_MODEL) ; param:string}
 module Make_exp (E:MODEL_WITH_DIAG) =
 struct
   include E
-
-  (* Setting up relevant data structures *)
   let eMt_series e t = exp (scal_mat_mul (E.transition_mat e) t)
-
   let eMt_mat e t =
-    let diag, diag_p, diag_p_inv = E.diag_mats e in
+    let diag_p, diag, diag_p_inv = E.diag_mats e in
     mult (mult diag_p (diag t)) diag_p_inv
-
   let known_vector b = init_vec Base.alphabet_size
-    @@ fun x->if x=Base.to_int b + 1 then 1. else 0.
+    @@ fun x -> if x = Base.to_int b + 1 then 1. else 0.
 end
 
 module Make (M:TRANSITION_MATRIX) = struct
@@ -56,7 +52,7 @@ module Make (M:TRANSITION_MATRIX) = struct
     let stat_dist_vec p = LATools.stat_dist (transition_mat p)
     let diag_mats p =
       match LATools.diagonalize (transition_mat p) with
-      a, b, c -> (fun t -> scal_mat_mul a t), b, c
+      a, b, c -> a, (fun t -> LATools.init_diag (scal_vec_mul b t |> unlog_vec)), c
   end
 
   include Make_exp (Diag)
@@ -82,14 +78,14 @@ module JC69 =
         transition () (Base.of_int (i-1)) (Base.of_int (j-1)) )
     let stat_dist_vec () = init_vec 4 (fun _->0.25)
     let diag_mats () =
-      (fun t -> init_mat 4 (fun i j ->
-          if i = j then match i with 1 -> 1.0 | _ -> Pervasives.exp (t *. -4./.3.)
-          else 0.0)),
       init_mat 4 (fun i j ->
           if j=1 then 1.0
           else if i=1 then -1.0
           else if i=j then 1.0
           else 0.0),
+      (fun t -> init_mat 4 (fun i j ->
+          if i = j then match i with 1 -> 1.0 | _ -> Pervasives.exp (t *. -4./.3.)
+          else 0.0)),
       init_mat 4 (fun i j ->
           if i=1 then 0.25
           else if i=j then 0.75
@@ -122,16 +118,17 @@ module K80 =
         transition k (Base.of_int (i-1)) (Base.of_int (j-1)) )
     let stat_dist_vec _ = init_vec 4 (fun _->0.25)
     let diag_mats k =
+
+      init_mat 4 (fun i j -> match (i,j) with
+          | (_,1) | (3,2) | (4,2) | (2,4) | (4,3) -> 1.0
+          | (1,2) | (2,2) | (1,4) | (3,3) -> -1.0
+          | _ -> 0.0),
       (fun t -> init_mat 4 (fun i j ->
           if i=j then match i with
             | 1 -> 1.0
             | 2 -> Pervasives.exp (t *. (-4.)/.(k+.2.))
             | _ -> Pervasives.exp (t *. (-2.*.k-.2.)/.(k+.2.))
           else 0.0)),
-      init_mat 4 (fun i j -> match (i,j) with
-          | (_,1) | (3,2) | (4,2) | (2,4) | (4,3) -> 1.0
-          | (1,2) | (2,2) | (1,4) | (3,3) -> -1.0
-          | _ -> 0.0),
       init_mat 4 (fun i j -> match (i,j) with
           | (1,_) | (2,3) | (2,4) -> 0.25
           | (2,_) -> -0.25
@@ -148,5 +145,5 @@ let of_string str =
   if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
   else {
     model = (module K80:EVOL_MODEL) ;
-    param = Scanf.sscanf str "K80(kappa=%f)" (fun x->string_of_float x)
+    param = Scanf.sscanf str "K80(kappa=%f)" (fun x -> string_of_float x)
   }

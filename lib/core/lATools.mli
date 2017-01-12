@@ -16,6 +16,8 @@ type vec
 (** Initialises a square matrix from a int->int->float function. *)
 val init_mat: int -> (int -> int -> float) -> mat
 
+val init_diag: vec -> mat
+
 (** Initialises a vector from a int->float function. *)
 val init_vec: int -> (int -> float) -> vec
 
@@ -75,7 +77,7 @@ val get_vec: vec -> int -> float
 
 val get_mat: mat -> int -> int -> float
 
-val diagonalize: mat -> mat * mat * mat
+val diagonalize: mat -> mat * vec * mat
 
 val inverse: mat -> mat
 

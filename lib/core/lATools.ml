@@ -7,6 +7,8 @@ type vec = Lacaml_float64.vec
 
 let init_mat size f = Mat.init_rows size size f
 
+let init_diag v = Mat.of_diag v
+
 let init_vec size f = Vec.init size f
 
 let pp_mat = pp_mat
@@ -67,7 +69,6 @@ let compare p m1 m2 =
     |> Mat.abs
   in
   let maxdiff = Mat.fold_cols (fun acc vec -> max acc (max_vec vec)) 0.0 relative_diff in
-  (* Printf.printf "MAX RELATIVE DIFF = %f\n" maxdiff ; *)
   maxdiff <= p
 
 let get_vec v i = v.{i}
@@ -83,8 +84,8 @@ let diagonalize m =
   (* let _ = Printf.printf "CALL TO DIAG\n" in *)
   let tmp = lacpy m in
   match syevr ~vectors:true tmp with
-  | (_,_,c,_) -> let ci = inverse c in
-    lacpy c,  mult (inverse c) (mult m c), lacpy ci
+  | (_,v,c,_) -> let ci = Mat.transpose_copy c in
+    lacpy c, v, ci
 
 let stat_dist m =
   (* copy matrix to avoid erasing original *)
@@ -96,18 +97,4 @@ let stat_dist m =
     (* normalize so the sum of elements equals 1 *)
     scal_vec_mul vec (1./.(sum_vec_elements vec))
 
-(* let mymat () = Mat.init_rows 4 4 Models.JC69.(fun i j -> *)
-(*     transition () (Base.of_int (i-1)) (Base.of_int (j-1)) *)
-(*   ) *)
-
-(* let test () = *)
-(*   let m = stat_dist (mymat ()) in *)
-(*   m *)
-
-(* let test () = *)
-(*   let m = Mat.random 4 4 in *)
-(*   mult (inverse m) m *)
-
-(* let test2 () = *)
-(*   diagonalize (mym at ()) *)
 
