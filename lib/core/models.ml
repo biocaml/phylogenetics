@@ -142,18 +142,19 @@ module K80_generated = Make (K80_mat)
 
 (** Returns the module+parameters specified in a string using bpp format *)
 let models = [
-  ((fun x -> x="JC69"), (module JC69:EVOL_MODEL), (fun _ -> ""));
-  ((fun x -> x="JC69_generated"), (module JC69_generated:EVOL_MODEL), (fun _ -> ""));
-  ((fun x -> String.sub x 0 4 ="K80("),
-   (module K80:EVOL_MODEL),
+  ("JC69_generated", (module JC69_generated:EVOL_MODEL), (fun _ -> ""));
+  ("JC69", (module JC69:EVOL_MODEL), (fun _ -> ""));
+  ("K80(", (module K80:EVOL_MODEL),
    fun x -> Scanf.sscanf x "K80(kappa=%f)" (fun x -> string_of_float x));
-  ((fun x -> String.sub x 0 14 ="K80_generated("),
-   (module K80_generated:EVOL_MODEL),
+  ("K80_generated(", (module K80_generated:EVOL_MODEL),
    fun x -> Scanf.sscanf x "K80_generated(kappa=%f)" (fun x -> string_of_float x))
 ]
 
 let of_string str =
   let rec aux = function
     | [] -> failwith (Printf.sprintf "Model name %s not found" str)
-    | (check, model, param)::tl -> if check str then {model;param=param str} else aux tl
+    | (name, model, param)::tl ->
+      if try String.sub str 0 (String.length name) = name with _ -> false
+      then {model;param=param str}
+      else aux tl
   in aux models
