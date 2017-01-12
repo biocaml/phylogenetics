@@ -51,9 +51,9 @@ let test_felsenstein_str ?(model="JC69") ?(treesize=5) ?(seqsize=5) =
 
 (** {6 Test list} *)
 
-let models = ["JC69" ; "K80(kappa=2.0)" ; "K80(kappa=0.5)"]
-let tree_sizes = [10 ; 50 ; 250]
-let seq_sizes = [1 ; 10 ; 100 ]
+let models = ["JC69" ; "K80(kappa=2.0)" ; "K80(kappa=0.5)" ; "JC69_generated" ; "K80_generated(kappa=2.0)"]
+let tree_sizes = [10 ; 250]
+let seq_sizes = [1 ; 100 ]
 
 let tests =
   List.cartesian_product tree_sizes seq_sizes
