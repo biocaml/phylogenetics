@@ -56,6 +56,8 @@ let scal_mat_mul a f = (Mat.scal f a ; a)
 
 let scal_vec_mul v s = (scal s v ; v)
 
+let scal_vec_mul_cpy v s = (let tmp = copy v in scal s tmp ; tmp)
+
 let scal_vec_add v s = Vec.add_const s v
 
 let min_vec v = Vec.min v
@@ -81,7 +83,7 @@ let inverse m =
   tmp
 
 let diagonalize m =
-  (* let _ = Printf.printf "CALL TO DIAG\n" in *)
+  let _ = Printf.printf "CALL TO DIAG\n" in
   let tmp = lacpy m in
   match syevr ~vectors:true tmp with
   | (_,v,c,_) -> c, v, Mat.transpose_copy c

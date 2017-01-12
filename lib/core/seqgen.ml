@@ -7,8 +7,9 @@ struct
   module Seq = Seq.Make (E.Base)
   module Align = Alignment.Make (Seq)
 
-  let proba param base t =
-    LATools.mat_vec_mul (eMt_mat param t) (known_vector base)
+  let proba param =
+    let my_eMt = eMt_mat param in
+    fun base t -> LATools.mat_vec_mul (my_eMt t) (known_vector base)
 
   let draw_base vec =
     let open Base in
@@ -21,26 +22,32 @@ struct
     in
     Random.float 1.0 |> aux 1
 
-  let seqgen_raw param tree size =
-    let rec aux tree bl = match tree with
-      | TopoTree.Leaf i -> [(i,bl)]
-      | TopoTree.Node ((t1,l), (t2,r)) ->
-        aux l (List.map bl ~f:(fun b->draw_base (proba param b t1)))
-        @ aux r (List.map bl ~f:(fun b->draw_base (proba param b t2)))
-    in
-    List.init size ~f:(fun _->draw_base (stat_dist_vec param))
-    |> aux tree
+  let seqgen_raw param =
+    let my_proba = proba param in
+    fun tree size ->
+      let rec aux tree bl = match tree with
+        | TopoTree.Leaf i -> [(i,bl)]
+        | TopoTree.Node ((t1,l), (t2,r)) ->
+          aux l (List.map bl ~f:(fun b->draw_base (my_proba b t1)))
+          @ aux r (List.map bl ~f:(fun b->draw_base (my_proba b t2)))
+      in
+      List.init size ~f:(fun _->draw_base (stat_dist_vec param))
+      |> aux tree
 
-  let seqgen param tree size =
-    seqgen_raw param tree size
-    |> List.map ~f:(fun (i,s)->(i,Seq.of_list s))
-    |> Align.of_assoc_list
+  let seqgen param =
+    let my_seqgen = seqgen_raw param in
+    fun tree size ->
+      my_seqgen tree size
+      |> List.map ~f:(fun (i,s)->(i,Seq.of_list s))
+      |> Align.of_assoc_list
 
-  let seqgen_string_list param tree size =
-    let raw = seqgen_raw param tree size in
-    List.init (List.length raw) ~f:(
-      fun i ->
-        List.Assoc.find_exn raw (Printf.sprintf "T%d" i)
-        |> Seq.of_list |> Seq.to_string
-    )
+  let seqgen_string_list param =
+    let my_seqgen = seqgen_raw param in
+    fun tree size ->
+      let raw = my_seqgen tree size in
+      List.init (List.length raw) ~f:(
+        fun i ->
+          List.Assoc.find_exn raw (Printf.sprintf "T%d" i)
+          |> Seq.of_list |> Seq.to_string
+      )
 end

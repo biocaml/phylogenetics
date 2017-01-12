@@ -34,9 +34,9 @@ module Make_exp (E:MODEL_WITH_DIAG) =
 struct
   include E
   let eMt_series e t = exp (scal_mat_mul (E.transition_mat e) t)
-  let eMt_mat e t =
+  let eMt_mat e =
     let diag_p, diag, diag_p_inv = E.diag_mats e in
-    mult (mult diag_p (diag t)) diag_p_inv
+    fun t -> mult (mult diag_p (diag t)) diag_p_inv
   let known_vector b = init_vec Base.alphabet_size
     @@ fun x -> if x = Base.to_int b + 1 then 1. else 0.
 end
@@ -52,7 +52,7 @@ module Make (M:TRANSITION_MATRIX) = struct
     let stat_dist_vec p = LATools.stat_dist (transition_mat p)
     let diag_mats p =
       match LATools.diagonalize (transition_mat p) with
-      a, b, c -> a, (fun t -> LATools.init_diag (scal_vec_mul b t |> unlog_vec)), c
+      a, b, c -> a, (fun t -> LATools.init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
   end
 
   include Make_exp (Diag)
@@ -142,8 +142,8 @@ module K80_generated = Make (K80_mat)
 
 (** Returns the module+parameters specified in a string using bpp format *)
 let of_string str =
-  if str = "JC69" then {model = (module JC69:EVOL_MODEL) ; param = ""}
+  if str = "JC69" then {model = (module JC69_generated:EVOL_MODEL) ; param = ""}
   else {
-    model = (module K80:EVOL_MODEL) ;
+    model = (module K80_generated:EVOL_MODEL) ;
     param = Scanf.sscanf str "K80(kappa=%f)" (fun x -> string_of_float x)
   }
