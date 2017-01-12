@@ -52,7 +52,7 @@ module Make (M:TRANSITION_MATRIX) = struct
     let stat_dist_vec p = LATools.stat_dist (transition_mat p)
     let diag_mats p =
       match LATools.diagonalize (transition_mat p) with
-      a, b, c -> a, (fun t -> LATools.init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
+        a, b, c -> a, (fun t -> LATools.init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
   end
 
   include Make_exp (Diag)
@@ -84,8 +84,8 @@ module JC69 =
           else if i=j then 1.0
           else 0.0),
       (fun t -> init_mat 4 (fun i j ->
-          if i = j then match i with 1 -> 1.0 | _ -> Pervasives.exp (t *. -4./.3.)
-          else 0.0)),
+           if i = j then match i with 1 -> 1.0 | _ -> Pervasives.exp (t *. -4./.3.)
+           else 0.0)),
       init_mat 4 (fun i j ->
           if i=1 then 0.25
           else if i=j then 0.75
@@ -124,11 +124,11 @@ module K80 =
           | (1,2) | (2,2) | (1,4) | (3,3) -> -1.0
           | _ -> 0.0),
       (fun t -> init_mat 4 (fun i j ->
-          if i=j then match i with
-            | 1 -> 1.0
-            | 2 -> Pervasives.exp (t *. (-4.)/.(k+.2.))
-            | _ -> Pervasives.exp (t *. (-2.*.k-.2.)/.(k+.2.))
-          else 0.0)),
+           if i=j then match i with
+             | 1 -> 1.0
+             | 2 -> Pervasives.exp (t *. (-4.)/.(k+.2.))
+             | _ -> Pervasives.exp (t *. (-2.*.k-.2.)/.(k+.2.))
+           else 0.0)),
       init_mat 4 (fun i j -> match (i,j) with
           | (1,_) | (2,3) | (2,4) -> 0.25
           | (2,_) -> -0.25
@@ -141,9 +141,19 @@ module K80_generated = Make (K80_mat)
 
 
 (** Returns the module+parameters specified in a string using bpp format *)
+let models = [
+  ((fun x->x="JC69"), (module JC69:EVOL_MODEL), (fun _->""));
+  ((fun x->x="JC69_generated"), (module JC69_generated:EVOL_MODEL), (fun _->""));
+  ((fun x->String.sub x 0 4 ="K80("),
+   (module K80:EVOL_MODEL),
+   fun x -> Scanf.sscanf x "K80(kappa=%f)" (fun x -> string_of_float x));
+  ((fun x->String.sub x 0 4 ="K80_generated("),
+   (module K80_generated:EVOL_MODEL),
+   fun x -> Scanf.sscanf x "K80(kappa=%f)" (fun x -> string_of_float x))
+]
+
 let of_string str =
-  if str = "JC69" then {model = (module JC69_generated:EVOL_MODEL) ; param = ""}
-  else {
-    model = (module K80_generated:EVOL_MODEL) ;
-    param = Scanf.sscanf str "K80(kappa=%f)" (fun x -> string_of_float x)
-  }
+  let rec aux = function
+    | [] -> failwith "Model name not found"
+    | (check, model, param)::tl -> if check str then {model;param=param str} else aux tl
+  in aux models
