@@ -29,7 +29,7 @@ module type ALIGNMENT = sig
   type t
   type base
   type sequence
-  type index
+  type index = TopoTree.index
   val of_string_list: string list -> t
   val of_assoc_list: (index*sequence) list -> t
   val of_fasta: string -> t
@@ -47,6 +47,8 @@ end
 module type EVOL_MODEL = sig
   type t
   module Base:BASE
+  module Seq:SEQUENCE with type base=Base.t
+  module Align:ALIGNMENT with type base=Base.t and type sequence=Seq.t
   val transition: t -> Base.t -> Base.t -> float
   val of_string: string -> t
   val to_string: t -> string

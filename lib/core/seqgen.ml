@@ -4,8 +4,6 @@ open Sigs
 module Make (E:EVOL_MODEL) =
 struct
   include E
-  module Seq = Seq.Make (E.Base)
-  module Align = Alignment.Make (Seq)
 
   let proba param =
     let my_eMt = eMt_mat param in
@@ -47,7 +45,7 @@ struct
       let raw = my_seqgen tree size in
       List.init (List.length raw) ~f:(
         fun i ->
-          List.Assoc.find_exn raw (Printf.sprintf "T%d" i)
+          List.Assoc.find_exn raw (TopoTree.index_of_int i)
           |> Seq.of_list |> Seq.to_string
       )
 end

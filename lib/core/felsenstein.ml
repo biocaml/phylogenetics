@@ -6,8 +6,6 @@ open LATools
 module Make (E:EVOL_MODEL) =
 struct
   include E
-  module Seq = Seq.Make (E.Base)
-  module Align = Alignment.Make (Seq)
 
   (* ======================= *)
   (* | Generic Felsenstein | *)

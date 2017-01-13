@@ -114,6 +114,9 @@ let to_dot t =
    |> String.concat
    |> sprintf "digraph{\n%s}"
 
+let index_of_string s = s
+
+let index_of_int i = sprintf "T%d" i
 
 (* ============================== *)
 (*  PARAMETERS / TRANSFORMATIONS  *)

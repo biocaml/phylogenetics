@@ -33,6 +33,8 @@ type t = {model:(module EVOL_MODEL) ; param:string}
 module Make_exp (E:MODEL_WITH_DIAG) =
 struct
   include E
+  module Seq = Seq.Make (E.Base)
+  module Align = Alignment.Make (Seq)
   let eMt_series e t = exp (scal_mat_mul (E.transition_mat e) t)
   let eMt_mat e =
     let diag_p, diag, diag_p_inv = E.diag_mats e in
