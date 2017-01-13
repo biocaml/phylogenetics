@@ -26,6 +26,10 @@ let zipper_of_tree = function
     InNode ((l1 +. l4, t3), (l2,t1), (l3,t2) )
   | _ -> failwith "Zipper cannot be positioned at a leaf."
 
+let tree_of_zipper = function
+    InNode ((l1, t1), (l2, t2), (l3, t3)) ->
+    Node ( (l1/.2., t1), (l1/.2., Node ((l2, t2), (l2, t3))))
+
 (* ======================= *)
 (*  CREATION / CONVERSION  *)
 (* ======================= *)
