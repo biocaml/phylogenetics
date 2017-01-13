@@ -1,14 +1,14 @@
 (** Module for phylogenetic trees. *)
 
 (** {6 Types} *)
-type branch = float * t
 
 (** Type for evolutionary trees: binary trees
     whose edges are labelled with lengths (floats)
     and whose leaves are labelled with sequence indexes (strings)*)
-and t =
+type t =
   | Node of branch * branch
   | Leaf of Sigs.index
+and branch = float * t
 
 
 (** {6 Creation/Conversion} *)
