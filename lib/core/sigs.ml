@@ -1,5 +1,6 @@
 (** Compilation of module signatures used elsewhere. *)
 
+(** Index type for tree leaves and sequences in alignments *)
 type index = string
 
 (** Module type for individual bases (eg, A, T, C, G).
