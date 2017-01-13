@@ -20,15 +20,31 @@ type zipper =
 (* ================== *)
 (*  ZIPPER FUNCTIONS  *)
 (* ================== *)
+
 let zipper_of_tree = function
-  | Node ((l1, Node ((l2, t1), (l3, t2))), (l4, t3)) |
-    Node ((l4, t3), (l1, Node ((l2, t1), (l3, t2)))) ->
+  | Node ( (l1,Node((l2,t1),(l3,t2))), (l4,t3)) |
+    Node ((l4,t3), (l1,Node((l2,t1),(l3,t2))) ) ->
     InNode ((l1 +. l4, t3), (l2,t1), (l3,t2) )
   | _ -> failwith "Zipper cannot be positioned at a leaf."
 
 let tree_of_zipper = function
-    InNode ((l1, t1), (l2, t2), (l3, t3)) ->
-    Node ( (l1/.2., t1), (l1/.2., Node ((l2, t2), (l2, t3))))
+  | InNode ((l1, t1), (l2, t2), (l3, t3)) ->
+    Node ( (l1/.2., t1), (l1/.2., Node ((l2, t2), (l3, t3))))
+
+let branch z i = match i, z with
+  | 0, InNode (x,_,_) |
+    1, InNode (_,x,_) |
+    2, InNode (_,_,x) -> x
+  | i, _ -> failwith (sprintf "Invalid branch index %d. Index must be between 0 and 2." i)
+
+let move z i = match i, z with
+  | 0, InNode ( (l, Node (x,y)) ,a,b) |
+    1, InNode (a, (l, Node (x,y)) ,b) |
+    2, InNode (a,b, (l, Node (x,y)) ) ->
+    InNode (x,y, (l, Node(a,b)) )
+  | i, _ when i>2 -> failwith (sprintf "Invalid branch index %d. Index must be between 0 and 2." i)
+  | _ -> failwith "Cannot go in this direction because it is a leaf."
+
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)
