@@ -46,3 +46,5 @@ val reroot: t -> int -> t
 (** {6 Pretty printers} *)
 
 val pp: Format.formatter -> t -> unit
+
+val print: t -> unit

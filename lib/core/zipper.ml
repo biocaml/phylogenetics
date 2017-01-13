@@ -46,7 +46,7 @@ let rmove (dr,z) d =
   in B2, move z move_to
 
 let indent str =
-  String.strip str |>
+  String.rstrip str |>
   String.concat_map ~f:(fun x -> if x='\n' then "\n|\t" else String.init 1 ~f:(fun _ ->x))
   |> sprintf "|\t%s\n"
 
