@@ -13,6 +13,18 @@ and t =
   | Node of branch * branch
   | Leaf of index
 
+type zipper =
+  | InNode of branch * branch * branch
+
+
+(* ================== *)
+(*  ZIPPER FUNCTIONS  *)
+(* ================== *)
+let zipper_of_tree = function
+  | Node ((l1, Node ((l2, t1), (l3, t2))), (l4, t3)) |
+    Node ((l4, t3), (l1, Node ((l2, t1), (l3, t2)))) ->
+    InNode ((l1 +. l4, t3), (l2,t1), (l3,t2) )
+  | _ -> failwith "Zipper cannot be positioned at a leaf."
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)
@@ -111,8 +123,8 @@ let to_dot t =
       @ (aux (sprintf "%s_r" n) r)
     | Leaf _ -> []
   in aux "root" t
-   |> String.concat
-   |> sprintf "digraph{\n%s}"
+     |> String.concat
+     |> sprintf "digraph{\n%s}"
 
 let index_of_string s = s
 
