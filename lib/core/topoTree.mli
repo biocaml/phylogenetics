@@ -1,9 +1,6 @@
 (** Module for phylogenetic trees. *)
 
 (** {6 Types} *)
-
-type index = string
-
 type branch = float * t
 
 (** Type for evolutionary trees: binary trees
@@ -11,7 +8,7 @@ type branch = float * t
     and whose leaves are labelled with sequence indexes (strings)*)
 and t =
   | Node of branch * branch
-  | Leaf of index
+  | Leaf of Sigs.index
 
 
 (** {6 Creation/Conversion} *)
@@ -30,9 +27,9 @@ val to_newick_file: t -> string -> unit
 
 val to_dot: t -> string
 
-val index_of_string: string -> index
+val index_of_string: string -> Sigs.index
 
-val index_of_int: int -> index
+val index_of_int: int -> Sigs.index
 
 
 (** {6 Parameters and transformations} *)

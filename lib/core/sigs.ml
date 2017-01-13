@@ -1,5 +1,7 @@
 (** Compilation of module signatures used elsewhere. *)
 
+type index = string
+
 (** Module type for individual bases (eg, A, T, C, G).
     Mostly conversion to/from strings and ints *)
 module type BASE = sig
@@ -29,7 +31,6 @@ module type ALIGNMENT = sig
   type t
   type base
   type sequence
-  type index = TopoTree.index
   val of_string_list: string list -> t
   val of_assoc_list: (index*sequence) list -> t
   val of_fasta: string -> t
