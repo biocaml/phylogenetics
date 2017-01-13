@@ -180,7 +180,7 @@ let pp2 tree =
         }
       | Node ((l1,l), (l2,r)) ->
         let aux1, aux2 = aux l, aux r in
-        let l1_s, l2_s = sprintf "%F" l1, sprintf "%F" l2 in
+        let l1_s, l2_s = sprintf "%.3f" l1, sprintf "%.3f" l2 in
         let l1_l, l2_l = String.length l1_s, String.length l2_s in
         let maxfl = max l1_l l2_l in
         let total, stem = maxfl+5, (aux1.size + aux2.size)/2 in
