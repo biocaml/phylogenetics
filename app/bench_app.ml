@@ -21,4 +21,4 @@ let _ = Random.self_init ()
 
 (* let _ = time f *)
 
-let _ = Reject_inference.test 1000000
+let _ = Rejection_sampling.test 1000000
