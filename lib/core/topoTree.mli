@@ -11,14 +11,6 @@ type t =
 and branch = float * t
 
 
-(** {6 Zipper functions} *)
-type zipper
-
-val zipper_of_tree: t -> zipper
-
-val tree_of_zipper: zipper -> t
-
-
 (** {6 Creation/Conversion} *)
 
 val of_preorder: string -> t
