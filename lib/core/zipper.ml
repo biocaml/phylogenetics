@@ -64,11 +64,13 @@ let pp fmt (z:zipper) =
     (string_of_branch z B1 |> indent)
     (string_of_branch z B2 |> indent)
 
+let print = pp Format.std_formatter
+
 let test = zipper_of_tree (TopoTree.of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5")
 
 let test2 = move test B0
 
-let print () = pp Format.std_formatter test ;
-  pp Format.std_formatter test2
+let print () = print test ;
+  print test2
 
 
