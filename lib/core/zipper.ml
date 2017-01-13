@@ -45,24 +45,24 @@ let rmove (dr,z) d =
     | B0, Right | B1, Right -> B2
   in B2, move z move_to
 
-let indent str =
+let indent sep str =
   String.rstrip str |>
-  String.concat_map ~f:(fun x -> if x='\n' then "\n|\t" else String.init 1 ~f:(fun _ ->x))
-  |> sprintf "|\t%s\n"
+  String.concat_map ~f:(fun x -> if x='\n' then sprintf "\n%s" sep else String.init 1 ~f:(fun _ ->x))
+  |> sprintf "%s%s\n" sep
 
 let string_of_dir = function B0 -> "B0" | B1 -> "B1" | B2 -> "B2"
 
 let string_of_branch z d =
   match branch z d with l,t ->
     TopoTree.pp Format.str_formatter t ;
-    Format.flush_str_formatter () |> indent |>
-    sprintf "<<%s (%F)>>\n%s" (string_of_dir d) l
+    Format.flush_str_formatter () |> indent "|    " |>
+    sprintf "<<%s (%F)>>\n|\n%s|" (string_of_dir d) l
 
 let pp fmt (z:zipper) =
   Format.fprintf fmt "\n[[[[ZIPPER]]]]\n%s%s%s"
-    (string_of_branch z B0 |> indent)
-    (string_of_branch z B1 |> indent)
-    (string_of_branch z B2 |> indent)
+    (string_of_branch z B0 |> indent ". ")
+    (string_of_branch z B1 |> indent ". ")
+    (string_of_branch z B2 |> indent ". ")
 
 let print = pp Format.std_formatter
 
