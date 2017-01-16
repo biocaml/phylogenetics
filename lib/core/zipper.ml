@@ -52,18 +52,24 @@ let slide z d l = match d, z with
 
 
 let move z i = match i, z with
-  | B0, Leaf (i,(l,Node (b0,b1))) -> InNode {b0;b1;b2=l,Leaf i}
-  | B0, MidBranch {b0=l0, Node(x,y); b1=l1, z} |
+  (* case 1: zipper is at a leaf *)
+  | B0, Leaf (i,(l,Node (b0,b1))) -> InNode {b0;b1;b2=l,Leaf i} (* moving to internal node *)
+  | B0, Leaf (i,(l,Leaf j)) -> Leaf (j,(l,Leaf i)) (* moving to leaf (degenerate case)*)
+
+  (* case 2: zipper is in the middle of a branch *)
+  | B0, MidBranch {b0=l0, Node(x,y); b1=l1, z} | (* moving to internal node *)
     B1, MidBranch {b1=l0, Node(x,y); b0=l1, z} -> InNode {b0=x; b1=y; b2=l0+.l1,z}
-  | B0, InNode {b0=l,Node (x,y); b1=a; b2=b} |
+  | B0, MidBranch {b0=l0, Leaf i; b1=l1, z} | (* moving to leaf *)
+    B1, MidBranch {b1=l0, Leaf i; b0=l1, z} -> Leaf (i,(l1+.l0, z))
+
+  (* case 3: zipper is at internal node *)
+  | B0, InNode {b0=l,Node (x,y); b1=a; b2=b} | (* moving to internal node*)
     B1, InNode {b1=l,Node (x,y); b0=a; b2=b} |
     B2, InNode {b2=l,Node (x,y); b0=a; b1=b} -> InNode {b0=x; b1=y; b2=l,Node(a,b)}
-  | B0, Leaf (i,(l,Leaf j)) -> Leaf (j,(l,Leaf i))
-  | B0, MidBranch {b0=l0,Leaf i; b1=l1, z} |
-    B1, MidBranch {b1=l0,Leaf i; b0=l1, z} -> Leaf (i,(l1+.l0, z))
-  | B0, InNode {b0=l,Leaf i; b1=a; b2=b} |
+  | B0, InNode {b0=l,Leaf i; b1=a; b2=b} | (* moving to leaf *)
     B1, InNode {b1=l,Leaf i; b0=a; b2=b} |
     B2, InNode {b2=l,Leaf i; b0=a; b1=b} -> Leaf (i,(l, Node(a,b)))
+
   | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
 let move_left (dr,z) =
@@ -91,15 +97,13 @@ let rec tree_of_zipper = function
   | MidBranch {b0;b1} -> Node (b0,b1)
 
 let branch z d = match d, z with
-  | _, Leaf (_,x) ->
-    if d=B0 then x
-    else failwith (sprintf "Leaf does not have a %s branch." (string_of_dir d))
-  | B0, MidBranch {b0=x;_} |
-    B1, MidBranch {b1=x;_} -> x
-  | B2, MidBranch _ -> failwith "Midbranch does not have direction B2."
-  | B0, InNode {b0=x;_} |
+  | B0, Leaf (_,x) |
+    B0, MidBranch {b0=x;_} |
+    B1, MidBranch {b1=x;_} |
+    B0, InNode {b0=x;_} |
     B1, InNode {b1=x;_} |
     B2, InNode {b2=x;_} -> x
+  | _ -> failwith (sprintf "Zipper does not have a %s branch." (string_of_dir d))
 
 let orient z d = d, z
 
