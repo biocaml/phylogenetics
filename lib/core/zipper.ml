@@ -55,6 +55,14 @@ let rmove (dr,z) d =
   in B2, move z move_to
 
 
+(* ============ *)
+(*  DIRECTIONS  *)
+(* ============ *)
+let string_of_dir = function B0 -> "B0" | B1 -> "B1" | B2 -> "B2"
+
+let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwith "Unexpected direction name."
+
+
 (* ================= *)
 (*  PRETTY PRINTING  *)
 (* ================= *)
@@ -62,10 +70,6 @@ let indent sep str =
   String.rstrip str |>
   String.concat_map ~f:(fun x -> if x='\n' then sprintf "\n%s" sep else String.init 1 ~f:(fun _ ->x))
   |> sprintf "%s%s\n" sep
-
-let string_of_dir = function B0 -> "B0" | B1 -> "B1" | B2 -> "B2"
-
-let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwith "Unexpected direction name."
 
 let string_of_branch z d =
   match branch z d with l,t ->
