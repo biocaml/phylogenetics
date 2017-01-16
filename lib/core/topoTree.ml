@@ -183,7 +183,7 @@ let pp2 tree =
         let l1_s, l2_s = sprintf "%.3f" l1, sprintf "%.3f" l2 in
         let l1_l, l2_l = String.length l1_s, String.length l2_s in
         let maxfl = max l1_l l2_l in
-        let total, stem = maxfl+5, (aux1.size + aux2.size)/2 in
+        let total, stem = maxfl+5, (aux1.stem + aux1.size + aux2.stem)/2 in
         let stemup = String.init total ~f:(function
             | 0 -> '/'
             | x when x>2 && x<(3+l1_l) -> l1_s.[x-3]
@@ -209,7 +209,7 @@ let pp2 tree =
               indent indentup aux1.text ;
               indent indentdown aux2.text
             ] ;
-          size = 1 ;
+          size = aux1.size + aux2.size ;
           stem
         }
   in (aux tree).text
