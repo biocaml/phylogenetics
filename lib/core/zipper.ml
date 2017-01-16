@@ -15,7 +15,7 @@ type t =
 type direction = B0 | B1 | B2
 type location_type = LocLeaf | LocBranch | LocNode
 
-type oriented_zipper = direction * t
+type oriented_zipper = {dir:direction; zipper:t}
 
 
 (* ======================== *)
@@ -27,14 +27,12 @@ let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwit
 
 let location = function InNode _ -> LocNode | Leaf _ -> LocLeaf | MidBranch _ -> LocBranch
 
-let dlocation (_,z) = location z
-
-let left (d,z) = match location z, d with
+let left z = match location z.zipper, z.dir with
   | LocNode, B0 -> B1
   | LocBranch, _ | LocNode, B1 | LocNode, B2 -> B0
   | LocLeaf, _ -> failwith "Zipper already at leaf!"
 
-let right (d,z) = match location z, d with
+let right z = match location z.zipper, z.dir with
   | LocBranch, _ | LocNode, B2 -> B1
   | LocNode, B0 | LocNode, B1 -> B2
   | LocLeaf, _ -> failwith "Zipper already at leaf!"
@@ -74,13 +72,13 @@ let move z i = match i, z with
 
   | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
-let move_left (dr,z) =
+let move_left z =
   (* relies on the fact that moving to an InNode always comes from B2 *)
-  B2, move z (left (dr,z))
+  {dir=B2; zipper=move z.zipper (left z)}
 
-let move_right (dr,z) =
+let move_right z =
   (* relies on the fact that moving to an InNode always comes from B2 *)
-  B2, move z (right (dr,z))
+  {dir=B2; zipper=move z.zipper (right z)}
 
 
 (* =================== *)
@@ -95,17 +93,15 @@ let get_length z d = match d, z with
     B2, InNode {b2=l,_;_} -> l
   | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
-let length_left (dr,z) =
-  left (dr,z) |> get_length z
+let length_left z =
+  left z |> get_length z.zipper
 
-let length_right (dr,z) =
-  right (dr,z) |> get_length z
+let length_right z =
+  right z |> get_length z.zipper
 
 let get_index = function
   | Leaf (i,_) -> i
   | _ -> failwith "Zipper is not a leaf. Cannot get index."
-
-let dget_index (d,z) = get_index z
 
 
 (* ======================= *)
@@ -116,7 +112,7 @@ let zipper_of_tree = function
   | _ -> failwith "Zipper cannot be a lone leaf."
 
 let dzipper_of_tree t =
-  B0, zipper_of_tree t (* B0 is arbitrary here *)
+  {dir=B0; zipper=zipper_of_tree t} (* B0 is arbitrary here *)
 
 let rec tree_of_zipper = function
   | (InNode {b0=l,_; _} |

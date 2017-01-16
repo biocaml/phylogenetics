@@ -18,8 +18,8 @@ struct
          to be replaced by zipper as input*)
       let zipper = Zipper.dzipper_of_tree tree in
 
-      let rec aux z = match Zipper.dlocation z with
-        | Zipper.LocLeaf -> Zipper.dget_index z |> leaf
+      let rec aux z = match Zipper.location z.Zipper.zipper with
+        | Zipper.LocLeaf -> Zipper.get_index z.Zipper.zipper |> leaf
         | _ -> let f1,f2,l,r =
                  Zipper.length_left z,
                  Zipper.length_right z,
