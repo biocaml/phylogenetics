@@ -2,13 +2,16 @@ include $(shell opam config var solvuu-build:lib)/solvuu.mk
 
 all: native byte doc
 
-default: .ocamlinit .merlin
+edit: .ocamlinit .merlin ./_build/lib/biocaml_phylogeny_core.cma ./_build/lib/biocaml_phylogeny_test.cma
 
-test: native
-	./_build/app/test_app.native
+test: ./_build/app/test_app.native
+	$<
 
 bench: ./_build/app/bench_app.native
-	./_build/app/bench_app.native
+	$<
+
+explorer: ./_build/app/zipper_explorer.byte
+	$<
 
 doc: default
 	mkdir -p _build/doc
