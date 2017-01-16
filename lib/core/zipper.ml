@@ -2,6 +2,10 @@ open Printf
 open Core_kernel.Std
 open TopoTree
 
+
+(* ======= *)
+(*  TYPES  *)
+(* ======= *)
 type branch = float * TopoTree.t
 type zipper =
   | InNode of {b0:branch; b1:branch; b2:branch}
@@ -12,10 +16,9 @@ type direction_rooted = Up | Left | Right
 type rooted_zipper = direction * zipper
 
 
-(* ================== *)
-(*  ZIPPER FUNCTIONS  *)
-(* ================== *)
-
+(* ======================= *)
+(*  CREATION / CONVERSION  *)
+(* ======================= *)
 let zipper_of_tree = function
   | Node ( (l1,Node((l2,t1),(l3,t2))), (l4,t3)) |
     Node ((l4,t3), (l1,Node((l2,t1),(l3,t2))) ) ->
@@ -31,6 +34,10 @@ let branch z i = match i, z with
     B1, InNode {b1=x;_} |
     B2, InNode {b2=x;_} -> x
 
+
+(* ========== *)
+(*  MOVEMENT  *)
+(* ========== *)
 let move z i = match i, z with
   | B0, InNode {b0=l,Node (x,y); b1=a; b2=b} |
     B1, InNode {b1=l,Node (x,y); b0=a; b2=b} |
@@ -45,6 +52,10 @@ let rmove (dr,z) d =
     | B0, Right | B1, Right -> B2
   in B2, move z move_to
 
+
+(* ================= *)
+(*  PRETTY PRINTING  *)
+(* ================= *)
 let indent sep str =
   String.rstrip str |>
   String.concat_map ~f:(fun x -> if x='\n' then sprintf "\n%s" sep else String.init 1 ~f:(fun _ ->x))
@@ -64,6 +75,10 @@ let pp fmt (z:zipper) =
     (string_of_branch z B1 |> indent ". ")
     (string_of_branch z B2 |> indent ". ")
 
+
+(* ========= *)
+(*  TESTING  *)
+(* ========= *)
 let print = pp Format.std_formatter
 
 let test = zipper_of_tree (TopoTree.of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5")

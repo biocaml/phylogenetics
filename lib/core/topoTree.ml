@@ -144,21 +144,6 @@ let reroot t _ = t
 (* ================= *)
 (*  PRETTY PRINTING  *)
 (* ================= *)
-(* let pp fmt tree = *)
-(*   let rec aux tree level = *)
-(*     let indent n = *)
-(*       let f _ = ' ' in *)
-(*       String.init (4*n) ~f:f *)
-(*     in *)
-(*     match tree with *)
-(*     | Leaf (index) -> *)
-(*       sprintf "Index: %s\n" index *)
-(*     | Node ((f1,b1),(f2,b2)) -> *)
-(*       sprintf "Node\n%s=(%F)=> %s%s=(%F)=> %s" *)
-(*         (indent level) f1 (aux b1 (level+1)) *)
-(*         (indent level) f2 (aux b2 (level+1)) *)
-(*   in *)
-(*   aux tree 0 |> Format.fprintf fmt "%s" *)
 type pp_aux = {
   text:string;
   size:int;
