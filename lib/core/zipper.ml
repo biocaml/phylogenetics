@@ -69,14 +69,3 @@ let print = pp Format.std_formatter
 let test = zipper_of_tree (TopoTree.of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5")
 
 let test2 = move test B0
-
-let rec zipper_explorer z =
-  print z ;
-  printf "Type B0, B1 or B2 to move, anything else to exit:" ;
-  Out_channel.flush stdout ;
-  match In_channel.input_line In_channel.stdin with
-    | Some "B0" -> zipper_explorer (move z B0)
-    | Some "B1" -> zipper_explorer (move z B1)
-    | Some "B2" -> zipper_explorer (move z B2)
-    | Some "print" -> zipper_explorer z
-    | _ -> ()

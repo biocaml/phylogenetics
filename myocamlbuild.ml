@@ -43,7 +43,11 @@ let bench_app = make_app "bench_app"
     ~file:"app/bench_app.ml"
     ~internal_deps:[test_lib; core_lib]
 
-let items = [ test_app ; bench_app ; test_lib ; core_lib ]
+let zipper_explorer = make_app "zipper_explorer"
+    ~file:"app/zipper_explorer.ml"
+    ~internal_deps:[core_lib]
+
+let items = [ test_app ; bench_app ; zipper_explorer ; test_lib ; core_lib ]
 
 let () =
   let open Solvuu_build.Std.Project in

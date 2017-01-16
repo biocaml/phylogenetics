@@ -2,6 +2,8 @@ include $(shell opam config var solvuu-build:lib)/solvuu.mk
 
 all: native byte doc
 
+default: .ocamlinit .merlin
+
 test: native
 	./_build/app/test_app.native
 
