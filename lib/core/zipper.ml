@@ -27,6 +27,8 @@ let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwit
 
 let location = function InNode _ -> LocNode | Leaf _ -> LocLeaf | MidBranch _ -> LocBranch
 
+let dlocation (_,z) = location z
+
 let left (d,z) = match location z, d with
   | LocNode, B0 -> B1
   | LocBranch, _ | LocNode, B1 | LocNode, B2 -> B0
@@ -103,6 +105,8 @@ let get_index = function
   | Leaf (i,_) -> i
   | _ -> failwith "Zipper is not a leaf. Cannot get index."
 
+let dget_index (d,z) = get_index z
+
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)
@@ -110,6 +114,9 @@ let get_index = function
 let zipper_of_tree = function
   | Node (b0,b1) -> MidBranch {b0; b1}
   | _ -> failwith "Zipper cannot be a lone leaf."
+
+let dzipper_of_tree t =
+  B0, zipper_of_tree t (* B0 is arbitrary here *)
 
 let rec tree_of_zipper = function
   | (InNode {b0=l,_; _} |

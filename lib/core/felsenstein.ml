@@ -16,11 +16,16 @@ struct
 
       (* TEMPORARY: create zipper to use internally;
          to be replaced by zipper as input*)
-      let zipper = Zipper.zipper_of_tree tree in
+      let zipper = Zipper.dzipper_of_tree tree in
 
-      let rec aux = function
-        | Node ((f1,l), (f2,r)) -> node f1 l f2 r
-        | Leaf i -> leaf i
+      let rec aux z = match Zipper.dlocation z with
+        | Zipper.LocLeaf -> Zipper.dget_index z |> leaf
+        | _ -> let f1,f2,l,r =
+                 Zipper.length_left z,
+                 Zipper.length_right z,
+                 Zipper.move_left z,
+                 Zipper.move_right z
+          in node f1 l f2 r
 
       and leaf i = Align.get_base seq ~seq:i ~pos:site
                    |> known_vector |> shift 0.0 0.0
@@ -31,7 +36,7 @@ struct
           (mat_vec_mul (spec_eMt f2) v_r)
         |> shift s_l s_r
 
-      in let res_vec, res_shift = aux tree in
+      in let res_vec, res_shift = aux zipper in
       res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
 
 
