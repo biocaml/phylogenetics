@@ -41,6 +41,9 @@ let slide z d l = match d, z with
 
 
 let move z i = match i, z with
+  | B0, Leaf (i,(l,Node (b0,b1))) -> InNode {b0;b1;b2=l,Leaf i}
+  | B0, MidBranch {b0=l0, Node(x,y); b1=l1, z} |
+    B1, MidBranch {b1=l0, Node(x,y); b0=l1, z} -> InNode {b0=x; b1=y; b2=l0+.l1,z}
   | B0, InNode {b0=l,Node (x,y); b1=a; b2=b} |
     B1, InNode {b1=l,Node (x,y); b0=a; b2=b} |
     B2, InNode {b2=l,Node (x,y); b0=a; b1=b} -> InNode {b0=x; b1=y; b2=l,Node(a,b)}
@@ -116,5 +119,3 @@ let pp fmt = function
 let print = pp Format.std_formatter
 
 let test = zipper_of_tree (TopoTree.of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5")
-
-let test2 = move test B0
