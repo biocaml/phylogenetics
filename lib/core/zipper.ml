@@ -47,7 +47,13 @@ let move z i = match i, z with
   | B0, InNode {b0=l,Node (x,y); b1=a; b2=b} |
     B1, InNode {b1=l,Node (x,y); b0=a; b2=b} |
     B2, InNode {b2=l,Node (x,y); b0=a; b1=b} -> InNode {b0=x; b1=y; b2=l,Node(a,b)}
-  | _ -> failwith "Cannot go in this direction because it is a leaf."
+  | B0, Leaf (i,(l,Leaf j)) -> Leaf (j,(l,Leaf i))
+  | B0, MidBranch {b0=l0,Leaf i; b1=l1, z} |
+    B1, MidBranch {b1=l0,Leaf i; b0=l1, z} -> Leaf (i,(l1+.l0, z))
+  | B0, InNode {b0=l,Leaf i; b1=a; b2=b} |
+    B1, InNode {b1=l,Leaf i; b0=a; b2=b} |
+    B2, InNode {b2=l,Leaf i; b0=a; b1=b} -> Leaf (i,(l, Node(a,b)))
+  | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
 let dmove (dr,z) d =
   let move_to = match dr, d with
