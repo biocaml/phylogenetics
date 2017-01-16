@@ -37,6 +37,7 @@ let right (d,z) = match location z, d with
   | LocNode, B0 | LocNode, B1 -> B2
   | LocLeaf, _ -> failwith "Zipper already at leaf!"
 
+
 (* ========== *)
 (*  MOVEMENT  *)
 (* ========== *)
@@ -49,7 +50,6 @@ let slide z d l = match d, z with
      B2, InNode {b2=lf,tf; b0=bb1; b1=bb2}) when l<lf ->
     MidBranch {b0=lf-.l,tf; b1=l,Node (bb1,bb2) }
   | _ -> failwith "Cannot slide: length too long or incorrect direction"
-
 
 let move z i = match i, z with
   (* case 1: zipper is at a leaf *)
@@ -73,15 +73,31 @@ let move z i = match i, z with
   | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
 let move_left (dr,z) =
+  (* relies on the fact that moving to an InNode always comes from B2 *)
   B2, move z (left (dr,z))
 
 let move_right (dr,z) =
+  (* relies on the fact that moving to an InNode always comes from B2 *)
   B2, move z (right (dr,z))
 
 
 (* =================== *)
 (*  GETTERS / SETTERS  *)
 (* =================== *)
+let get_length z d = match d, z with
+  | B0, Leaf (_,(l,_)) |
+    B0, MidBranch {b0=l,_;_} |
+    B1, MidBranch {b1=l,_;_} |
+    B0, InNode {b0=l,_;_} |
+    B1, InNode {b1=l,_;_} |
+    B2, InNode {b2=l,_;_} -> l
+  | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
+
+let length_left (dr,z) =
+  left (dr,z) |> get_length z
+
+let length_right (dr,z) =
+  right (dr,z) |> get_length z
 
 
 (* ======================= *)
