@@ -9,6 +9,8 @@ open TopoTree
 type branch = float * TopoTree.t
 type t =
   | InNode of {b0:branch; b1:branch; b2:branch}
+  | MidBranch of {b0:branch; b1:branch}
+  | Leaf of Sigs.index * branch
 
 type direction = B0 | B1 | B2
 type direction_oriented = Up | Left | Right
@@ -40,13 +42,24 @@ let orient z d = d, z
 (* ========== *)
 (*  MOVEMENT  *)
 (* ========== *)
+let slide z d l = match d, z with
+  | B0, Leaf (i,(l2, t)) when l<l2 -> MidBranch {b0=(l2-.l, t) ; b1=(l, TopoTree.Leaf i)}
+  | B0, MidBranch {b0=l1,t1; b1=l2,t2} when l<l1 -> MidBranch {b0=l1-.l,t1; b1=l2+.l,t2}
+  | B1, MidBranch {b0=l1,t1; b1=l2,t2} when l<l2 -> MidBranch {b0=l1+.l,t1; b1=l2-.l,t2}
+  | B0, InNode {b0=lf,tf; b1=bb1; b2=bb2} |
+    B1, InNode {b1=lf,tf; b0=bb1; b2=bb2} |
+    B2, InNode {b2=lf,tf; b0=bb1; b1=bb2} when l<lf ->
+    MidBranch {b0=lf-.l,tf; b1=l,Node (bb1,bb2) }
+  | _ -> failwith "Cannot slide: length too long or incorrect direction"
+
+
 let move z i = match i, z with
   | B0, InNode {b0=l,Node (x,y); b1=a; b2=b} |
     B1, InNode {b1=l,Node (x,y); b0=a; b2=b} |
     B2, InNode {b2=l,Node (x,y); b0=a; b1=b} -> InNode {b0=x; b1=y; b2=l,Node(a,b)}
   | _ -> failwith "Cannot go in this direction because it is a leaf."
 
-let rmove (dr,z) d =
+let dmove (dr,z) d =
   let move_to = match dr, d with
     | x, Up -> x
     | B1, Left | B2, Left -> B0
