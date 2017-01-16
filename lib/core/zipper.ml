@@ -13,7 +13,6 @@ type t =
   | Leaf of Sigs.index * branch
 
 type direction = B0 | B1 | B2
-type direction_oriented = Up | Left | Right
 type location_type = LocLeaf | LocBranch | LocNode
 
 type oriented_zipper = direction * t
@@ -58,13 +57,27 @@ let move z i = match i, z with
     B2, InNode {b2=l,Leaf i; b0=a; b1=b} -> Leaf (i,(l, Node(a,b)))
   | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
-let dmove (dr,z) d =
-  let move_to = match dr, d with
-    | x, Up -> x
-    | B1, Left | B2, Left -> B0
-    | B0, Left | B2, Right -> B1
-    | B0, Right | B1, Right -> B2
-  in B2, move z move_to
+let left (dr,z) =
+  if location z = LocLeaf then
+    failwith "Zipper already at a leaf!"
+  else if location z = LocBranch then
+    B2, move z B0
+  else
+    let move_to = match dr with
+      | B1 | B2 -> B0
+      | B0 -> B1
+    in B2, move z move_to
+
+let right (dr,z) =
+  if location z = LocLeaf then
+    failwith "Zipper already at a leaf!"
+  else if location z = LocBranch then
+    B2, move z B1
+  else
+    let move_to = match dr with
+      | B0 | B1 -> B2
+      | B2 -> B1
+    in B2, move z move_to
 
 
 (* ======================= *)
