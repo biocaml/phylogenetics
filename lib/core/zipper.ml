@@ -14,16 +14,19 @@ type t =
 
 type direction = B0 | B1 | B2
 type direction_oriented = Up | Left | Right
+type location_type = LocLeaf | LocBranch | LocNode
 
 type oriented_zipper = direction * t
 
 
-(* ============ *)
-(*  DIRECTIONS  *)
-(* ============ *)
+(* ======================== *)
+(*  DIRECTIONS / LOCATIONS  *)
+(* ======================== *)
 let string_of_dir = function B0 -> "B0" | B1 -> "B1" | B2 -> "B2"
 
 let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwith "Unexpected direction name."
+
+let location = function InNode _ -> LocNode | Leaf _ -> LocLeaf | MidBranch _ -> LocBranch
 
 
 (* ========== *)
@@ -102,7 +105,7 @@ let string_of_branch z d =
   match branch z d with l,t ->
     TopoTree.pp Format.str_formatter t ;
     Format.flush_str_formatter () |> indent "|    " |>
-    sprintf "<<%s (%F)>>\n|\n%s|" (string_of_dir d) l
+    sprintf "<<%s (%.3f)>>\n|\n%s|" (string_of_dir d) l
 
 let pp fmt = function
   | Leaf _ as z ->
@@ -118,10 +121,4 @@ let pp fmt = function
       (string_of_branch z B1 |> indent ". ")
       (string_of_branch z B2 |> indent ". ")
 
-
-(* ========= *)
-(*  TESTING  *)
-(* ========= *)
 let print = pp Format.std_formatter
-
-let test = zipper_of_tree (TopoTree.of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5")
