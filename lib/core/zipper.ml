@@ -27,6 +27,15 @@ let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwit
 
 let location = function InNode _ -> LocNode | Leaf _ -> LocLeaf | MidBranch _ -> LocBranch
 
+let left (d,z) = match location z, d with
+  | LocNode, B0 -> B1
+  | LocBranch, _ | LocNode, B1 | LocNode, B2 -> B0
+  | LocLeaf, _ -> failwith "Zipper already at leaf!"
+
+let right (d,z) = match location z, d with
+  | LocBranch, _ | LocNode, B2 -> B1
+  | LocNode, B0 | LocNode, B1 -> B2
+  | LocLeaf, _ -> failwith "Zipper already at leaf!"
 
 (* ========== *)
 (*  MOVEMENT  *)
@@ -57,27 +66,16 @@ let move z i = match i, z with
     B2, InNode {b2=l,Leaf i; b0=a; b1=b} -> Leaf (i,(l, Node(a,b)))
   | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
-let left (dr,z) =
-  if location z = LocLeaf then
-    failwith "Zipper already at a leaf!"
-  else if location z = LocBranch then
-    B2, move z B0
-  else
-    let move_to = match dr with
-      | B1 | B2 -> B0
-      | B0 -> B1
-    in B2, move z move_to
+let move_left (dr,z) =
+  B2, move z (left (dr,z))
 
-let right (dr,z) =
-  if location z = LocLeaf then
-    failwith "Zipper already at a leaf!"
-  else if location z = LocBranch then
-    B2, move z B1
-  else
-    let move_to = match dr with
-      | B0 | B1 -> B2
-      | B2 -> B1
-    in B2, move z move_to
+let move_right (dr,z) =
+  B2, move z (right (dr,z))
+
+
+(* =================== *)
+(*  GETTERS / SETTERS  *)
+(* =================== *)
 
 
 (* ======================= *)
