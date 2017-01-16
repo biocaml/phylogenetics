@@ -99,6 +99,10 @@ let length_left (dr,z) =
 let length_right (dr,z) =
   right (dr,z) |> get_length z
 
+let get_index = function
+  | Leaf (i,_) -> i
+  | _ -> failwith "Zipper is not a leaf. Cannot get index."
+
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)

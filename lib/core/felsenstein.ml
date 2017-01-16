@@ -13,21 +13,26 @@ struct
   let felsenstein_single ?(shift=fun _ _ v->v,0.0) param =
     let spec_eMt = eMt_mat param in
     fun ~site tree seq ->
-    let rec aux = function
-      | Node ((f1,l), (f2,r)) -> node f1 l f2 r
-      | Leaf i -> leaf i
 
-    and leaf i = Align.get_base seq ~seq:i ~pos:site
-                 |> known_vector |> shift 0.0 0.0
+      (* TEMPORARY: create zipper to use internally;
+         to be replaced by zipper as input*)
+      let zipper = Zipper.zipper_of_tree tree in
 
-    and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
-      vec_vec_mul
-        (mat_vec_mul (spec_eMt f1) v_l)
-        (mat_vec_mul (spec_eMt f2) v_r)
-      |> shift s_l s_r
+      let rec aux = function
+        | Node ((f1,l), (f2,r)) -> node f1 l f2 r
+        | Leaf i -> leaf i
 
-    in let res_vec, res_shift = aux tree in
-    res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
+      and leaf i = Align.get_base seq ~seq:i ~pos:site
+                   |> known_vector |> shift 0.0 0.0
+
+      and node f1 l f2 r = match aux l, aux r with (v_l, s_l), (v_r, s_r) ->
+        vec_vec_mul
+          (mat_vec_mul (spec_eMt f1) v_l)
+          (mat_vec_mul (spec_eMt f2) v_r)
+        |> shift s_l s_r
+
+      in let res_vec, res_shift = aux tree in
+      res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
 
 
   (* ============================ *)
