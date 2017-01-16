@@ -49,7 +49,9 @@ let slide z d l = match d, z with
      B1, InNode {b1=lf,tf; b0=bb1; b2=bb2} |
      B2, InNode {b2=lf,tf; b0=bb1; b1=bb2}) when l<lf ->
     MidBranch {b0=lf-.l,tf; b1=l,Node (bb1,bb2) }
-  | _ -> failwith "Cannot slide: length too long or incorrect direction"
+  | B1, Leaf _ | B2, Leaf _ | B2, MidBranch _ ->
+    failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
+  | _ -> failwith "Cannot slide: length too long."
 
 let move z i = match i, z with
   (* case 1: zipper is at a leaf *)
@@ -70,7 +72,8 @@ let move z i = match i, z with
     B1, InNode {b1=l,Leaf i; b0=a; b2=b} |
     B2, InNode {b2=l,Leaf i; b0=a; b1=b} -> Leaf (i,(l, Node(a,b)))
 
-  | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
+  | B1, Leaf _ | B2, Leaf _ | B2, MidBranch _
+    -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
 let move_left z =
   (* relies on the fact that moving to an InNode always comes from B2 *)
@@ -91,7 +94,8 @@ let get_length z d = match d, z with
     B0, InNode {b0=l,_;_} |
     B1, InNode {b1=l,_;_} |
     B2, InNode {b2=l,_;_} -> l
-  | _ -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
+  | B1, Leaf _ | B2, Leaf _ | B2, MidBranch _ ->
+    failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
 let length_left z =
   left z |> get_length z.zipper
@@ -101,7 +105,7 @@ let length_right z =
 
 let get_index = function
   | Leaf (i,_) -> i
-  | _ -> failwith "Zipper is not a leaf. Cannot get index."
+  | MidBranch _ | InNode _ -> failwith "Zipper is not a leaf. Cannot get index."
 
 
 (* ======================= *)
@@ -109,7 +113,7 @@ let get_index = function
 (* ======================= *)
 let zipper_of_tree = function
   | Node (b0,b1) -> MidBranch {b0; b1}
-  | _ -> failwith "Zipper cannot be a lone leaf."
+  | Leaf _ -> failwith "Zipper cannot be a lone leaf."
 
 let dzipper_of_tree t =
   {dir=B0; zipper=zipper_of_tree t} (* B0 is arbitrary here *)
@@ -126,7 +130,8 @@ let branch z d = match d, z with
     B0, InNode {b0=x;_} |
     B1, InNode {b1=x;_} |
     B2, InNode {b2=x;_} -> x
-  | _ -> failwith (sprintf "Zipper does not have a %s branch." (string_of_dir d))
+  | B1, Leaf _ | B2, Leaf _ | B2, MidBranch _ ->
+    failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
 
 let orient z d = d, z
 
