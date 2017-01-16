@@ -7,13 +7,13 @@ open TopoTree
 (*  TYPES  *)
 (* ======= *)
 type branch = float * TopoTree.t
-type zipper =
+type t =
   | InNode of {b0:branch; b1:branch; b2:branch}
 
 type direction = B0 | B1 | B2
-type direction_rooted = Up | Left | Right
+type direction_oriented = Up | Left | Right
 
-type rooted_zipper = direction * zipper
+type oriented_zipper = direction * t
 
 
 (* ======================= *)
@@ -33,6 +33,8 @@ let branch z i = match i, z with
   | B0, InNode {b0=x;_} |
     B1, InNode {b1=x;_} |
     B2, InNode {b2=x;_} -> x
+
+let orient z d = d, z
 
 
 (* ========== *)
@@ -71,7 +73,7 @@ let string_of_branch z d =
     Format.flush_str_formatter () |> indent "|    " |>
     sprintf "<<%s (%F)>>\n|\n%s|" (string_of_dir d) l
 
-let pp fmt (z:zipper) =
+let pp fmt (z:t) =
   Format.fprintf fmt "\n[[[[ZIPPER]]]]\n%s%s%s"
     (string_of_branch z B0 |> indent ". ")
     (string_of_branch z B1 |> indent ". ")
