@@ -63,6 +63,8 @@ let indent sep str =
 
 let string_of_dir = function B0 -> "B0" | B1 -> "B1" | B2 -> "B2"
 
+let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwith "Unexpected direction name."
+
 let string_of_branch z d =
   match branch z d with l,t ->
     TopoTree.pp Format.str_formatter t ;
