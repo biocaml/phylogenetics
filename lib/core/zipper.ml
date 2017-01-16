@@ -95,11 +95,19 @@ let string_of_branch z d =
     Format.flush_str_formatter () |> indent "|    " |>
     sprintf "<<%s (%F)>>\n|\n%s|" (string_of_dir d) l
 
-let pp fmt (z:t) =
-  Format.fprintf fmt "\n[[[[ZIPPER]]]]\n%s%s%s"
-    (string_of_branch z B0 |> indent ". ")
-    (string_of_branch z B1 |> indent ". ")
-    (string_of_branch z B2 |> indent ". ")
+let pp fmt = function
+  | Leaf _ as z ->
+    Format.fprintf fmt "\n[[[[ Leaf ]]]]\n%s"
+      (string_of_branch z B0 |> indent ". ")
+  | MidBranch _ as z ->
+    Format.fprintf fmt "\n[[[[ MidBranch ]]]]\n%s%s"
+      (string_of_branch z B0 |> indent ". ")
+      (string_of_branch z B1 |> indent ". ")
+  | InNode _ as z ->
+    Format.fprintf fmt "\n[[[[ InNode ]]]]\n%s%s%s"
+      (string_of_branch z B0 |> indent ". ")
+      (string_of_branch z B1 |> indent ". ")
+      (string_of_branch z B2 |> indent ". ")
 
 
 (* ========= *)
