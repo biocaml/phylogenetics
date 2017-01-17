@@ -98,10 +98,14 @@ let init_routing z=
   let routing_branches, routing_nodes = compute_routing z in
   set_meta z {routing_branches; routing_nodes}
 
-let rec get_route table i =
-  match routing_get table i with
-  | (RoutingLeft j | RoutingRight j) as m -> m::(get_route table j)
-  | RoutingNeighbour _ as m -> [m]
+let get_route_node table i =
+  let rec aux table i =
+    match routing_get table i with
+    | (RoutingLeft j | RoutingRight j) as m -> m::(aux table j)
+    | RoutingNeighbour _ as m -> [m]
+  in List.rev (aux table i)
+
+
 
 
 (* let mytree = of_preorder "0.1;0.2;0.3;0.4;1;2;3" *)
@@ -164,6 +168,19 @@ let move_right z =
   (* relies on the fact that moving to an ZipNode always comes from B2 *)
   {dir=B2; zipper=move z.zipper (right z)}
 
+let orient (z:t) d = {dir=d; zipper=z}
+
+let goto_node z i =
+  let rec follow z = function
+    | (RoutingLeft _)::route -> follow (move_left z) route
+    | (RoutingRight _)::route -> follow (move_right z) route
+    | [] -> z
+    | (RoutingNeighbour _)::_ -> failwith "Encountered unexpected RoutingNeighbour in route."
+  in
+  match get_route_node ((get_meta z).routing_nodes) i with
+  | (RoutingNeighbour d)::route -> follow (orient (move z d) B2) route
+  | _ -> failwith "Empty or malformed route."
+
 
 (* =================== *)
 (*  GETTERS / SETTERS  *)
@@ -195,8 +212,6 @@ let get_index = function
 let zipper_of_tree = function
   | Node {left=b0; right=b1; _} -> build_zbranch b0 b1
   | Leaf _ -> failwith "Zipper cannot be a lone leaf."
-
-let orient (z:t) d = {dir=d; zipper=z}
 
 let dzipper_of_tree t =
   orient (zipper_of_tree t) B0 (* B0 is arbitrary here *)
