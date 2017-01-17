@@ -9,7 +9,7 @@ type t =
   | Node of {meta:metadata; left:branch; right:branch}
   | Leaf of {meta:metadata; index:Sigs.index}
 and branch = float * t
-and metadata = {id:int}
+and metadata = {id:int; routing_no:int}
 
 
 (** {6 Creation/Conversion} *)

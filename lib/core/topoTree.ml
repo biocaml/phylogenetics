@@ -11,27 +11,27 @@ type t =
   | Node of {meta:metadata; left:branch; right:branch}
   | Leaf of {meta:metadata; index:Sigs.index}
 and branch = float * t
-and metadata = {id:int}
+and metadata = {id:int; routing_no:int}
 
 
 (* ============== *)
 (*  CONSTRUCTORS  *)
 (* ============== *)
 let get_id = function
-  | Node {meta={id}; _} |
-    Leaf {meta={id}; _} -> id
+  | Node {meta={id; _}; _} |
+    Leaf {meta={id; _}; _} -> id
 
 (* let build_id = function *)
 (*   | Node {left=_,l; right=_,r; _} -> Hashtbl.hash (get_id l + get_id r) *)
 (*   | Leaf {index; _} -> Hashtbl.hash index *)
 
 let build_node f1 l f2 r =
-  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r)}}
+  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r); routing_no= -1}}
 
 let build_node_branch (f1,l) (f2,r) = build_node f1 l f2 r
 
 let build_leaf i =
-  Leaf {index=i; meta={id=Hashtbl.hash i}}
+  Leaf {index=i; meta={id=Hashtbl.hash i; routing_no= -1}}
 
 
 (* ======================= *)
