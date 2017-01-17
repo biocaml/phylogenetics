@@ -225,7 +225,7 @@ let print = pp Format.std_formatter
 (* ========= *)
 (*   TESTS   *)
 (* ========= *)
-let mytree = of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5"
+(* let mytree = of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5" *)
 
-let test () =
-  pp2 mytree
+(* let test () = *)
+(*   pp2 mytree *)
