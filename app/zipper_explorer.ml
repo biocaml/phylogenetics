@@ -2,20 +2,23 @@ open Printf
 open Core_kernel.Std
 open Biocaml_phylogeny_core.Zipper
 
-
-let rec zipper_explorer z =
-  print z ;
-  printf "Type B0, B1 or B2 to move, type exit to exit:" ;
-  Out_channel.flush stdout ;
-  let dir_str = match In_channel.input_line In_channel.stdin with
-    | Some s -> s | _ -> "exit"
-  in match dir_str with
-  | "B0" | "B1" | "B2" -> (
-      try dir_of_string dir_str |> move z |> zipper_explorer with
-      | Failure s -> printf "Encountered error: %s\n" s ; Out_channel.flush stdout ; zipper_explorer z
-    )
-  | "exit" -> ()
-  | _ -> zipper_explorer z
-
+let zipper_explorer z =
+  let rec get_command () =
+    match In_channel.input_line In_channel.stdin with
+    | Some s -> s
+    | _ -> failwith "No command."
+  and parse_command s z =
+    match String.strip s |> String.split ~on:' ' with
+    | ["move"; s] -> dir_of_string s |> move z |> display
+    | ["slide"; sd; sf] -> slide z (dir_of_string sd) (float_of_string sf) |> display
+    | ["exit"] -> ()
+    | _ -> help z
+  and help z = printf "Available commands:\n* move dir\n* slide dir len\n* exit\n" ; prompt z
+  and display z = print z ; flush_all () ; prompt z
+  and prompt z = printf "Type a command: " ; flush_all () ;
+    let c = get_command () in
+    try parse_command c z with
+      Failure s -> printf "Error: %s\n" s
+  in display z
 
 let _ = zipper_explorer (zipper_of_tree (Biocaml_phylogeny_core.TopoTree.make_random 20))
