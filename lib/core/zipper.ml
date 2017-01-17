@@ -23,13 +23,6 @@ type location_type = LocLeaf | LocBranch | LocNode
 type oriented_zipper = {dir:direction; zipper:t}
 
 
-(* ================ *)
-(*  ROUTING TABLES  *)
-(* ================ *)
-let routing_set (t:routing_table) i m = List.Assoc.add t i m
-let routing_get (t:routing_table) i = List.Assoc.find_exn t i
-
-
 (* ======================== *)
 (*  DIRECTIONS / LOCATIONS  *)
 (* ======================== *)
@@ -59,19 +52,35 @@ let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_branches=[]; routing_
 
 let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_branches=[]; routing_nodes=[]}}
 
-let routing_add (t, i) m = routing_set t i m, i+1
+let set_meta z m = match z with
+  | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta=m}
+  | ZipBranch {b0; b1; _} -> ZipBranch {b0; b1; meta=m}
+  | ZipNode {b0; b1; b2; _} -> ZipNode {b0; b1; b2; meta=m}
 
-let rec compute_routing_tree tbranch tnodes m = function
-  | Node {left=_,l; right=_,r; _} ->
-    let (_,me) = tnodes in
-    let tnodes2 = routing_add tnodes m in (* add yourself to the table *)
-    let tbranch2 = routing_add tbranch m in (* add incoming branch to the table *)
-    let tbranch3, tnodes3 = compute_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
-    compute_routing_tree tbranch3 tnodes3 (RoutingRight me) r
-  | Leaf _ -> (* add branch and leaf to tables *)
-    routing_add tbranch m, routing_add tnodes m
+let get_meta = function
+  | ZipLeaf {meta; _} | ZipBranch {meta; _} | ZipNode {meta; _} -> meta
 
-let compute_routing = function
+
+(* ================ *)
+(*  ROUTING TABLES  *)
+(* ================ *)
+let routing_set (t:routing_table) i m = List.Assoc.add t i m
+let routing_get (t:routing_table) i = List.Assoc.find_exn t i
+
+let compute_routing =
+  let rec compute_routing_tree tbranch tnodes m =
+    let routing_add (t, i) m = routing_set t i m, i+1 in
+    function
+    | Node {left=_,l; right=_,r; _} ->
+      let (_,me) = tnodes in
+      let tnodes2 = routing_add tnodes m in (* add yourself to the table *)
+      let tbranch2 = routing_add tbranch m in (* add incoming branch to the table *)
+      let tbranch3, tnodes3 = compute_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
+      compute_routing_tree tbranch3 tnodes3 (RoutingRight me) r
+    | Leaf _ -> (* add branch and leaf to tables *)
+      routing_add tbranch m, routing_add tnodes m
+  in
+  function
   | ZipLeaf {b0=_,t0; _} ->
     let (tbranch,_), (tnodes,_) = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
     tbranch, tnodes
@@ -87,10 +96,7 @@ let compute_routing = function
 
 let init_routing z=
   let routing_branches, routing_nodes = compute_routing z in
-  match z with
-  | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta={routing_branches; routing_nodes}}
-  | ZipBranch {b0; b1; _} -> ZipBranch {b0; b1; meta={routing_branches; routing_nodes}}
-  | ZipNode {b0; b1; b2; _} -> ZipNode {b0; b1; b2; meta={routing_branches; routing_nodes}}
+  set_meta z {routing_branches; routing_nodes}
 
 let rec get_route table i =
   match routing_get table i with
@@ -98,13 +104,12 @@ let rec get_route table i =
   | RoutingNeighbour _ as m -> [m]
 
 
+(* let mytree = of_preorder "0.1;0.2;0.3;0.4;1;2;3" *)
 
-let mytree = of_preorder "0.1;0.2;0.3;0.4;1;2;3"
+(* let test () = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) mytree *)
 
-let test () = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) mytree
-
-let test2 () = match test () with
-  _,(tab,_) -> get_route tab 2
+(* let test2 () = match test () with *)
+(*   _,(tab,_) -> get_route tab 2 *)
 
 
 (* ========== *)
