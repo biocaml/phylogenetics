@@ -13,7 +13,7 @@ type t =
   | ZipLeaf of Sigs.index * branch
 
 type direction = B0 | B1 | B2
-type location_type = LocZipLeaf | LocBranch | LocNode
+type location_type = LocLeaf | LocBranch | LocNode
 
 type oriented_zipper = {dir:direction; zipper:t}
 
@@ -25,17 +25,17 @@ let string_of_dir = function B0 -> "B0" | B1 -> "B1" | B2 -> "B2"
 
 let dir_of_string = function "B0" -> B0 | "B1" -> B1 | "B2" -> B2 | _ -> failwith "Unexpected direction name."
 
-let location = function ZipNode _ -> LocNode | ZipLeaf _ -> LocZipLeaf | ZipBranch _ -> LocBranch
+let location = function ZipNode _ -> LocNode | ZipLeaf _ -> LocLeaf | ZipBranch _ -> LocBranch
 
 let left z = match location z.zipper, z.dir with
   | LocNode, B0 -> B1
   | LocBranch, _ | LocNode, B1 | LocNode, B2 -> B0
-  | LocZipLeaf, _ -> failwith "Zipper already at leaf!"
+  | LocLeaf, _ -> failwith "Zipper already at leaf!"
 
 let right z = match location z.zipper, z.dir with
   | LocBranch, _ | LocNode, B2 -> B1
   | LocNode, B0 | LocNode, B1 -> B2
-  | LocZipLeaf, _ -> failwith "Zipper already at leaf!"
+  | LocLeaf, _ -> failwith "Zipper already at leaf!"
 
 
 (* ========== *)
