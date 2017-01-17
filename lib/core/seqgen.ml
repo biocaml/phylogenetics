@@ -24,8 +24,8 @@ struct
     let my_proba = proba param in
     fun tree size ->
       let rec aux tree bl = match tree with
-        | TopoTree.Leaf i -> [(i,bl)]
-        | TopoTree.Node ((t1,l), (t2,r)) ->
+        | TopoTree.Leaf {index=i; _} -> [(i,bl)]
+        | TopoTree.Node {left=t1,l; right=t2,r; _} ->
           aux l (List.map bl ~f:(fun b->draw_base (my_proba b t1)))
           @ aux r (List.map bl ~f:(fun b->draw_base (my_proba b t2)))
       in

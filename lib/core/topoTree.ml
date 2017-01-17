@@ -7,24 +7,23 @@ let _ = Random.self_init ()
 (* ======= *)
 (*  TYPES  *)
 (* ======= *)
-type index = string
+type t =
+  | Node of {meta:metadata; left:branch; right:branch}
+  | Leaf of {meta:metadata; index:Sigs.index}
 and branch = float * t
-and t =
-  | Node of branch * branch
-  | Leaf of index
-
+and metadata = {id:int}
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)
 (* ======================= *)
 let of_newick str =
   let rec aux = function
-    | Newick.Node (l::r::[],_) -> Node (branch l, branch r)
+    | Newick.Node (l::r::[],_) -> Node {left=branch l; right=branch r; meta={id=0}}
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
   and branch = function
     | {Newick.id=Some s; Newick.length=Some l; _} ->
-      l, Leaf s
+      l, Leaf {index=s; meta={id=0}}
     | {Newick.length=Some l; Newick.tip=t; _} -> l, aux t
     | _ -> invalid_arg "Malformed branch in newick tree."
 
@@ -59,7 +58,7 @@ let of_preorder str =
     | token :: rest ->
       match token with
       | Float f -> node f rest
-      | Int i -> Ok (Leaf (sprintf "T%d" i), rest)
+      | Int i -> Ok (Leaf {index=sprintf "T%d" i; meta={id=0}}, rest)
 
   and node f1 = function
     | (Float f2)::rest -> left f1 f2 rest
@@ -72,7 +71,7 @@ let of_preorder str =
 
   and right f1 f2 tree1 list =
     match fulltree list with
-    | Ok (tree2, rest) -> Ok (Node ((f1, tree1), (f2, tree2)), rest)
+    | Ok (tree2, rest) -> Ok (Node {left=f1, tree1; right=f2, tree2; meta={id=0}}, rest)
     | Error m -> Error (sprintf "Right returned unexpected result: <%s>" m)
 
   in
@@ -84,20 +83,20 @@ let make_random n =
   let rec aux = function
     | [t] -> t
     | _::_ as l->
-      pick_two l ~f:(fun a b -> Node (rand_branch a, rand_branch b))
+      pick_two l ~f:(fun a b -> Node {left=rand_branch a; right=rand_branch b; meta={id=0}})
       |> aux
     | [] -> failwith "tree list should not be empty"
   and pick_two l ~f = match List.permute l with
     | a::b::tl -> (f a b)::tl
     | _ -> failwith "tried to pick_two in too short a list"
   and rand_branch t = ((Random.float 0.5)+.0.00001, t)
-  in aux (List.init n ~f:(fun i -> (Leaf (sprintf "T%d" i))))
+  in aux (List.init n ~f:(fun i -> (Leaf {index=sprintf "T%d" i; meta={id=0}})))
 
 let to_newick t =
   let rec aux = function
-    | Node ((f1,l),(f2,r)) ->
+    | Node {left=f1,l; right=f2,r; _} ->
       sprintf "(%s:%f,%s:%f)" (aux l) f1 (aux r) f2
-    | Leaf i -> i
+    | Leaf {index=i; _} -> i
   in aux t |> sprintf "%s;"
 
 let to_newick_file t filename =
@@ -105,7 +104,7 @@ let to_newick_file t filename =
 
 let to_dot t =
   let rec aux n = function
-    | Node ((_,l),(_,r)) ->
+    | Node {left=_,l; right=_,r; _} ->
       (sprintf "\t%s -> %s_l;\n\t%s -> %s_r;\n" n n n n)
       :: (aux (sprintf "%s_l" n) l)
       @ (aux (sprintf "%s_r" n) r)
@@ -122,20 +121,21 @@ let index_of_int i = sprintf "T%d" i
 (*  PARAMETERS / TRANSFORMATIONS  *)
 (* ============================== *)
 let rec nb_branches = function
-  | Node ((_,l),(_,r)) -> 2 + nb_branches l + nb_branches r
-  | _ -> 0
+  | Node {left=_,l; right=_,r; _} -> 2 + nb_branches l + nb_branches r
+  | Leaf _ -> 0
 
 let rec set_branch_lengths tree lengths = match tree, lengths with
   | (Leaf _ as l, []) -> l
-  | (Node ((_,l),(_,r)), l1::l2::tl) ->
-    Node (
-      (l1, set_branch_lengths l (List.sub tl ~pos:0 ~len:(nb_branches l))),
-      (l2, set_branch_lengths r (List.sub tl ~pos:(nb_branches l) ~len:(nb_branches r)))
-    )
+  | (Node {left=_,l; right=_,r; meta}, l1::l2::tl) ->
+    Node {
+      left = l1, set_branch_lengths l (List.sub tl ~pos:0 ~len:(nb_branches l));
+      right = l2, set_branch_lengths r (List.sub tl ~pos:(nb_branches l) ~len:(nb_branches r));
+      meta
+    }
   | _ -> failwith "Branch list does not match tree"
 
 let rec get_branch_lengths = function
-  | Node ((l1,l),(l2,r)) -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
+  | Node {left=l1,l; right=l2,r; _} -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
   | _ -> []
 
 let reroot t _ = t
@@ -160,10 +160,10 @@ let pp2 tree =
     |> String.concat ~sep:"\n"
 
   in let rec aux = function
-      | Leaf i -> {
+      | Leaf {index=i; _} -> {
           text = sprintf "<%s>" i; size=1; stem=0
         }
-      | Node ((l1,l), (l2,r)) ->
+      | Node {left=l1,l; right=l2,r; _} ->
         let aux1, aux2 = aux l, aux r in
         let l1_s, l2_s = sprintf "%.3f" l1, sprintf "%.3f" l2 in
         let l1_l, l2_l = String.length l1_s, String.length l2_s in

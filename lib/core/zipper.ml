@@ -42,35 +42,42 @@ let right z = match location z.zipper, z.dir with
 (*  MOVEMENT  *)
 (* ========== *)
 let slide z d l = match d, z with
-  | B0, ZipLeaf (i,(l2, t)) when l<l2 -> ZipBranch {b0=(l2-.l, t) ; b1=(l, Leaf i)}
+  | B0, ZipLeaf (i,(l2, t)) when l<l2 ->
+    ZipBranch {b0=(l2-.l, t) ; b1=(l, Leaf {index=i; meta={id=0}})}
   | B0, ZipBranch {b0=l1,t1; b1=l2,t2} when l<l1 -> ZipBranch {b0=l1-.l,t1; b1=l2+.l,t2}
   | B1, ZipBranch {b0=l1,t1; b1=l2,t2} when l<l2 -> ZipBranch {b0=l1+.l,t1; b1=l2-.l,t2}
   | (B0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2} |
      B1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2} |
      B2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2}) when l<lf ->
-    ZipBranch {b0=lf-.l,tf; b1=l,Node (bb1,bb2) }
+    ZipBranch {b0=lf-.l,tf; b1=l,Node {left=bb1; right=bb2; meta={id=0}} }
   | B1, ZipLeaf _ | B2, ZipLeaf _ | B2, ZipBranch _ ->
     failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
   | _ -> failwith "Cannot slide: length too long."
 
 let move z i = match i, z with
   (* case 1: zipper is at a leaf *)
-  | B0, ZipLeaf (i,(l,Node (b0,b1))) -> ZipNode {b0;b1;b2=l,Leaf i} (* moving to internal node *)
-  | B0, ZipLeaf (i,(l,Leaf j)) -> ZipLeaf (j,(l,Leaf i)) (* moving to leaf (degenerate case)*)
+  | B0, ZipLeaf (i,(l,Node {left=b0; right=b1; _}))
+    -> ZipNode {b0;b1;b2=l,Leaf {index=i; meta={id=0}}} (* moving to internal node *)
+  | B0, ZipLeaf (i,(l,Leaf {index=j; _}))
+    -> ZipLeaf (j,(l,Leaf {index=i; meta={id=0}})) (* moving to leaf (degenerate case)*)
 
   (* case 2: zipper is in the middle of a branch *)
-  | B0, ZipBranch {b0=l0, Node(x,y); b1=l1, z} | (* moving to internal node *)
-    B1, ZipBranch {b1=l0, Node(x,y); b0=l1, z} -> ZipNode {b0=x; b1=y; b2=l0+.l1,z}
-  | B0, ZipBranch {b0=l0, Leaf i; b1=l1, z} | (* moving to leaf *)
-    B1, ZipBranch {b1=l0, Leaf i; b0=l1, z} -> ZipLeaf (i,(l1+.l0, z))
+  | B0, ZipBranch {b0=l0, Node {left=x; right=y; _}; b1=l1, z} | (* moving to internal node *)
+    B1, ZipBranch {b1=l0, Node {left=x; right=y; _}; b0=l1, z}
+    -> ZipNode {b0=x; b1=y; b2=l0+.l1,z}
+  | B0, ZipBranch {b0=l0, Leaf {index=i; _}; b1=l1, z} | (* moving to leaf *)
+    B1, ZipBranch {b1=l0, Leaf {index=i; _}; b0=l1, z}
+    -> ZipLeaf (i,(l1+.l0, z))
 
   (* case 3: zipper is at internal node *)
-  | B0, ZipNode {b0=l,Node (x,y); b1=a; b2=b} | (* moving to internal node*)
-    B1, ZipNode {b1=l,Node (x,y); b0=a; b2=b} |
-    B2, ZipNode {b2=l,Node (x,y); b0=a; b1=b} -> ZipNode {b0=x; b1=y; b2=l,Node(a,b)}
-  | B0, ZipNode {b0=l,Leaf i; b1=a; b2=b} | (* moving to leaf *)
-    B1, ZipNode {b1=l,Leaf i; b0=a; b2=b} |
-    B2, ZipNode {b2=l,Leaf i; b0=a; b1=b} -> ZipLeaf (i,(l, Node(a,b)))
+  | B0, ZipNode {b0=l,Node {left=x; right=y; _}; b1=a; b2=b} | (* moving to internal node*)
+    B1, ZipNode {b1=l,Node {left=x; right=y; _}; b0=a; b2=b} |
+    B2, ZipNode {b2=l,Node {left=x; right=y; _}; b0=a; b1=b}
+    -> ZipNode {b0=x; b1=y; b2=l,Node {left=a; right=b; meta={id=0}}}
+  | B0, ZipNode {b0=l,Leaf {index=i; _}; b1=a; b2=b} | (* moving to leaf *)
+    B1, ZipNode {b1=l,Leaf {index=i; _}; b0=a; b2=b} |
+    B2, ZipNode {b2=l,Leaf {index=i; _}; b0=a; b1=b}
+    -> ZipLeaf (i,(l, Node {left=a; right=b; meta={id=0}}))
 
   | B1, ZipLeaf _ | B2, ZipLeaf _ | B2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
@@ -112,7 +119,7 @@ let get_index = function
 (*  CREATION / CONVERSION  *)
 (* ======================= *)
 let zipper_of_tree = function
-  | Node (b0,b1) -> ZipBranch {b0; b1}
+  | Node {left=b0; right=b1; _} -> ZipBranch {b0; b1}
   | Leaf _ -> failwith "Zipper cannot be a lone leaf."
 
 let dzipper_of_tree t =
@@ -121,7 +128,7 @@ let dzipper_of_tree t =
 let rec tree_of_zipper = function
   | (ZipNode {b0=l,_; _} |
      ZipLeaf (_,(l,_))) as z -> slide z B0 (l/.2.) |> tree_of_zipper
-  | ZipBranch {b0;b1} -> Node (b0,b1)
+  | ZipBranch {b0;b1} -> Node {left=b0; right=b1; meta={id=0}}
 
 let branch z d = match d, z with
   | B0, ZipLeaf (_,x) |

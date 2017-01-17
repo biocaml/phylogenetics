@@ -6,9 +6,10 @@
     whose edges are labelled with lengths (floats)
     and whose leaves are labelled with sequence indexes (strings)*)
 type t =
-  | Node of branch * branch
-  | Leaf of Sigs.index
+  | Node of {meta:metadata; left:branch; right:branch}
+  | Leaf of {meta:metadata; index:Sigs.index}
 and branch = float * t
+and metadata = {id:int}
 
 
 (** {6 Creation/Conversion} *)
