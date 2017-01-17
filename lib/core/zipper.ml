@@ -7,7 +7,7 @@ open TopoTree
 (*  TYPES  *)
 (* ======= *)
 type branch = float * TopoTree.t
-and zipper_metadata = {routing_nodes:routing_table; routing_branches:routing_table; me:int}
+and zipper_metadata = {routing_nodes:routing_table; me:int}
 and t =
   | ZipNode of {b0:branch; b1:branch; b2:branch; meta:zipper_metadata}
   | ZipBranch of {b0:branch; b1:branch; meta:zipper_metadata}
@@ -47,11 +47,11 @@ let right z = match location z.zipper, z.dir with
 (* ============== *)
 (*  CONSTRUCTORS  *)
 (* ============== *)
-let build_zleaf index b0 = ZipLeaf {index; b0; meta={routing_branches=[]; routing_nodes=[]; me=0}}
+let build_zleaf index b0 = ZipLeaf {index; b0; meta={routing_nodes=[]; me=0}}
 
-let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_branches=[]; routing_nodes=[]; me=0}}
+let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_nodes=[]; me=0}}
 
-let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_branches=[]; routing_nodes=[]; me=0}}
+let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_nodes=[]; me=0}}
 
 let set_meta z m = match z with
   | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta=m}
@@ -124,35 +124,33 @@ let routing_set (t:routing_table) i m = List.Assoc.add t i m
 let routing_get (t:routing_table) i = List.Assoc.find_exn t i
 
 let compute_routing =
-  let rec compute_routing_tree tbranch tnodes m =
+  let rec compute_routing_tree tnodes m =
     let routing_add (t, i) m = routing_set t i m, i+1 in
     function
     | Node {left=_,l; right=_,r; _} ->
       let (_,me) = tnodes in
       let tnodes2 = routing_add tnodes m in (* add yourself to the table *)
-      let tbranch2 = routing_add tbranch m in (* add incoming branch to the table *)
-      let tbranch3, tnodes3 = compute_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
-      compute_routing_tree tbranch3 tnodes3 (RoutingRight me) r
+      let tnodes3 = compute_routing_tree tnodes2 (RoutingLeft me) l in
+      compute_routing_tree tnodes3 (RoutingRight me) r
     | Leaf _ -> (* add branch and leaf to tables *)
-      routing_add tbranch m, routing_add tnodes m
+      routing_add tnodes m
   in
   function
   | ZipLeaf {b0=_,t0; _} ->
-    let (tbranch,_), (tnodes,_) = compute_routing_tree ([],1) ([],0) (RoutingNeighbour B0) t0 in
-    tbranch, tnodes
-  | ZipBranch _ -> failwith "Routing from branch unsupported."
+    let (tnodes,_) = compute_routing_tree ([],1) (RoutingNeighbour B0) t0 in tnodes
+  | ZipBranch _ -> failwith "Routing from branch unsupported." (* TODO should it be supported again now that there is only node routing?*)
   | ZipNode {b0=_,t0; b1=_,t1; b2=_,t2; _} ->
-    let tbranch, tnodes = compute_routing_tree ([],1) ([],0) (RoutingNeighbour B0) t0 in
-    let tbranch2, tnodes2 = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
-    let (tbranch3,_), (tnodes3,_) = compute_routing_tree tbranch2 tnodes2 (RoutingNeighbour B2) t2 in
-    tbranch3, tnodes3
+    let tnodes = compute_routing_tree ([],1) (RoutingNeighbour B0) t0 in
+    let tnodes2 = compute_routing_tree tnodes (RoutingNeighbour B1) t1 in
+    let (tnodes3,_) = compute_routing_tree tnodes2 (RoutingNeighbour B2) t2 in
+    tnodes3
 
 let rec init_routing z =
   if location z = LocBranch then
     init_routing (move z B0)
   else
-    let routing_branches, routing_nodes = compute_routing z in
-    set_meta z {routing_branches; routing_nodes=(routing_set routing_nodes 0 RoutingStay); me=0}
+    let routing_nodes = compute_routing z in
+    set_meta z {routing_nodes=(routing_set routing_nodes 0 RoutingStay); me=0}
 
 let get_route_node table i =
   let rec aux table i =
