@@ -49,6 +49,8 @@ val build_leaf: Sigs.index -> t
 
 val build_node: float -> t -> float -> t -> t
 
+val build_node_branch: branch -> branch -> t
+
 
 (** {6 Pretty printers} *)
 

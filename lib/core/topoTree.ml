@@ -13,17 +13,38 @@ type t =
 and branch = float * t
 and metadata = {id:int}
 
+
+(* ============== *)
+(*  CONSTRUCTORS  *)
+(* ============== *)
+let get_id = function
+  | Node {meta={id}; _} |
+    Leaf {meta={id}; _} -> id
+
+(* let build_id = function *)
+(*   | Node {left=_,l; right=_,r; _} -> Hashtbl.hash (get_id l + get_id r) *)
+(*   | Leaf {index; _} -> Hashtbl.hash index *)
+
+let build_node f1 l f2 r =
+  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r)}}
+
+let build_node_branch (f1,l) (f2,r) = build_node f1 l f2 r
+
+let build_leaf i =
+  Leaf {index=i; meta={id=Hashtbl.hash i}}
+
+
 (* ======================= *)
 (*  CREATION / CONVERSION  *)
 (* ======================= *)
 let of_newick str =
   let rec aux = function
-    | Newick.Node (l::r::[],_) -> Node {left=branch l; right=branch r; meta={id=0}}
+    | Newick.Node (l::r::[],_) -> build_node_branch (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
   and branch = function
     | {Newick.id=Some s; Newick.length=Some l; _} ->
-      l, Leaf {index=s; meta={id=0}}
+      l, build_leaf s
     | {Newick.length=Some l; Newick.tip=t; _} -> l, aux t
     | _ -> invalid_arg "Malformed branch in newick tree."
 
@@ -58,7 +79,7 @@ let of_preorder str =
     | token :: rest ->
       match token with
       | Float f -> node f rest
-      | Int i -> Ok (Leaf {index=sprintf "T%d" i; meta={id=0}}, rest)
+      | Int i -> Ok (build_leaf (sprintf "T%d" i), rest)
 
   and node f1 = function
     | (Float f2)::rest -> left f1 f2 rest
@@ -71,7 +92,7 @@ let of_preorder str =
 
   and right f1 f2 tree1 list =
     match fulltree list with
-    | Ok (tree2, rest) -> Ok (Node {left=f1, tree1; right=f2, tree2; meta={id=0}}, rest)
+    | Ok (tree2, rest) -> Ok (build_node f1 tree1 f2 tree2, rest)
     | Error m -> Error (sprintf "Right returned unexpected result: <%s>" m)
 
   in
@@ -83,14 +104,14 @@ let make_random n =
   let rec aux = function
     | [t] -> t
     | _::_ as l->
-      pick_two l ~f:(fun a b -> Node {left=rand_branch a; right=rand_branch b; meta={id=0}})
+      pick_two l ~f:(fun a b -> build_node_branch (rand_branch a) (rand_branch b))
       |> aux
     | [] -> failwith "tree list should not be empty"
   and pick_two l ~f = match List.permute l with
     | a::b::tl -> (f a b)::tl
     | _ -> failwith "tried to pick_two in too short a list"
   and rand_branch t = ((Random.float 0.5)+.0.00001, t)
-  in aux (List.init n ~f:(fun i -> (Leaf {index=sprintf "T%d" i; meta={id=0}})))
+  in aux (List.init n ~f:(fun i -> (build_leaf (sprintf "T%d" i))))
 
 let to_newick t =
   let rec aux = function
@@ -117,6 +138,7 @@ let index_of_string s = s
 
 let index_of_int i = sprintf "T%d" i
 
+
 (* ============================== *)
 (*  PARAMETERS / TRANSFORMATIONS  *)
 (* ============================== *)
@@ -137,24 +159,6 @@ let rec set_branch_lengths tree lengths = match tree, lengths with
 let rec get_branch_lengths = function
   | Node {left=l1,l; right=l2,r; _} -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
   | Leaf _ -> []
-
-
-(* ============== *)
-(*  CONSTRUCTORS  *)
-(* ============== *)
-let get_id = function
-  | Node {meta={id}; _} |
-    Leaf {meta={id}; _} -> id
-
-(* let build_id = function *)
-(*   | Node {left=_,l; right=_,r; _} -> Hashtbl.hash (get_id l + get_id r) *)
-(*   | Leaf {index; _} -> Hashtbl.hash index *)
-
-let build_node f1 l f2 r =
-  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r)}}
-
-let build_leaf i =
-  Leaf {index=i; meta={id=Hashtbl.hash i}}
 
 
 (* ================= *)
