@@ -14,8 +14,16 @@ type t =
 
 type direction = B0 | B1 | B2
 type location_type = LocLeaf | LocBranch | LocNode
-
 type oriented_zipper = {dir:direction; zipper:t}
+
+
+(* ================ *)
+(*  ROUTING TABLES  *)
+(* ================ *)
+type routing_index = RoutingIndex of int | CurrentPos
+type routing_table = (routing_index * (routing_index * direction)) list
+let routing_set (t:routing_table) i j d = List.Assoc.add t i (j,d)
+let routing_get (t:routing_table) i = List.Assoc.find_exn t i
 
 
 (* ======================== *)
@@ -125,7 +133,7 @@ let zipper_of_tree = function
 let orient (z:t) d = {dir=d; zipper=z}
 
 let dzipper_of_tree t =
-   orient (zipper_of_tree t) B0 (* B0 is arbitrary here *)
+  orient (zipper_of_tree t) B0 (* B0 is arbitrary here *)
 
 let rec tree_of_zipper = function
   | (ZipNode {b0=l,_; _} |
