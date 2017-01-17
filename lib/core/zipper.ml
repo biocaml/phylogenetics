@@ -62,62 +62,6 @@ let get_meta = function
   | ZipLeaf {meta; _} | ZipBranch {meta; _} | ZipNode {meta; _} -> meta
 
 
-(* ================ *)
-(*  ROUTING TABLES  *)
-(* ================ *)
-let routing_set (t:routing_table) i m = List.Assoc.add t i m
-let routing_get (t:routing_table) i = List.Assoc.find_exn t i
-
-let compute_routing =
-  let rec compute_routing_tree tbranch tnodes m =
-    let routing_add (t, i) m = routing_set t i m, i+1 in
-    function
-    | Node {left=_,l; right=_,r; _} ->
-      let (_,me) = tnodes in
-      let tnodes2 = routing_add tnodes m in (* add yourself to the table *)
-      let tbranch2 = routing_add tbranch m in (* add incoming branch to the table *)
-      let tbranch3, tnodes3 = compute_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
-      compute_routing_tree tbranch3 tnodes3 (RoutingRight me) r
-    | Leaf _ -> (* add branch and leaf to tables *)
-      routing_add tbranch m, routing_add tnodes m
-  in
-  function
-  | ZipLeaf {b0=_,t0; _} ->
-    let (tbranch,_), (tnodes,_) = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) t0 in
-    tbranch, tnodes
-  | ZipBranch {b0=_,t0; b1=_,t1; _} ->
-    let tbranch, tnodes = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) t0 in
-    let (tbranch2,_), (tnodes2,_) = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
-    tbranch2, tnodes2
-  | ZipNode {b0=_,t0; b1=_,t1; b2=_,t2; _} ->
-    let tbranch, tnodes = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) t0 in
-    let tbranch2, tnodes2 = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
-    let (tbranch3,_), (tnodes3,_) = compute_routing_tree tbranch2 tnodes2 (RoutingNeighbour B2) t2 in
-    tbranch3, tnodes3
-
-let init_routing z=
-  let routing_branches, routing_nodes = compute_routing z in
-  set_meta z {routing_branches; routing_nodes; me=0}
-
-let get_route_node table i =
-  let rec aux table i =
-    match routing_get table i with
-    | (RoutingLeft j | RoutingRight j) as m -> m::(aux table j)
-    | RoutingNeighbour _ as m -> [m]
-    | RoutingStay as m -> [m]
-  in List.rev (aux table i)
-
-
-
-
-(* let mytree = of_preorder "0.1;0.2;0.3;0.4;1;2;3" *)
-
-(* let test () = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) mytree *)
-
-(* let test2 () = match test () with *)
-(*   _,(tab,_) -> get_route tab 2 *)
-
-
 (* ========== *)
 (*  MOVEMENT  *)
 (* ========== *)
@@ -171,6 +115,52 @@ let move_right z =
   {dir=B2; zipper=move z.zipper (right z)}
 
 let orient (z:t) d = {dir=d; zipper=z}
+
+
+(* ================ *)
+(*  ROUTING TABLES  *)
+(* ================ *)
+let routing_set (t:routing_table) i m = List.Assoc.add t i m
+let routing_get (t:routing_table) i = List.Assoc.find_exn t i
+
+let compute_routing =
+  let rec compute_routing_tree tbranch tnodes m =
+    let routing_add (t, i) m = routing_set t i m, i+1 in
+    function
+    | Node {left=_,l; right=_,r; _} ->
+      let (_,me) = tnodes in
+      let tnodes2 = routing_add tnodes m in (* add yourself to the table *)
+      let tbranch2 = routing_add tbranch m in (* add incoming branch to the table *)
+      let tbranch3, tnodes3 = compute_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
+      compute_routing_tree tbranch3 tnodes3 (RoutingRight me) r
+    | Leaf _ -> (* add branch and leaf to tables *)
+      routing_add tbranch m, routing_add tnodes m
+  in
+  function
+  | ZipLeaf {b0=_,t0; _} ->
+    let (tbranch,_), (tnodes,_) = compute_routing_tree ([],1) ([],0) (RoutingNeighbour B0) t0 in
+    tbranch, tnodes
+  | ZipBranch _ -> failwith "Routing from branch unsupported."
+  | ZipNode {b0=_,t0; b1=_,t1; b2=_,t2; _} ->
+    let tbranch, tnodes = compute_routing_tree ([],1) ([],0) (RoutingNeighbour B0) t0 in
+    let tbranch2, tnodes2 = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
+    let (tbranch3,_), (tnodes3,_) = compute_routing_tree tbranch2 tnodes2 (RoutingNeighbour B2) t2 in
+    tbranch3, tnodes3
+
+let rec init_routing z =
+  if location z = LocBranch then
+    init_routing (move z B0)
+  else
+    let routing_branches, routing_nodes = compute_routing z in
+    set_meta z {routing_branches; routing_nodes=(routing_set routing_nodes 0 RoutingStay); me=0}
+
+let get_route_node table i =
+  let rec aux table i =
+    match routing_get table i with
+    | (RoutingLeft j | RoutingRight j) as m -> m::(aux table j)
+    | RoutingNeighbour _ as m -> [m]
+    | RoutingStay as m -> [m]
+  in List.rev (aux table i)
 
 let goto_node z i =
   let rec follow z = function
