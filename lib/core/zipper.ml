@@ -13,7 +13,11 @@ and t =
   | ZipBranch of {b0:branch; b1:branch; meta:zipper_metadata}
   | ZipLeaf of {index:Sigs.index; b0:branch; meta:zipper_metadata}
 and routing_index = RoutingIndex of int | CurrentPos
-and routing_table = (routing_index * (routing_index * direction)) list
+and routing_move =
+  | RoutingLeft of routing_index
+  | RoutingRight of routing_index
+  | RoutingNeighbour of direction
+and routing_table = (routing_index * routing_move) list
 and direction = B0 | B1 | B2
 
 type location_type = LocLeaf | LocBranch | LocNode
@@ -23,7 +27,7 @@ type oriented_zipper = {dir:direction; zipper:t}
 (* ================ *)
 (*  ROUTING TABLES  *)
 (* ================ *)
-let routing_set (t:routing_table) i j d = List.Assoc.add t i (j,d)
+let routing_set (t:routing_table) i m = List.Assoc.add t i m
 let routing_get (t:routing_table) i = List.Assoc.find_exn t i
 
 
@@ -56,6 +60,7 @@ let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_branches=[]; routing_
 
 let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_branches=[]; routing_nodes=[]}}
 
+(* let init_routing tab i tree = *)
 
 (* ========== *)
 (*  MOVEMENT  *)
