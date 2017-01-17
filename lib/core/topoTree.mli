@@ -41,7 +41,13 @@ val get_branch_lengths: t -> float list
 
 val set_branch_lengths: t -> float list -> t
 
-val reroot: t -> int -> t
+
+(** {6 Constructors} *)
+val get_id: t -> int
+
+val build_leaf: Sigs.index -> t
+
+val build_node: float -> t -> float -> t -> t
 
 
 (** {6 Pretty printers} *)

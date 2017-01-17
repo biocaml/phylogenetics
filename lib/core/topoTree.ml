@@ -136,9 +136,25 @@ let rec set_branch_lengths tree lengths = match tree, lengths with
 
 let rec get_branch_lengths = function
   | Node {left=l1,l; right=l2,r; _} -> l1::l2::(get_branch_lengths l)@(get_branch_lengths r)
-  | _ -> []
+  | Leaf _ -> []
 
-let reroot t _ = t
+
+(* ============== *)
+(*  CONSTRUCTORS  *)
+(* ============== *)
+let get_id = function
+  | Node {meta={id}; _} |
+    Leaf {meta={id}; _} -> id
+
+(* let build_id = function *)
+(*   | Node {left=_,l; right=_,r; _} -> Hashtbl.hash (get_id l + get_id r) *)
+(*   | Leaf {index; _} -> Hashtbl.hash index *)
+
+let build_node f1 l f2 r =
+  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r)}}
+
+let build_leaf i =
+  Leaf {index=i; meta={id=Hashtbl.hash i}}
 
 
 (* ================= *)
