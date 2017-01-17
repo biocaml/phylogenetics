@@ -11,14 +11,19 @@ let zipper_explorer z =
     match String.strip s |> String.split ~on:' ' with
     | ["move"; s] -> dir_of_string s |> move z |> display
     | ["slide"; sd; sf] -> slide z (dir_of_string sd) (float_of_string sf) |> display
+    | ["goto"; si] -> goto_node z (int_of_string si) |> display
     | ["exit"] -> ()
     | _ -> help z
-  and help z = printf "Available commands:\n* move dir\n* slide dir len\n* exit\n" ; prompt z
+  and help z = printf "Available commands:\n* move dir\n* slide dir len\n* goto int\n* exit\n" ; prompt z
   and display z = print z ; flush_all () ; prompt z
   and prompt z = printf "Type a command: " ; flush_all () ;
     let c = get_command () in
     try parse_command c z with
-      Failure s -> printf "Error: %s\n" s
+    | Failure s -> printf "Error: %s\n" s ; help z
+    | _ -> printf "Unknown error.\n" ; help z
   in display z
 
-let _ = zipper_explorer (zipper_of_tree (Biocaml_phylogeny_core.TopoTree.make_random 20))
+let _ = Biocaml_phylogeny_core.TopoTree.make_random 20
+        |> zipper_of_tree
+        |> init_routing
+        |> zipper_explorer

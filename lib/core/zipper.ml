@@ -178,7 +178,7 @@ let goto_node z i =
     | (RoutingNeighbour _)::_ -> failwith "Encountered unexpected RoutingNeighbour in route."
   in
   match get_route_node ((get_meta z).routing_nodes) i with
-  | (RoutingNeighbour d)::route -> follow (orient (move z d) B2) route
+  | (RoutingNeighbour d)::route -> (follow (orient (move z d) B2) route).zipper
   | _ -> failwith "Empty or malformed route."
 
 
