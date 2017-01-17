@@ -7,12 +7,13 @@ open TopoTree
 (*  TYPES  *)
 (* ======= *)
 type branch = float * TopoTree.t
-and zipper_metadata = {routing_nodes:routing_table; routing_branches:routing_table}
+and zipper_metadata = {routing_nodes:routing_table; routing_branches:routing_table; me:int}
 and t =
   | ZipNode of {b0:branch; b1:branch; b2:branch; meta:zipper_metadata}
   | ZipBranch of {b0:branch; b1:branch; meta:zipper_metadata}
   | ZipLeaf of {index:Sigs.index; b0:branch; meta:zipper_metadata}
 and routing_move =
+  | RoutingStay
   | RoutingLeft of int
   | RoutingRight of int
   | RoutingNeighbour of direction
@@ -46,11 +47,11 @@ let right z = match location z.zipper, z.dir with
 (* ============== *)
 (*  CONSTRUCTORS  *)
 (* ============== *)
-let build_zleaf index b0 = ZipLeaf {index; b0; meta={routing_branches=[]; routing_nodes=[]}}
+let build_zleaf index b0 = ZipLeaf {index; b0; meta={routing_branches=[]; routing_nodes=[]; me=0}}
 
-let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_branches=[]; routing_nodes=[]}}
+let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_branches=[]; routing_nodes=[]; me=0}}
 
-let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_branches=[]; routing_nodes=[]}}
+let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_branches=[]; routing_nodes=[]; me=0}}
 
 let set_meta z m = match z with
   | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta=m}
@@ -82,27 +83,28 @@ let compute_routing =
   in
   function
   | ZipLeaf {b0=_,t0; _} ->
-    let (tbranch,_), (tnodes,_) = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
+    let (tbranch,_), (tnodes,_) = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) t0 in
     tbranch, tnodes
   | ZipBranch {b0=_,t0; b1=_,t1; _} ->
-    let tbranch, tnodes = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
+    let tbranch, tnodes = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) t0 in
     let (tbranch2,_), (tnodes2,_) = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
     tbranch2, tnodes2
   | ZipNode {b0=_,t0; b1=_,t1; b2=_,t2; _} ->
-    let tbranch, tnodes = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
+    let tbranch, tnodes = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) t0 in
     let tbranch2, tnodes2 = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
     let (tbranch3,_), (tnodes3,_) = compute_routing_tree tbranch2 tnodes2 (RoutingNeighbour B2) t2 in
     tbranch3, tnodes3
 
 let init_routing z=
   let routing_branches, routing_nodes = compute_routing z in
-  set_meta z {routing_branches; routing_nodes}
+  set_meta z {routing_branches; routing_nodes; me=0}
 
 let get_route_node table i =
   let rec aux table i =
     match routing_get table i with
     | (RoutingLeft j | RoutingRight j) as m -> m::(aux table j)
     | RoutingNeighbour _ as m -> [m]
+    | RoutingStay as m -> [m]
   in List.rev (aux table i)
 
 
@@ -110,7 +112,7 @@ let get_route_node table i =
 
 (* let mytree = of_preorder "0.1;0.2;0.3;0.4;1;2;3" *)
 
-(* let test () = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) mytree *)
+(* let test () = compute_routing_tree ([],1) ([],1) (RoutingNeighbour B0) mytree *)
 
 (* let test2 () = match test () with *)
 (*   _,(tab,_) -> get_route tab 2 *)
@@ -175,10 +177,11 @@ let goto_node z i =
     | (RoutingLeft _)::route -> follow (move_left z) route
     | (RoutingRight _)::route -> follow (move_right z) route
     | [] -> z
-    | (RoutingNeighbour _)::_ -> failwith "Encountered unexpected RoutingNeighbour in route."
+    | (RoutingNeighbour _ | RoutingStay)::_ -> failwith "Encountered unexpected move in route."
   in
   match get_route_node ((get_meta z).routing_nodes) i with
   | (RoutingNeighbour d)::route -> (follow (orient (move z d) B2) route).zipper
+  | [RoutingStay] -> z
   | _ -> failwith "Empty or malformed route."
 
 
