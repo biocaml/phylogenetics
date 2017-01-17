@@ -12,12 +12,11 @@ and t =
   | ZipNode of {b0:branch; b1:branch; b2:branch; meta:zipper_metadata}
   | ZipBranch of {b0:branch; b1:branch; meta:zipper_metadata}
   | ZipLeaf of {index:Sigs.index; b0:branch; meta:zipper_metadata}
-and routing_index = RoutingIndex of int | CurrentPos
 and routing_move =
-  | RoutingLeft of routing_index
-  | RoutingRight of routing_index
+  | RoutingLeft of int
+  | RoutingRight of int
   | RoutingNeighbour of direction
-and routing_table = (routing_index * routing_move) list
+and routing_table = (int * routing_move) list
 and direction = B0 | B1 | B2
 
 type location_type = LocLeaf | LocBranch | LocNode
