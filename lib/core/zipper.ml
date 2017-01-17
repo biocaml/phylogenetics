@@ -59,41 +59,49 @@ let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing_branches=[]; routing_
 
 let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing_branches=[]; routing_nodes=[]}}
 
-
 let routing_add (t, i) m = routing_set t i m, i+1
 
-let rec init_routing_tree tbranch tnodes m = function
+let rec compute_routing_tree tbranch tnodes m = function
   | Node {left=_,l; right=_,r; _} ->
     let (_,me) = tnodes in
     let tnodes2 = routing_add tnodes m in (* add yourself to the table *)
     let tbranch2 = routing_add tbranch m in (* add incoming branch to the table *)
-    let tbranch3, tnodes3 = init_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
-    init_routing_tree tbranch3 tnodes3 (RoutingRight me) r
+    let tbranch3, tnodes3 = compute_routing_tree tbranch2 tnodes2 (RoutingLeft me) l in
+    compute_routing_tree tbranch3 tnodes3 (RoutingRight me) r
   | Leaf _ -> (* add branch and leaf to tables *)
     routing_add tbranch m, routing_add tnodes m
 
-let init_routing = function
+let compute_routing = function
   | ZipLeaf {b0=_,t0; _} ->
-    let (tbranch,_), (tnodes,_) = init_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
+    let (tbranch,_), (tnodes,_) = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
     tbranch, tnodes
   | ZipBranch {b0=_,t0; b1=_,t1; _} ->
-    let tbranch, tnodes = init_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
-    let (tbranch2,_), (tnodes2,_) = init_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
+    let tbranch, tnodes = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
+    let (tbranch2,_), (tnodes2,_) = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
     tbranch2, tnodes2
   | ZipNode {b0=_,t0; b1=_,t1; b2=_,t2; _} ->
-    let tbranch, tnodes = init_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
-    let tbranch2, tnodes2 = init_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
-    let (tbranch3,_), (tnodes3,_) = init_routing_tree tbranch2 tnodes2 (RoutingNeighbour B2) t2 in
+    let tbranch, tnodes = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) t0 in
+    let tbranch2, tnodes2 = compute_routing_tree tbranch tnodes (RoutingNeighbour B1) t1 in
+    let (tbranch3,_), (tnodes3,_) = compute_routing_tree tbranch2 tnodes2 (RoutingNeighbour B2) t2 in
     tbranch3, tnodes3
+
+let init_routing z=
+  let routing_branches, routing_nodes = compute_routing z in
+  match z with
+  | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta={routing_branches; routing_nodes}}
+  | ZipBranch {b0; b1; _} -> ZipBranch {b0; b1; meta={routing_branches; routing_nodes}}
+  | ZipNode {b0; b1; b2; _} -> ZipNode {b0; b1; b2; meta={routing_branches; routing_nodes}}
 
 let rec get_route table i =
   match routing_get table i with
   | (RoutingLeft j | RoutingRight j) as m -> m::(get_route table j)
   | RoutingNeighbour _ as m -> [m]
 
+
+
 let mytree = of_preorder "0.1;0.2;0.3;0.4;1;2;3"
 
-let test () = init_routing_tree ([],0) ([],0) (RoutingNeighbour B0) mytree
+let test () = compute_routing_tree ([],0) ([],0) (RoutingNeighbour B0) mytree
 
 let test2 () = match test () with
   _,(tab,_) -> get_route tab 2
