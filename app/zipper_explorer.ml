@@ -11,7 +11,7 @@ let zipper_explorer z =
     match String.strip s |> String.split ~on:' ' with
     | ["move"; s] -> dir_of_string s |> move z |> display
     | ["slide"; sd; sf] -> slide z (dir_of_string sd) (float_of_string sf) |> display
-    | ["goto"; si] -> goto_node z (int_of_string si) |> display
+    | ["goto"; si] -> goto z (int_of_string si) |> display
     | ["exit"] -> ()
     | _ -> help z
   and help z = printf "Available commands:\n* move dir\n* slide dir len\n* goto int\n* exit\n" ; prompt z
