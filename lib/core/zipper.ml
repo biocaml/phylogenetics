@@ -122,8 +122,10 @@ let zipper_of_tree = function
   | Node {left=b0; right=b1; _} -> ZipBranch {b0; b1}
   | Leaf _ -> failwith "Zipper cannot be a lone leaf."
 
+let orient (z:t) d = {dir=d; zipper=z}
+
 let dzipper_of_tree t =
-  {dir=B0; zipper=zipper_of_tree t} (* B0 is arbitrary here *)
+   orient (zipper_of_tree t) B0 (* B0 is arbitrary here *)
 
 let rec tree_of_zipper = function
   | (ZipNode {b0=l,_; _} |
@@ -139,8 +141,6 @@ let branch z d = match d, z with
     B2, ZipNode {b2=x;_} -> x
   | B1, ZipLeaf _ | B2, ZipLeaf _ | B2, ZipBranch _ ->
     failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
-
-let orient z d = d, z
 
 
 (* ================= *)
