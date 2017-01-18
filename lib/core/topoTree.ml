@@ -33,6 +33,13 @@ let build_node_branch (f1,l) (f2,r) = build_node f1 l f2 r
 let build_leaf i =
   Leaf {index=i; meta={id=Hashtbl.hash i; routing_no= -1}}
 
+let set_meta t meta = match t with
+  | Node {left; right; _} -> Node {left; right; meta}
+  | Leaf {index; _} -> Leaf {index; meta}
+
+let get_meta = function
+  | Node {meta; _} | Leaf {meta; _} -> meta
+
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)

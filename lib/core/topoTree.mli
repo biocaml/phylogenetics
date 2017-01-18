@@ -51,6 +51,10 @@ val build_node: float -> t -> float -> t -> t
 
 val build_node_branch: branch -> branch -> t
 
+val get_meta: t -> metadata
+
+val set_meta: t -> metadata -> t
+
 
 (** {6 Pretty printers} *)
 
