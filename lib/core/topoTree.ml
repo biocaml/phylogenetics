@@ -40,6 +40,11 @@ let set_meta t meta = match t with
 let get_meta = function
   | Node {meta; _} | Leaf {meta; _} -> meta
 
+let set_routing_no t routing_no = match get_meta t with
+  | {id; _} -> set_meta t {id; routing_no}
+
+let get_routing_no t = match get_meta t with {routing_no; _} -> routing_no
+
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)

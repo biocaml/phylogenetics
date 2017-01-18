@@ -55,6 +55,10 @@ val get_meta: t -> metadata
 
 val set_meta: t -> metadata -> t
 
+val get_routing_no: t -> int
+
+val set_routing_no: t -> int -> t
+
 
 (** {6 Pretty printers} *)
 
