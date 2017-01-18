@@ -21,10 +21,6 @@ let get_id = function
   | Node {meta={id; _}; _} |
     Leaf {meta={id; _}; _} -> id
 
-(* let build_id = function *)
-(*   | Node {left=_,l; right=_,r; _} -> Hashtbl.hash (get_id l + get_id r) *)
-(*   | Leaf {index; _} -> Hashtbl.hash index *)
-
 let build_node f1 l f2 r =
   Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r); routing_no= -1}}
 
@@ -43,7 +39,7 @@ let get_meta = function
 let set_routing_no t routing_no = match get_meta t with
   | {id; _} -> set_meta t {id; routing_no}
 
-let get_routing_no t = match get_meta t with {routing_no; _} -> routing_no
+let get_routing_no t = (get_meta t).routing_no
 
 
 (* ======================= *)
