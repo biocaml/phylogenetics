@@ -45,11 +45,11 @@ val set_branch_lengths: t -> float list -> t
 (** {6 Constructors} *)
 val get_id: t -> int
 
-val build_leaf: Sigs.index -> t
+val build_leaf: ?routing_no:int -> Sigs.index -> t
 
-val build_node: float -> t -> float -> t -> t
+val build_node: ?routing_no:int -> float -> t -> float -> t -> t
 
-val build_node_branch: branch -> branch -> t
+val build_node_branch: ?routing_no:int -> branch -> branch -> t
 
 val get_meta: t -> metadata
 

@@ -47,11 +47,29 @@ let right z = match location z.zipper, z.dir with
 (* ============== *)
 (*  CONSTRUCTORS  *)
 (* ============== *)
-let build_zleaf index b0 = ZipLeaf {index; b0; meta={routing=[]; me=0}}
+let routing_set (t:routing_table) ~index:i ~move:m = List.Assoc.add t i m
+let routing_get (t:routing_table) ~index:i = List.Assoc.find_exn t i
 
-let build_zbranch b0 b1 = ZipBranch {b0; b1; meta={routing=[]; me=0}}
+let build_zleaf ?(old_routing=[]) ?(me=0) index (l,t0) =
+  let routing = (* point only neighbour to current pos *)
+    routing_set ~index:(get_routing_no t0) ~move:(RoutingNeighbour B0) old_routing
+    |> routing_set ~index:me ~move:RoutingStay (* point new pos to itself *)
+  in ZipLeaf {index; b0=(l,t0); meta={routing; me}}
 
-let build_znode b0 b1 b2 = ZipNode {b0; b1; b2; meta={routing=[]; me=0}}
+let build_zbranch ?(old_routing=[]) ?(me=0) (l0,t0) (l1,t1) =
+  let routing = (* point neighbours to current pos *)
+    routing_set ~index:(get_routing_no t0) ~move:(RoutingNeighbour B0) old_routing
+    |> routing_set ~index:(get_routing_no t1) ~move:(RoutingNeighbour B1)
+    |> routing_set ~index:me ~move:RoutingStay (* point new pos to itself *)
+  in ZipBranch {b0=(l0,t0); b1=(l1,t1); meta={routing; me}}
+
+let build_znode ?(old_routing=[]) ?(me=0) (l0,t0) (l1,t1) (l2,t2) =
+  let routing = (* point neighbours to current pos *)
+    routing_set ~index:(get_routing_no t0) ~move:(RoutingNeighbour B0) old_routing
+    |> routing_set ~index:(get_routing_no t1) ~move:(RoutingNeighbour B1)
+    |> routing_set ~index:(get_routing_no t2) ~move:(RoutingNeighbour B2)
+    |> routing_set ~index:me ~move:RoutingStay (* point new pos to itself *)
+  in ZipNode {b0=(l0,t0); b1=(l1,t1); b2=(l2,t2); meta={routing; me}}
 
 let set_meta z m = match z with
   | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta=m}
@@ -80,28 +98,34 @@ let slide z d l = match d, z with
 
 let move z i = match i, z with
   (* case 1: zipper is at a leaf *)
-  | B0, ZipLeaf {index=i; b0=l,Node {left=b0; right=b1; _}; _}
-    -> build_znode b0 b1 (l,build_leaf i) (* moving to internal node *)
-  | B0, ZipLeaf {index=i; b0=l,Leaf {index=j; _}; _}
-    -> build_zleaf j (l, build_leaf i) (* moving to leaf (degenerate case)*)
+  | B0, ZipLeaf {index=i; b0=l,Node {left=b0; right=b1; meta={routing_no; _}}; meta={routing; me}}
+    -> build_znode ~old_routing:routing ~me:routing_no b0 b1 (l,build_leaf ~routing_no:me i) (* moving to internal node *)
+  | B0, ZipLeaf {index=i; b0=l,Leaf {index=j; meta={routing_no; _}}; meta={routing; me}}
+    -> build_zleaf ~old_routing:routing ~me:routing_no j (l, build_leaf ~routing_no:me i) (* moving to leaf (degenerate case)*)
 
   (* case 2: zipper is in the middle of a branch *)
-  | B0, ZipBranch {b0=l0, Node {left=x; right=y; _}; b1=l1, z; _} | (* moving to internal node *)
-    B1, ZipBranch {b1=l0, Node {left=x; right=y; _}; b0=l1, z; _}
-    -> build_znode x y (l0+.l1,z)
-  | B0, ZipBranch {b0=l0, Leaf {index=i; _}; b1=l1, z; _} | (* moving to leaf *)
-    B1, ZipBranch {b1=l0, Leaf {index=i; _}; b0=l1, z; _}
-    -> build_zleaf i (l1+.l0, z)
+  | B0, ZipBranch {b0=l0, Node {left=x; right=y; meta={routing_no; _}}; b1=l1, z; meta={routing; me}} | (* moving to internal node *)
+    B1, ZipBranch {b1=l0, Node {left=x; right=y; meta={routing_no; _}}; b0=l1, z; meta={routing; me}}
+    -> build_znode ~old_routing:routing ~me:routing_no x y (l0+.l1,z)
+  | B0, ZipBranch {b0=l0, Leaf {index=i; meta={routing_no; _}}; b1=l1, z; meta={routing; me}} | (* moving to leaf *)
+    B1, ZipBranch {b1=l0, Leaf {index=i; meta={routing_no; _}}; b0=l1, z; meta={routing; me}}
+    -> build_zleaf ~old_routing:routing ~me:routing_no i (l1+.l0, z)
 
   (* case 3: zipper is at internal node *)
-  | B0, ZipNode {b0=l,Node {left=x; right=y; _}; b1=a; b2=b; _} | (* moving to internal node*)
-    B1, ZipNode {b1=l,Node {left=x; right=y; _}; b0=a; b2=b; _} |
-    B2, ZipNode {b2=l,Node {left=x; right=y; _}; b0=a; b1=b; _}
-    -> build_znode x y (l,build_node_branch a b)
-  | B0, ZipNode {b0=l,Leaf {index=i; _}; b1=a; b2=b; _} | (* moving to leaf *)
-    B1, ZipNode {b1=l,Leaf {index=i; _}; b0=a; b2=b; _} |
-    B2, ZipNode {b2=l,Leaf {index=i; _}; b0=a; b1=b; _}
-    -> build_zleaf i (l, build_node_branch a b)
+  | B0, ZipNode {b0=l,Node {left=x; right=y; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} | (* moving to internal node*)
+    B1, ZipNode {b1=l,Node {left=x; right=y; meta={routing_no; _}}; b0=(la,ta); b2=(lb,tb); meta={routing; me}} |
+    B2, ZipNode {b2=l,Node {left=x; right=y; meta={routing_no; _}}; b0=(la,ta); b1=(lb,tb); meta={routing; me}}
+    -> let new_routing =
+         routing_set ~index:(get_routing_no ta) ~move:(RoutingLeft me) routing
+         |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me) in
+    build_znode ~old_routing:new_routing ~me:routing_no x y (l, build_node_branch ~routing_no:me (la,ta) (lb,tb))
+  | B0, ZipNode {b0=l,Leaf {index=i; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} | (* moving to leaf *)
+    B1, ZipNode {b1=l,Leaf {index=i; meta={routing_no; _}}; b0=(la,ta); b2=(lb,tb); meta={routing; me}} |
+    B2, ZipNode {b2=l,Leaf {index=i; meta={routing_no; _}}; b0=(la,ta); b1=(lb,tb); meta={routing; me}}
+    -> let new_routing =
+         routing_set ~index:(get_routing_no ta) ~move:(RoutingLeft me) routing
+         |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me) in
+    build_zleaf ~old_routing:new_routing ~me:routing_no i (l, build_node_branch ~routing_no:me (la,ta) (lb,tb))
 
   | B1, ZipLeaf _ | B2, ZipLeaf _ | B2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move B1 on a leaf)."
@@ -120,12 +144,9 @@ let orient (z:t) d = {dir=d; zipper=z}
 (* ================ *)
 (*  ROUTING TABLES  *)
 (* ================ *)
-let routing_set (t:routing_table) i m = List.Assoc.add t i m
-let routing_get (t:routing_table) i = List.Assoc.find_exn t i
-
 let compute_routing =
   let rec compute_routing_tree table m =
-    let routing_add (t, i) m = routing_set t i m, i+1 in
+    let routing_add (t, i) m = routing_set ~index:i ~move:m t, i+1 in
     function
     | Node {left=_,l; right=_,r; _} ->
       let (_,me) = table in
@@ -150,11 +171,11 @@ let rec init_routing z =
     init_routing (move z B0)
   else
     let routing = compute_routing z in
-    set_meta z {routing=(routing_set routing 0 RoutingStay); me=0}
+    set_meta z {routing=(routing_set routing ~index:0 ~move:RoutingStay); me=0}
 
 let get_route table i =
   let rec aux table i =
-    match routing_get table i with
+    match routing_get table ~index:i with
     | (RoutingLeft j | RoutingRight j) as m -> m::(aux table j)
     | RoutingNeighbour _ as m -> [m]
     | RoutingStay as m -> [m]

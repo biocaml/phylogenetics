@@ -21,13 +21,13 @@ let get_id = function
   | Node {meta={id; _}; _} |
     Leaf {meta={id; _}; _} -> id
 
-let build_node f1 l f2 r =
-  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r); routing_no= -1}}
+let build_node ?(routing_no= -1) f1 l f2 r =
+  Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r); routing_no}}
 
-let build_node_branch (f1,l) (f2,r) = build_node f1 l f2 r
+let build_node_branch ?(routing_no= -1) (f1,l) (f2,r) = build_node ~routing_no f1 l f2 r
 
-let build_leaf i =
-  Leaf {index=i; meta={id=Hashtbl.hash i; routing_no= -1}}
+let build_leaf ?(routing_no= -1) i =
+  Leaf {index=i; meta={id=Hashtbl.hash i; routing_no}}
 
 let set_meta t meta = match t with
   | Node {left; right; _} -> Node {left; right; meta}
