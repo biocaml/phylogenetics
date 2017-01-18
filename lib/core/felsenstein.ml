@@ -16,7 +16,7 @@ struct
 
       (* TEMPORARY: create zipper to use internally;
          to be replaced by zipper as input*)
-      let zipper = Zipper.dzipper_of_tree tree in
+      let zipper = Zipper.of_tree_dir tree in
 
       let rec aux z = match Zipper.location z.Zipper.zipper with
         | Zipper.LocLeaf -> Zipper.get_index z.Zipper.zipper |> leaf

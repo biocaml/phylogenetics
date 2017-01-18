@@ -21,10 +21,8 @@ let get_id = function
   | Node {meta={id; _}; _} |
     Leaf {meta={id; _}; _} -> id
 
-let build_node ?(routing_no= -1) f1 l f2 r =
+let build_node ?(routing_no= -1) (f1,l) (f2,r) =
   Node {left= f1,l; right=f2,r; meta={id=Hashtbl.hash (get_id l + get_id r); routing_no}}
-
-let build_node_branch ?(routing_no= -1) (f1,l) (f2,r) = build_node ~routing_no f1 l f2 r
 
 let build_leaf ?(routing_no= -1) i =
   Leaf {index=i; meta={id=Hashtbl.hash i; routing_no}}
@@ -47,7 +45,7 @@ let get_routing_no t = (get_meta t).routing_no
 (* ======================= *)
 let of_newick str =
   let rec aux = function
-    | Newick.Node (l::r::[],_) -> build_node_branch (branch l) (branch r)
+    | Newick.Node (l::r::[],_) -> build_node (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
   and branch = function
@@ -100,7 +98,7 @@ let of_preorder str =
 
   and right f1 f2 tree1 list =
     match fulltree list with
-    | Ok (tree2, rest) -> Ok (build_node f1 tree1 f2 tree2, rest)
+    | Ok (tree2, rest) -> Ok (build_node (f1,tree1) (f2,tree2), rest)
     | Error m -> Error (sprintf "Right returned unexpected result: <%s>" m)
 
   in
@@ -112,7 +110,7 @@ let make_random n =
   let rec aux = function
     | [t] -> t
     | _::_ as l->
-      pick_two l ~f:(fun a b -> build_node_branch (rand_branch a) (rand_branch b))
+      pick_two l ~f:(fun a b -> build_node (rand_branch a) (rand_branch b))
       |> aux
     | [] -> failwith "tree list should not be empty"
   and pick_two l ~f = match List.permute l with

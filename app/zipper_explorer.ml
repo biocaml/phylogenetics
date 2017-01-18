@@ -24,6 +24,6 @@ let zipper_explorer z =
   in display z
 
 let _ = Biocaml_phylogeny_core.TopoTree.make_random 20
-        |> zipper_of_tree
+        |> of_tree
         |> init_routing
         |> zipper_explorer
