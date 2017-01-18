@@ -253,18 +253,18 @@ let string_of_branch z d =
   match branch z d with l,t ->
     TopoTree.pp Format.str_formatter t ;
     Format.flush_str_formatter () |> indent "|    " |>
-    sprintf "<<%s (%.3f)>>\n|\n%s|" (string_of_dir d) l
+    sprintf "* Branch %s length=%.3f [%d]\n|\n%s|" (string_of_dir d) l (TopoTree.get_meta t).id
 
 let pp fmt = function
-  | ZipLeaf _ as z ->
-    Format.fprintf fmt "\n[[[[ ZipLeaf ]]]]\n%s"
+  | ZipLeaf {index; meta={me;_}; _} as z ->
+    Format.fprintf fmt "\n<ZipLeaf %s, routing_no=%d>\n%s" index me
       (string_of_branch z B0 |> indent ". ")
-  | ZipBranch _ as z ->
-    Format.fprintf fmt "\n[[[[ ZipBranch ]]]]\n%s%s"
+  | ZipBranch {meta={me; _}; _} as z ->
+    Format.fprintf fmt "\n<ZipBranch routing_no=%d>\n%s%s" me
       (string_of_branch z B0 |> indent ". ")
       (string_of_branch z B1 |> indent ". ")
-  | ZipNode _ as z ->
-    Format.fprintf fmt "\n[[[[ ZipNode ]]]]\n%s%s%s"
+  | ZipNode {meta={me; _}; _} as z ->
+    Format.fprintf fmt "\n<ZipNode routing_no=%d>\n%s%s%s" me
       (string_of_branch z B0 |> indent ". ")
       (string_of_branch z B1 |> indent ". ")
       (string_of_branch z B2 |> indent ". ")
