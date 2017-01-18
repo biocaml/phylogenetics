@@ -104,11 +104,11 @@ let move z i = match i, z with
     -> build_zleaf ~old_routing:routing ~me:routing_no j (l, build_leaf ~routing_no:me i) (* moving to leaf (degenerate case)*)
 
   (* case 2: zipper is in the middle of a branch *)
-  | B0, ZipBranch {b0=l0, Node {left=x; right=y; meta={routing_no; _}}; b1=l1, z; meta={routing; me}} | (* moving to internal node *)
-    B1, ZipBranch {b1=l0, Node {left=x; right=y; meta={routing_no; _}}; b0=l1, z; meta={routing; me}}
+  | B0, ZipBranch {b0=l0, Node {left=x; right=y; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} | (* moving to internal node *)
+    B1, ZipBranch {b1=l0, Node {left=x; right=y; meta={routing_no; _}}; b0=l1, z; meta={routing; _}}
     -> build_znode ~old_routing:routing ~me:routing_no x y (l0+.l1,z)
-  | B0, ZipBranch {b0=l0, Leaf {index=i; meta={routing_no; _}}; b1=l1, z; meta={routing; me}} | (* moving to leaf *)
-    B1, ZipBranch {b1=l0, Leaf {index=i; meta={routing_no; _}}; b0=l1, z; meta={routing; me}}
+  | B0, ZipBranch {b0=l0, Leaf {index=i; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} | (* moving to leaf *)
+    B1, ZipBranch {b1=l0, Leaf {index=i; meta={routing_no; _}}; b0=l1, z; meta={routing; _}}
     -> build_zleaf ~old_routing:routing ~me:routing_no i (l1+.l0, z)
 
   (* case 3: zipper is at internal node *)
