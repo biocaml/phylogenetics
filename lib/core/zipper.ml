@@ -97,36 +97,43 @@ let slide z d l = match d, z with
   | _ -> failwith "Cannot slide: length too long."
 
 let move z i = match i, z with
-  (* case 1: zipper is at a leaf *)
+  (* case 1: moving from leaf to node *)
   | Dir0, ZipLeaf {index=i; b0=l,Node {left=b0; right=b1; meta={routing_no; _}}; meta={routing; me}}
-    -> build_node ~old_routing:routing ~me:routing_no b0 b1 (l,TopoTree.build_leaf ~routing_no:me i) (* moving to internal node *)
-  | Dir0, ZipLeaf {index=i; b0=l,Leaf {index=j; meta={routing_no; _}}; meta={routing; me}}
-    -> build_leaf ~old_routing:routing ~me:routing_no j (l, TopoTree.build_leaf ~routing_no:me i) (* moving to leaf (degenerate case)*)
+    -> build_node ~old_routing:routing ~me:routing_no b0 b1 (l,TopoTree.build_leaf ~routing_no:me i)
 
-  (* case 2: zipper is in the middle of a branch *)
-  | Dir0, ZipBranch {b0=l0, Node {left=x; right=y; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} | (* moving to internal node *)
+  (* case 2: moving from leaf to leaf (degenerate case) *)
+  | Dir0, ZipLeaf {index=i; b0=l,Leaf {index=j; meta={routing_no; _}}; meta={routing; me}}
+    -> build_leaf ~old_routing:routing ~me:routing_no j (l, TopoTree.build_leaf ~routing_no:me i)
+
+  (* case 3 moving from branch to node *)
+  | Dir0, ZipBranch {b0=l0, Node {left=x; right=y; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} |
     Dir1, ZipBranch {b1=l0, Node {left=x; right=y; meta={routing_no; _}}; b0=l1, z; meta={routing; _}}
     -> build_node ~old_routing:routing ~me:routing_no x y (l0+.l1,z)
-  | Dir0, ZipBranch {b0=l0, Leaf {index=i; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} | (* moving to leaf *)
+
+  (* case 4: moving from branch to leaf *)
+  | Dir0, ZipBranch {b0=l0, Leaf {index=i; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} |
     Dir1, ZipBranch {b1=l0, Leaf {index=i; meta={routing_no; _}}; b0=l1, z; meta={routing; _}}
     -> build_leaf ~old_routing:routing ~me:routing_no i (l1+.l0, z)
 
-  (* case 3: zipper is at internal node *)
-  | Dir0, ZipNode {b0=l,Node {left=x; right=y; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} | (* moving to internal node*)
+  (* case 5: moving from node to node *)
+  | Dir0, ZipNode {b0=l,Node {left=x; right=y; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} |
     Dir1, ZipNode {b1=l,Node {left=x; right=y; meta={routing_no; _}}; b0=(la,ta); b2=(lb,tb); meta={routing; me}} |
     Dir2, ZipNode {b2=l,Node {left=x; right=y; meta={routing_no; _}}; b0=(la,ta); b1=(lb,tb); meta={routing; me}}
-    -> let new_routing =
+    -> let new_routing = (* changing the routing of old neighbours to old position; relies on order on directions (left<right) *)
          routing_set ~index:(get_routing_no ta) ~move:(RoutingLeft me) routing
-         |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me) in
-    build_node ~old_routing:new_routing ~me:routing_no x y (l, TopoTree.build_node ~routing_no:me (la,ta) (lb,tb))
-  | Dir0, ZipNode {b0=l,Leaf {index=i; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} | (* moving to leaf *)
+         |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me)
+    in build_node ~old_routing:new_routing ~me:routing_no x y (l, TopoTree.build_node ~routing_no:me (la,ta) (lb,tb))
+
+  (* case 6: move from node to leaf *)
+  | Dir0, ZipNode {b0=l,Leaf {index=i; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} |
     Dir1, ZipNode {b1=l,Leaf {index=i; meta={routing_no; _}}; b0=(la,ta); b2=(lb,tb); meta={routing; me}} |
     Dir2, ZipNode {b2=l,Leaf {index=i; meta={routing_no; _}}; b0=(la,ta); b1=(lb,tb); meta={routing; me}}
-    -> let new_routing =
+    -> let new_routing = (* changing the routing of old neighbours to old position; relies on order on directions (left<right) *)
          routing_set ~index:(get_routing_no ta) ~move:(RoutingLeft me) routing
-         |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me) in
-    build_leaf ~old_routing:new_routing ~me:routing_no i (l, TopoTree.build_node ~routing_no:me (la,ta) (lb,tb))
+         |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me)
+    in build_leaf ~old_routing:new_routing ~me:routing_no i (l, TopoTree.build_node ~routing_no:me (la,ta) (lb,tb))
 
+  (* case 7: incorrect direction  given the type of zipper *)
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
 
