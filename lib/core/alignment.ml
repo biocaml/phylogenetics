@@ -1,5 +1,5 @@
 open Sigs
-open Biocaml_ez
+open Biocaml_ez (* for fasta parsing *)
 open Core_kernel.Std
 
 
@@ -19,27 +19,28 @@ module Make (S:SEQUENCE) = struct
 
   let of_string_list l =
     let align = String.Table.create ~size:(List.length l) () in
+    (* arbitrarily indexes sequences by string Ti where i is an integer;
+       this mimics the format used by bppseqgen *)
     List.iteri ~f:(fun i s -> Hashtbl.add_exn ~key:(Printf.sprintf "T%d" i) ~data:(S.of_string s) align) l ;
     align
 
   let of_fasta filename =
-    let align = String.Table.create ~size:10 () in (* placeholder size *)
-    Fasta.with_file filename ~f:(fun _ stream ->
-        CFStream.Stream.iter ~f:(fun item ->
-            let data = S.of_string item.Biocaml_ez.Fasta.sequence in
-            Hashtbl.add_exn ~key:item.Biocaml_ez.Fasta.description ~data:data align) stream
+    let align = String.Table.create ~size:10 () in (* placeholder size TODO *)
+    Fasta.with_file filename ~f:(fun _ stream -> (* using biocaml_ez to get a stream of fasta sequences *)
+        CFStream.Stream.iter ~f:(fun item -> (* iterating on said stream *)
+            (*  stream element is a record {sequence:string; description:string} *)
+            let data = S.of_string item.Fasta.sequence in
+            Hashtbl.add_exn ~key:item.Fasta.description ~data:data align) stream
       ) ;
     align
 
-  (* give length of sequences in alignment ;
-     fails if empty or length mismatch between sequences *)
-  let length x =
+  let length x = (* this is the length of the sequences, not the nb of sequences! *)
     if Hashtbl.is_empty x then invalid_arg "empty alignment"
     else Hashtbl.fold x ~init:0 ~f:(fun ~key:_ ~data acc ->
         let l = S.length data in
         if l=0 then invalid_arg "alignment with empty sequence"
         else if acc<>0 && acc<>l then invalid_arg "sequence length mismatch"
-        else l
+        else l (* returns only if all lengths were equal *)
       )
 
   let nb_seq x = Hashtbl.length x
