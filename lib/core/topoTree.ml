@@ -178,7 +178,7 @@ type pp_aux = {
   stem:int
 }
 
-let pp2 tree =
+let to_pretty_string tree =
   let indent sep str =
     String.rstrip str
     |> String.split_lines
@@ -188,52 +188,35 @@ let pp2 tree =
     |> String.concat ~sep:"\n"
 
   in let rec aux = function
-      | Leaf {index=i; _} -> {
-          text = sprintf "<%s>" i; size=1; stem=0
-        }
+      | Leaf {index=i; _} -> {text = sprintf "<%s>" i; size=1; stem=0}
       | Node {left=l1,l; right=l2,r; _} ->
         let aux1, aux2 = aux l, aux r in
         let l1_s, l2_s = sprintf "%.3f" l1, sprintf "%.3f" l2 in
         let l1_l, l2_l = String.length l1_s, String.length l2_s in
         let maxfl = max l1_l l2_l in
         let total, stem = maxfl+5, (aux1.stem + aux1.size + aux2.stem)/2 in
-        let stemup = String.init total ~f:(function
-            | 0 -> '/'
-            | x when x>2 && x<(3+l1_l) -> l1_s.[x-3]
+        let stem_string l_l l_s symbol = String.init total ~f:(function
+            | 0 -> symbol
+            | x when x>2 && x<(3+l_l) -> l_s.[x-3]
             | _ -> '-'
           ) in
-        let stemdown = String.init total ~f:(function
-            | 0 -> '\\'
-            | x when x>2 && x<(3+l2_l) -> l2_s.[x-3]
-            | _ -> '-'
-          ) in
-        let indentup i =
-          if i<aux1.stem then String.make total ' '
-          else if i=aux1.stem then stemup
+        let stemup, stemdown = stem_string l1_l l1_s '/', stem_string l2_l l2_s '\\' in
+        let indent_string compare bound stem i =
+          if compare i bound then String.make total ' '
+          else if i = bound then stem
           else String.init total ~f:(function 0->'|'|_->' ') in
-        let indentdown i =
-          if i>aux2.stem then String.make total ' '
-          else if i=aux2.stem then stemdown
-          else String.init total ~f:(function 0->'|'|_->' ')
-        in
-
+        let indent_up, indent_down =
+          indent_string (<) aux1.stem stemup, indent_string (>) aux2.stem stemdown in
         {
           text = String.concat ~sep:"\n" [
-              indent indentup aux1.text ;
-              indent indentdown aux2.text
+              indent indent_up aux1.text ;
+              indent indent_down aux2.text
             ] ;
           size = aux1.size + aux2.size ;
           stem
         }
   in (aux tree).text
 
-let pp fmt t = Format.fprintf fmt "%s\n" (pp2 t)
+let pp fmt t = Format.fprintf fmt "%s\n" (to_pretty_string t)
+
 let print = pp Format.std_formatter
-
-(* ========= *)
-(*   TESTS   *)
-(* ========= *)
-(* let mytree = of_preorder "0.3;0.4;0.1;0.2;0;1;0.5;0.6;0.7;0.8;2;3;0.9;0.11;4;5" *)
-
-(* let test () = *)
-(*   pp2 mytree *)
