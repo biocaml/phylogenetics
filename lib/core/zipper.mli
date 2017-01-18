@@ -1,18 +1,21 @@
-type branch = float * TopoTree.t
-
 type t
 
+type branch = float * TopoTree.t
+
 type direction =
-  | 	Dir0
-  | 	Dir1
-  | 	Dir2
+  | Dir0
+  | Dir1
+  | Dir2
 
 type location_type =
-  | 	LocLeaf
-  | 	LocBranch
-  | 	LocNode
+  | LocLeaf
+  | LocBranch
+  | LocNode
 
-type oriented_zipper = {dir:direction; zipper:t}
+type oriented_zipper = {
+  dir:direction;
+  zipper:t
+}
 
 val string_of_dir : direction -> string
 

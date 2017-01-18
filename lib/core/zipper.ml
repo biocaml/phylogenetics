@@ -71,10 +71,10 @@ let build_node ?(old_routing=[]) ?(me=0) (l0,t0) (l1,t1) (l2,t2) =
     |> routing_set ~index:me ~move:RoutingStay (* point new pos to itself *)
   in ZipNode {b0=(l0,t0); b1=(l1,t1); b2=(l2,t2); meta={routing; me}}
 
-let set_meta z m = match z with
-  | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta=m}
-  | ZipBranch {b0; b1; _} -> ZipBranch {b0; b1; meta=m}
-  | ZipNode {b0; b1; b2; _} -> ZipNode {b0; b1; b2; meta=m}
+(* let set_meta z m = match z with *)
+(*   | ZipLeaf {index; b0; _} -> ZipLeaf {index; b0; meta=m} *)
+(*   | ZipBranch {b0; b1; _} -> ZipBranch {b0; b1; meta=m} *)
+(*   | ZipNode {b0; b1; b2; _} -> ZipNode {b0; b1; b2; meta=m} *)
 
 let get_meta = function
   | ZipLeaf {meta; _} | ZipBranch {meta; _} | ZipNode {meta; _} -> meta
