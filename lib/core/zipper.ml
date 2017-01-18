@@ -144,34 +144,31 @@ let orient (z:t) d = {dir=d; zipper=z}
 (* ================ *)
 (*  ROUTING TABLES  *)
 (* ================ *)
-let compute_routing =
+let rec init_routing =
   let rec compute_routing_tree table m =
     let routing_add (t, i) m = routing_set ~index:i ~move:m t, i+1 in
     function
-    | Node {left=_,l; right=_,r; _} ->
+    | Node {left=fl,l; right=fr,r; meta={id; _}} ->
       let (_,me) = table in
       let table2 = routing_add table m in (* add yourself to the table *)
-      let table3 = compute_routing_tree table2 (RoutingLeft me) l in
-      compute_routing_tree table3 (RoutingRight me) r
-    | Leaf _ -> (* add branch and leaf to tables *)
-      routing_add table m
+      let table3, new_l = compute_routing_tree table2 (RoutingLeft me) l in
+      let table4, new_r = compute_routing_tree table3 (RoutingRight me) r in
+      table4, Node {left=fl,new_l; right=fr,new_r; meta={id; routing_no=me}}
+    | Leaf {index; meta={id; _}} -> (* add leaf to table *)
+      let (_,me) = table in
+      routing_add table m,
+      Leaf {index; meta={id; routing_no=me}}
   in
   function
-  | ZipLeaf {b0=_,t0; _} ->
-    let (table,_) = compute_routing_tree ([],1) (RoutingNeighbour B0) t0 in table
-  | ZipBranch _ -> failwith "Routing from branch unsupported." (* TODO should it be supported again now that there is only node routing?*)
-  | ZipNode {b0=_,t0; b1=_,t1; b2=_,t2; _} ->
-    let table = compute_routing_tree ([],1) (RoutingNeighbour B0) t0 in
-    let table2 = compute_routing_tree table (RoutingNeighbour B1) t1 in
-    let (table3,_) = compute_routing_tree table2 (RoutingNeighbour B2) t2 in
-    table3
-
-let rec init_routing z =
-  if location z = LocBranch then
-    init_routing (move z B0)
-  else
-    let routing = compute_routing z in
-    set_meta z {routing=(routing_set routing ~index:0 ~move:RoutingStay); me=0}
+  | ZipLeaf {index; b0=l0,t0; _} ->
+    let (table,_), new_tree = compute_routing_tree ([],1) (RoutingNeighbour B0) t0 in
+    ZipLeaf {index; b0=l0,new_tree; meta={routing=(routing_set table ~index:0 ~move:RoutingStay); me=0}}
+  | ZipBranch _ as z-> init_routing (move z B0)
+  | ZipNode {b0=l0,t0; b1=l1,t1; b2=l2,t2; _} ->
+    let table, new_t0 = compute_routing_tree ([],1) (RoutingNeighbour B0) t0 in
+    let table2, new_t1 = compute_routing_tree table (RoutingNeighbour B1) t1 in
+    let (table3,_), new_t2 = compute_routing_tree table2 (RoutingNeighbour B2) t2 in
+    ZipNode {b0=l0,new_t0; b1=l1,new_t1; b2=l2,new_t2; meta={routing=(routing_set table3 ~index:0 ~move:RoutingStay); me=0}}
 
 let get_route table i =
   let rec aux table i =
@@ -191,7 +188,7 @@ let goto z i =
   match get_route ((get_meta z).routing) i with
   | (RoutingNeighbour d)::route -> (follow (orient (move z d) B2) route).zipper
   | [RoutingStay] -> z
-  | _ -> failwith "Empty or malformed route."
+  | r -> failwith (sprintf "Empty or malformed route (len=%d)." (List.length r))
 
 
 (* =================== *)
