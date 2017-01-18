@@ -32,7 +32,7 @@ let core_lib = make_lib "core"
     ~mli_files:(`Add ["newick_parser.mli"])
 
 let test_lib = make_lib "test"
-    ~findlib_deps:["alcotest"]
+    ~findlib_deps:["alcotest" ; "core"]
     ~internal_deps:[core_lib]
 
 let test_app = make_app "test_app"
