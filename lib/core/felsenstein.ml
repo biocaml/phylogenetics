@@ -5,10 +5,6 @@ open LATools
 module Make (E:Sigs.EVOL_MODEL) =
 struct
   open E
-  type param = E.t
-  type sequence = E.Seq.t
-  type align = E.Align.t
-  type base = E.Base.t
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
