@@ -14,6 +14,7 @@ module Make: functor (E:EVOL_MODEL) -> sig
   val felsenstein_noshift : param -> TopoTree.t -> align -> float
 
   val felsenstein : param -> TopoTree.t -> align -> float
+
 end with type param = E.t
      and type sequence = E.Seq.t
      and type align = E.Align.t
