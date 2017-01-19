@@ -31,11 +31,11 @@ let test_felsenstein
   let module SG = Seqgen.Make (M) in
   let param = M.of_string param in
   let tree = TopoTree.make_random treesize in
-  let align =  SG.seqgen_string_list param tree seqsize |> F.Align.of_string_list in
+  let align =  SG.seqgen_string_list param tree seqsize |> M.Align.of_string_list in
   let my_result = F.felsenstein param tree align in
   let bpp_result = begin
     TopoTree.to_newick_file tree "tmp.tree" ; (* TODO unique file name *)
-    F.Align.to_file align "tmp.seq" ;
+    M.Align.to_file align "tmp.seq" ;
     try
       Bpp_interface.felsenstein_bpp ~model:(Printf.sprintf "\"%s\"" (M.to_string param)) ~tree:("tmp.tree") "tmp.seq"
     with

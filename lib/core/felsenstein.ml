@@ -5,7 +5,11 @@ open LATools
 
 module Make (E:EVOL_MODEL) =
 struct
-  include E
+  open E
+  type param = E.t
+  type sequence = E.Seq.t
+  type align = E.Align.t
+  type base = E.Base.t
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
@@ -13,19 +17,9 @@ struct
   let felsenstein_single ?(shift=fun _ _ v->v,0.0) param =
     let spec_eMt = eMt_mat param in
     fun ~site tree seq ->
-
-      (* TEMPORARY: create zipper to use internally;
-         to be replaced by zipper as input*)
-      let zipper = Zipper.of_tree_dir tree in
-
-      let rec aux z = match Zipper.location z.Zipper.zipper with
-        | Zipper.LocLeaf -> Zipper.get_index z.Zipper.zipper |> leaf
-        | _ -> let f1,f2,l,r =
-                 Zipper.length_left z,
-                 Zipper.length_right z,
-                 Zipper.move_left z,
-                 Zipper.move_right z
-          in node f1 l f2 r
+      let rec aux = function
+        | Leaf {index; _} -> leaf index
+        | Node {left=l1,t1; right=l2,t2; _} -> node l1 t1 l2 t2
 
       and leaf i = Align.get_base seq ~seq:i ~pos:site
                    |> known_vector |> shift 0.0 0.0
@@ -36,7 +30,7 @@ struct
           (mat_vec_mul (spec_eMt f2) v_r)
         |> shift s_l s_r
 
-      in let res_vec, res_shift = aux zipper in
+      in let res_vec, res_shift = aux tree in
       res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
 
 
