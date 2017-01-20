@@ -1,7 +1,5 @@
-open Printf
 open Lacaml.D
 
-(* Linear algebra functions *)
 type mat = Lacaml_float64.mat
 type vec = Lacaml_float64.vec
 
@@ -97,5 +95,3 @@ let stat_dist m =
     let vec = Mat.col c 1 in
     (* normalize so the sum of elements equals 1 *)
     scal_vec_mul vec (1./.(sum_vec_elements vec))
-
-
