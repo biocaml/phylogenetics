@@ -37,6 +37,7 @@ let sum a b = Mat.add a b
 let rec fact n = if n=0 || n=1 then 1 else n * (fact (n-1))
 
 let exp a =
+  (* matrix exponentiation using the series *)
   let rec aux i acc =
     if i<15 then
       let factor = 1. /. (float_of_int (fact i)) in
@@ -77,16 +78,15 @@ let get_vec v i = v.{i}
 let get_mat m i j = m.{i,j}
 
 let inverse m =
-  let tmp = lacpy m in
-  let tmp_vec = getrf tmp in
-  getri ~ipiv:tmp_vec tmp ;
+  let tmp = lacpy m in (* copy matrix to avoid erasing original *)
+  let tmp_vec = getrf tmp in (* getri requires a previous call to getrf (LU factorization) *)
+  getri ~ipiv:tmp_vec tmp ; (* inversion *)
   tmp
 
 let diagonalize m =
-  let _ = Printf.printf "CALL TO DIAG\n" in
-  let tmp = lacpy m in
-  match syevr ~vectors:true tmp with
-  | (_,v,c,_) -> c, v, Mat.transpose_copy c
+  let tmp = lacpy m in (* copy matrix to avoid erasing original *)
+  match syevr ~vectors:true tmp with (* syevr = find eigenvalues and eigenvectors *)
+  | (_,v,c,_) -> c, v, Mat.transpose_copy c (* extract only the relevant data *)
 
 let stat_dist m =
   (* copy matrix to avoid erasing original *)
