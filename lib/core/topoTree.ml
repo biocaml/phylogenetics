@@ -215,6 +215,6 @@ let to_pretty_string tree =
         }
   in (aux tree).text
 
-let pp fmt t = Format.fprintf fmt "%s\n" (to_pretty_string t)
+let pp = Utils.pp to_pretty_string
 
-let print = pp Format.std_formatter
+let print = Utils.print ~options:[Utils.dim "/\\|-<>"] to_pretty_string

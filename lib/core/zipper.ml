@@ -251,7 +251,7 @@ let branch z d = match d, z with
 (* ================= *)
 (*  PRETTY PRINTING  *)
 (* ================= *)
-let pp fmt =
+let to_pretty_string =
   let indent sep str =
     String.rstrip str |>
     String.concat_map ~f:(fun x -> if x='\n' then sprintf "\n%s" sep else String.init 1 ~f:(fun _ ->x))
@@ -265,16 +265,18 @@ let pp fmt =
 
   in function
     | ZipLeaf {index; meta={me;_}; _} as z ->
-      Format.fprintf fmt "\n<ZipLeaf %s, routing_no=%d>\n%s" index me
+      sprintf "\n<ZipLeaf %s, routing_no=%d>\n%s" index me
         (string_of_branch z Dir0 |> indent ". ")
     | ZipBranch {meta={me; _}; _} as z ->
-      Format.fprintf fmt "\n<ZipBranch routing_no=%d>\n%s%s" me
+      sprintf "\n<ZipBranch routing_no=%d>\n%s%s" me
         (string_of_branch z Dir0 |> indent ". ")
         (string_of_branch z Dir1 |> indent ". ")
     | ZipNode {meta={me; _}; _} as z ->
-      Format.fprintf fmt "\n<ZipNode routing_no=%d>\n%s%s%s" me
+      sprintf "\n<ZipNode routing_no=%d>\n%s%s%s" me
         (string_of_branch z Dir0 |> indent ". ")
         (string_of_branch z Dir1 |> indent ". ")
         (string_of_branch z Dir2 |> indent ". ")
 
-let print = pp Format.std_formatter
+let pp = Utils.pp to_pretty_string
+
+let print = Utils.print ~options:[Utils.dim "/\\|-<>"] to_pretty_string
