@@ -27,7 +27,7 @@ let make_lib ?findlib_deps ?internal_deps ?ml_files ?mli_files lib_name =
 let make_app = Project.app ~thread
 
 let core_lib = make_lib "core"
-    ~findlib_deps:["lacaml" ; "biocaml.ez" ; "core_kernel" ; "gnuplot"]
+    ~findlib_deps:["lacaml" ; "biocaml.ez" ; "core_kernel" ; "gnuplot" ; "pareto"]
     ~ml_files:(`Add ["newick_lexer.ml" ; "newick_parser.ml"])
     ~mli_files:(`Add ["newick_parser.mli"])
 

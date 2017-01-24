@@ -39,8 +39,8 @@ let test amount =
     (List.length prior_trees) ;
   RS_DNA.get_branch 5 prior_trees |> List.map ~f:string_of_float |> Out_channel.write_lines "tmp_prior.txt" ;
   RS_DNA.get_branch 5 post_trees |> List.map ~f:string_of_float |> Out_channel.write_lines "tmp_post.txt" ;
-  StatTools.plot_distribs [
-    StatTools.distrib_of_file "tmp_prior.txt" ;
-    StatTools.distrib_of_file "tmp_post.txt"
+  StatTools.plot_sample_lists [
+    StatTools.sample_list_of_file "tmp_prior.txt" ;
+    StatTools.sample_list_of_file "tmp_post.txt"
   ] ; StatTools.pause ()
 

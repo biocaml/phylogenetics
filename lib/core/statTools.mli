@@ -8,18 +8,18 @@ val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> TopoT
 
 (** {6 Distributions} *)
 
-type distrib
+type sample_list
 
-val distrib_of_file: string -> distrib
+val sample_list_of_file: string -> sample_list
 
-val distrib_extrema: distrib -> float * float
+val sample_list_extrema: sample_list -> float * float
 
 (** {6 Plots} *)
 
-val bins: ?nb:int -> distrib -> (float * float) list
+val bins: ?nb:int -> sample_list -> (float * float) list
 
-val plot_distrib: ?nb:int -> distrib -> unit
+val plot_sample_list: ?nb:int -> sample_list -> unit
 
-val plot_distribs: ?nb:int -> distrib list -> unit
+val plot_sample_lists: ?nb:int -> sample_list list -> unit
 
 val pause: unit -> unit

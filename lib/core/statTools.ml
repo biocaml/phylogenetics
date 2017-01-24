@@ -1,27 +1,34 @@
 open Core_kernel.Std
 open Gnuplot
+open Pareto
 
-let sample_float_uniform ?(min=0.0) max () = Random.float (max -. min) +. min
+type sample_list = float list
+
+let sample_float_uniform ?(min=0.0) max () =
+  let my_dist = Distributions.Uniform.create ~lower:min ~upper:max in
+  (Distributions.Uniform.sample ~size:1 my_dist).(0)
 
 let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree () =
   TopoTree.get_branch_lengths tree
   |> List.mapi ~f:(fun i l -> if branchs i then sampler () else l)
   |> TopoTree.set_branch_lengths tree
 
-type distrib = float list
-
-let distrib_of_file path =
+let sample_list_of_file path =
   In_channel.read_lines path
   |> List.map ~f:(float_of_string)
 
-let distrib_extrema d =
+let sample_list_extrema d =
   match
     List.min_elt ~cmp:Float.compare d, List.max_elt ~cmp:Float.compare d
   with
     (Some mi, Some ma) -> (mi, ma) | _ -> failwith "empty input distribution"
 
+
+(* ========== *)
+(*  PLOTTING  *)
+(* ========== *)
 let bins ?(nb=20) d =
-  let dmin, dmax = distrib_extrema d in
+  let dmin, dmax = sample_list_extrema d in
   let bin_size = (dmax -. dmin)/.(float_of_int nb) in
   let count i = List.count d ~f:(
       fun x ->
@@ -34,12 +41,12 @@ let bins ?(nb=20) d =
             /. (List.length d |> float_of_int |> ( *. ) (dmax -. dmin))
   )
 
-let plot_distrib ?(nb=20) d =
+let plot_sample_list ?(nb=20) d =
   let gp = Gp.create () in
   Series.lines_xy ~title:"Plot a line" ~color:`Blue (bins ~nb d)
   |> Gp.plot gp
 
-let plot_distribs ?(nb=20) l =
+let plot_sample_lists ?(nb=20) l =
   let gp = Gp.create () in
   List.mapi l ~f:(
     fun i x -> Series.lines_xy
@@ -49,13 +56,3 @@ let plot_distribs ?(nb=20) l =
 
 let pause () =
   In_channel.input_line In_channel.stdin |> ignore
-
-(* let test () = *)
-(*   let data = distrib_of_file "tmp_post.txt" in *)
-(*   plot_distrib data *)
-
-(* let test2 () = *)
-(*   plot_distribs [ *)
-(*     distrib_of_file "tmp_prior.txt" ; *)
-(*     distrib_of_file "tmp_post.txt" *)
-(*   ] *)
