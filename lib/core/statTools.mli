@@ -8,7 +8,7 @@ val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> TopoT
 
 (** {6 Distributions} *)
 
-type sample_list
+type sample_list = float list
 
 val sample_list_of_file: string -> sample_list
 
