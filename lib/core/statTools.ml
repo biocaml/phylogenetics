@@ -37,7 +37,7 @@ let bins ?(nb=20) d =
         (x < ((float_of_int i)+.1.)*.bin_size)
     ) in
   List.init nb ~f:(
-    fun x-> (float_of_int x +. 0.5) *. bin_size,
+    fun x -> (float_of_int x +. 0.5) *. bin_size,
             (nb * count x |> float_of_int)
             /. (List.length d |> float_of_int |> ( *. ) (dmax -. dmin))
   )
