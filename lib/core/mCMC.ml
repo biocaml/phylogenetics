@@ -29,11 +29,16 @@ let my_likelihood v = Pervasives.exp (MyMCMC.felsenstein 2.0 v.tree v.align) *.
                        if newlength>0. && newlength<5. then 1.0 else 0.0)
 
 let my_align = MyMCMC.Align.of_string_list ["A";"A";"A";"T"]
-let my_basetree = TopoTree.of_preorder "0.1;0.1;0.1;0.1;0;1;0.8;0.1;2;3"
+let my_basetree = TopoTree.of_preorder "0.1;0.1;0.1;0.1;0;1;3.0;0.1;2;3"
 let my_theta0 = {align=my_align; tree=my_basetree}
 
 let my_step v =
-  let lengths = TopoTree.get_branch_lengths v.tree |> List.mapi ~f:(fun i x -> if i=5 then x -. 0.125 +. (Random.float 0.25) else x) in
+  let lengths = TopoTree.get_branch_lengths v.tree |> List.mapi ~f:(
+      let range = 0.1 in
+      fun i x -> if i=5
+        then x -. (range/.2.) +. (Random.float range)
+        else x
+    ) in
   let new_tree = TopoTree.set_branch_lengths v.tree lengths in
   {align=v.align; tree=new_tree}, 1.
 
