@@ -50,20 +50,20 @@ let right z = match location z.zipper, z.dir with
 let routing_set (t:routing_table) ~index:i ~move:m = List.Assoc.add t i m
 let routing_get (t:routing_table) ~index:i = List.Assoc.find_exn t i
 
-let build_leaf ?(old_routing=[]) ?(me=0) index (l,t0) =
+let build_leaf ?(old_routing=[]) ?(me= -1) index (l,t0) =
   let routing = (* point only neighbour to current pos *)
     routing_set ~index:(get_routing_no t0) ~move:(RoutingNeighbour Dir0) old_routing
     |> routing_set ~index:me ~move:RoutingStay (* point new pos to itself *)
   in ZipLeaf {index; b0=(l,t0); meta={routing; me}}
 
-let build_branch ?(old_routing=[]) ?(me=0) (l0,t0) (l1,t1) =
+let build_branch ?(old_routing=[]) (l0,t0) (l1,t1) =
   let routing = (* point neighbours to current pos *)
     routing_set ~index:(get_routing_no t0) ~move:(RoutingNeighbour Dir0) old_routing
     |> routing_set ~index:(get_routing_no t1) ~move:(RoutingNeighbour Dir1)
-    |> routing_set ~index:me ~move:RoutingStay (* point new pos to itself *)
-  in ZipBranch {b0=(l0,t0); b1=(l1,t1); meta={routing; me}}
+    |> routing_set ~index:0 ~move:RoutingStay (* point new pos to itself *)
+  in ZipBranch {b0=(l0,t0); b1=(l1,t1); meta={routing; me=0}} (* branch index is always 0 *)
 
-let build_node ?(old_routing=[]) ?(me=0) (l0,t0) (l1,t1) (l2,t2) =
+let build_node ?(old_routing=[]) ?(me= -1) (l0,t0) (l1,t1) (l2,t2) =
   let routing = (* point neighbours to current pos *)
     routing_set ~index:(get_routing_no t0) ~move:(RoutingNeighbour Dir0) old_routing
     |> routing_set ~index:(get_routing_no t1) ~move:(RoutingNeighbour Dir1)
@@ -84,14 +84,16 @@ let get_meta = function
 (*  MOVEMENT  *)
 (* ========== *)
 let slide z d l = match d, z with
-  | Dir0, ZipLeaf {index=i; b0=l2, t; _} when l<l2
-    -> build_branch (l2-.l, t) (l, TopoTree.build_leaf i)
-  | Dir0, ZipBranch {b0=l1,t1; b1=l2,t2; _} when l<l1 -> build_branch (l1-.l,t1) (l2+.l,t2)
-  | Dir1, ZipBranch {b0=l1,t1; b1=l2,t2; _} when l<l2 -> build_branch (l1+.l,t1) (l2-.l,t2)
-  | (Dir0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2; _} |
-     Dir1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2; _} |
-     Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; _}) when l<lf
-    -> build_branch (lf-.l,tf) (l,TopoTree.build_node bb1 bb2)
+  | Dir0, ZipLeaf {index=i; b0=l2, t; meta={routing; _}} when l<l2
+    -> build_branch ~old_routing:routing (l2-.l, t) (l, TopoTree.build_leaf i)
+  | Dir0, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l1
+    -> build_branch ~old_routing:routing (l1-.l,t1) (l2+.l,t2)
+  | Dir1, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l2
+    -> build_branch ~old_routing:routing (l1+.l,t1) (l2-.l,t2)
+  | (Dir0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2; meta={routing; _}} |
+     Dir1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2; meta={routing; _}} |
+     Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; meta={routing; _}}) when l<lf
+    -> build_branch ~old_routing:routing (lf-.l,tf) (l,TopoTree.build_node bb1 bb2)
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
   | _ -> failwith "Cannot slide: length too long."
@@ -167,15 +169,15 @@ let rec init_routing =
       Leaf {index; meta={id; routing_no=me}}
   in
   function
-  | ZipLeaf {index; b0=l0,t0; _} ->
-    let (table,_), new_tree = compute_routing_tree ([],1) (RoutingNeighbour Dir0) t0 in
-    ZipLeaf {index; b0=l0,new_tree; meta={routing=(routing_set table ~index:0 ~move:RoutingStay); me=0}}
+  | ZipLeaf {index; b0=l0,t0; _} -> (* index 0 is reserved for branches and index 1 for the current position *)
+    let (table,_), new_tree = compute_routing_tree ([],2) (RoutingNeighbour Dir0) t0 in
+    ZipLeaf {index; b0=l0,new_tree; meta={routing=(routing_set table ~index:1 ~move:RoutingStay); me=1}}
   | ZipBranch _ as z-> init_routing (move z Dir0)
   | ZipNode {b0=l0,t0; b1=l1,t1; b2=l2,t2; _} ->
-    let table, new_t0 = compute_routing_tree ([],1) (RoutingNeighbour Dir0) t0 in
+    let table, new_t0 = compute_routing_tree ([],2) (RoutingNeighbour Dir0) t0 in
     let table2, new_t1 = compute_routing_tree table (RoutingNeighbour Dir1) t1 in
     let (table3,_), new_t2 = compute_routing_tree table2 (RoutingNeighbour Dir2) t2 in
-    ZipNode {b0=l0,new_t0; b1=l1,new_t1; b2=l2,new_t2; meta={routing=(routing_set table3 ~index:0 ~move:RoutingStay); me=0}}
+    ZipNode {b0=l0,new_t0; b1=l1,new_t1; b2=l2,new_t2; meta={routing=(routing_set table3 ~index:1 ~move:RoutingStay); me=1}}
 
 let get_route table i =
   let rec aux table i =
