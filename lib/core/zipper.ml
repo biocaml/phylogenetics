@@ -84,16 +84,16 @@ let get_meta = function
 (*  MOVEMENT  *)
 (* ========== *)
 let slide z d l = match d, z with
-  | Dir0, ZipLeaf {index=i; b0=l2, t; meta={routing; _}} when l<l2
-    -> build_branch ~old_routing:routing (l2-.l, t) (l, TopoTree.build_leaf i)
+  | Dir0, ZipLeaf {index=i; b0=l2, t; meta={routing; me}} when l<l2
+    -> build_branch ~old_routing:routing (l2-.l, t) (l, TopoTree.build_leaf ~routing_no:me i)
   | Dir0, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l1
     -> build_branch ~old_routing:routing (l1-.l,t1) (l2+.l,t2)
   | Dir1, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l2
     -> build_branch ~old_routing:routing (l1+.l,t1) (l2-.l,t2)
-  | (Dir0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2; meta={routing; _}} |
-     Dir1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2; meta={routing; _}} |
-     Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; meta={routing; _}}) when l<lf
-    -> build_branch ~old_routing:routing (lf-.l,tf) (l,TopoTree.build_node bb1 bb2)
+  | (Dir0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2; meta={routing; me}} |
+     Dir1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2; meta={routing; me}} |
+     Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; meta={routing; me}}) when l<lf
+    -> build_branch ~old_routing:routing (lf-.l,tf) (l,TopoTree.build_node ~routing_no:me bb1 bb2)
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
   | _ -> failwith "Cannot slide: length too long."
