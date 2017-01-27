@@ -8,5 +8,5 @@ let () =
     "TopoTree", Test_topotree.tests;
     "Models", Test_models.tests;
     "Felsenstein", Test_felsenstein.tests;
-    "Rejection_sampling", Test_rejectionsampling.tests
+    "Rejection_sampling", Test_rejection_sampling.tests
   ]

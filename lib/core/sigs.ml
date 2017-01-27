@@ -1,5 +1,7 @@
 (** Compilation of module signatures used elsewhere. *)
 
+open Linear_algebra_tools (* to get the vec and mat types *)
+
 (** Index type for tree leaves and sequences in alignments *)
 type index = string
 
@@ -54,8 +56,8 @@ module type EVOL_MODEL = sig
   val transition: t -> Base.t -> Base.t -> float
   val of_string: string -> t
   val to_string: t -> string
-  val eMt_mat: t -> float -> LATools.mat
-  val eMt_series: t -> float -> LATools.mat
-  val stat_dist_vec: t -> LATools.vec
-  val known_vector: Base.t -> LATools.vec
+  val eMt_mat: t -> float -> mat
+  val eMt_series: t -> float -> mat
+  val stat_dist_vec: t -> vec
+  val known_vector: Base.t -> vec
 end

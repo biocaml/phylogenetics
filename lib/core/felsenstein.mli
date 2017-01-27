@@ -4,7 +4,7 @@
 module Make: functor (E:Sigs.EVOL_MODEL) -> sig
 
   (** Single-site. felsenstein without underflow prevention. *)
-  val felsenstein_single : ?shift:(float -> float -> LATools.vec -> LATools.vec * float) ->
+  val felsenstein_single : ?shift:(float -> float -> Linear_algebra_tools.vec -> Linear_algebra_tools.vec * float) ->
     E.t -> site:int -> TopoTree.t -> E.Align.t -> float
 
   (** Single-site felsenstein with underflow prevention (configure threshold through threshold parameter). *)

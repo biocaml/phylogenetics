@@ -1,9 +1,9 @@
 open Biocaml_phylogeny_core
 open Alcotest
-open LATools
+open Linear_algebra_tools
 open Models
 
-let compare_matrix = check @@ testable LATools.pp_mat (LATools.compare 0.0001)
+let compare_matrix = check @@ testable pp_mat (compare 0.0001)
 
 let test_JC69_exponential () =
   compare_matrix

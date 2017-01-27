@@ -7,14 +7,14 @@ struct
 
   let proba param =
     let my_eMt = eMt_mat param in
-    fun base t -> LATools.mat_vec_mul (my_eMt t) (known_vector base)
+    fun base t -> Linear_algebra_tools.mat_vec_mul (my_eMt t) (known_vector base)
 
   let draw_base vec =
     let open Base in
     (* for all base check if x is smaller than transition proba,
        if yes return base else decrement x *)
     let rec aux i x =
-      let proba = LATools.get_vec vec i in
+      let proba = Linear_algebra_tools.get_vec vec i in
       if x < proba then of_int (i-1)
       else aux (i+1) (x-.proba)
     in

@@ -1,5 +1,5 @@
 open Sigs
-open LATools
+open Linear_algebra_tools
 
 (* =================================== *)
 (*  SIGNATURES FOR FUNCTOR PARAMETERS  *)
@@ -48,13 +48,13 @@ module Make (M:TRANSITION_MATRIX) = struct
     include M
     (* LATools versions of things for convenience *)
     let transition_mat p =
-      LATools.init_mat
+      init_mat
         (Base.alphabet_size)
         (fun i j -> transition p (Base.of_int (i-1)) (Base.of_int (j-1)) )
-    let stat_dist_vec p = LATools.stat_dist (transition_mat p)
+    let stat_dist_vec p = stat_dist (transition_mat p)
     let diag_mats p =
-      match LATools.diagonalize (transition_mat p) with
-        a, b, c -> a, (fun t -> LATools.init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
+      match diagonalize (transition_mat p) with
+        a, b, c -> a, (fun t -> init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
   end
 
   include Make_exp (Diag)

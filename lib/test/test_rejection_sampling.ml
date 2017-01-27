@@ -14,7 +14,7 @@ let check_distrib = (* In practice, it just compares two lists of floats. *)
 module RS_DNA = Make(Models.K80)
 let myalign = RS_DNA.Align.of_string_list ["A";"A";"A";"T"]
 let mybasetree = TopoTree.of_preorder "0.1;0.1;0.1;0.1;0;1;2.5;0.1;2;3"
-let mysampler = StatTools.sample_branch_lengths ~branchs:(fun i -> i=5) ~sampler:(StatTools.sample_float_uniform 5.0) mybasetree
+let mysampler = Stat_tools.sample_branch_lengths ~branchs:(fun i -> i=5) ~sampler:(Stat_tools.sample_float_uniform 5.0) mybasetree
 
 let test amount =
   let prior_trees = RS_DNA.generate_trees ~sampler:mysampler amount in

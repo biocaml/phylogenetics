@@ -1,7 +1,7 @@
 open Core_kernel.Std
 
 module Make (E:Sigs.EVOL_MODEL) = struct
-  include Seqgen.Make (E)
+  include Sequence_generation.Make (E)
 
   let generate_trees ~(sampler:unit->TopoTree.t) amount =
     List.init amount ~f:(fun _ -> sampler ())

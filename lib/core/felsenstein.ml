@@ -1,6 +1,6 @@
 open Core_kernel.Std
 open TopoTree
-open LATools
+open Linear_algebra_tools
 
 module Make (E:Sigs.EVOL_MODEL) =
 struct

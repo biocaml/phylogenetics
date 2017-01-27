@@ -45,5 +45,5 @@ let my_step v =
 let test i = MyMCMC.run my_theta0 my_step my_likelihood i
              |> List.map ~f:(function {tree;_} -> List.nth_exn (TopoTree.get_branch_lengths tree) 5)
              |> List.filteri ~f:(fun x _ -> x>i/5)
-             |> StatTools.plot_sample_list
-           ; StatTools.pause ()
+             |> Stat_tools.plot_sample_list
+           ; Stat_tools.pause ()
