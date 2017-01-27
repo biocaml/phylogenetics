@@ -4,7 +4,7 @@
 
 val sample_float_uniform: ?min:float -> float -> unit -> float
 
-val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> TopoTree.t -> unit -> TopoTree.t
+val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> Phylogenetic_tree.t -> unit -> Phylogenetic_tree.t
 
 (** {6 Distributions} *)
 

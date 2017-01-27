@@ -1,6 +1,6 @@
 type t
 
-type branch = float * TopoTree.t
+type branch = float * Phylogenetic_tree.t
 
 type direction =
   | Dir0
@@ -49,11 +49,11 @@ val length_right : oriented_zipper -> float
 
 val get_index : t -> Sigs.index
 
-val of_tree : TopoTree.t -> t
+val of_tree : Phylogenetic_tree.t -> t
 
-val of_tree_dir : TopoTree.t -> oriented_zipper
+val of_tree_dir : Phylogenetic_tree.t -> oriented_zipper
 
-val to_tree : t -> TopoTree.t
+val to_tree : t -> Phylogenetic_tree.t
 
 val branch : t -> direction -> branch
 

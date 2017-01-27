@@ -24,8 +24,8 @@ struct
     let my_proba = proba param in
     fun tree size ->
       let rec aux tree bl = match tree with
-        | TopoTree.Leaf {index=i; _} -> [(i,bl)]
-        | TopoTree.Node {left=t1,l; right=t2,r; _} ->
+        | Phylogenetic_tree.Leaf {index=i; _} -> [(i,bl)]
+        | Phylogenetic_tree.Node {left=t1,l; right=t2,r; _} ->
           aux l (List.map bl ~f:(fun b->draw_base (my_proba b t1)))
           @ aux r (List.map bl ~f:(fun b->draw_base (my_proba b t2)))
       in
@@ -45,7 +45,7 @@ struct
       let raw = my_seqgen tree size in
       List.init (List.length raw) ~f:(
         fun i ->
-          List.Assoc.find_exn raw (TopoTree.index_of_int i)
+          List.Assoc.find_exn raw (Phylogenetic_tree.index_of_int i)
           |> Seq.of_list |> Seq.to_string
       )
 end

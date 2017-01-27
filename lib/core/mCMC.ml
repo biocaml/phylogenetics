@@ -22,28 +22,28 @@ end
 
 module MyMCMC = Make(Models.K80)
 
-type vector = {tree:TopoTree.t; align:MyMCMC.Align.t}
+type vector = {tree:Phylogenetic_tree.t; align:MyMCMC.Align.t}
 
 let my_likelihood v = Pervasives.exp (MyMCMC.felsenstein 2.0 v.tree v.align) *.
-                      (let newlength = List.nth_exn (TopoTree.get_branch_lengths v.tree) 5 in
+                      (let newlength = List.nth_exn (Phylogenetic_tree.get_branch_lengths v.tree) 5 in
                        if newlength>0. && newlength<5. then 1.0 else 0.0)
 
 let my_align = MyMCMC.Align.of_string_list ["A";"A";"A";"T"]
-let my_basetree = TopoTree.of_preorder "0.1;0.1;0.1;0.1;0;1;3.0;0.1;2;3"
+let my_basetree = Phylogenetic_tree.of_preorder "0.1;0.1;0.1;0.1;0;1;3.0;0.1;2;3"
 let my_theta0 = {align=my_align; tree=my_basetree}
 
 let my_step v =
-  let lengths = TopoTree.get_branch_lengths v.tree |> List.mapi ~f:(
+  let lengths = Phylogenetic_tree.get_branch_lengths v.tree |> List.mapi ~f:(
       let range = 0.1 in
       fun i x -> if i=5
         then x -. (range/.2.) +. (Random.float range)
         else x
     ) in
-  let new_tree = TopoTree.set_branch_lengths v.tree lengths in
+  let new_tree = Phylogenetic_tree.set_branch_lengths v.tree lengths in
   {align=v.align; tree=new_tree}, 1.
 
 let test i = MyMCMC.run my_theta0 my_step my_likelihood i
-             |> List.map ~f:(function {tree;_} -> List.nth_exn (TopoTree.get_branch_lengths tree) 5)
+             |> List.map ~f:(function {tree;_} -> List.nth_exn (Phylogenetic_tree.get_branch_lengths tree) 5)
              |> List.filteri ~f:(fun x _ -> x>i/5)
              |> Stat_tools.plot_sample_list
            ; Stat_tools.pause ()

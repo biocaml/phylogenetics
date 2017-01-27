@@ -1,5 +1,5 @@
 open Core_kernel.Std
-open TopoTree
+open Phylogenetic_tree
 open Linear_algebra_tools
 
 module Make (E:Sigs.EVOL_MODEL) =
@@ -60,7 +60,7 @@ struct
   (* ======================= *)
   (* | Multi-site versions | *)
   (* ======================= *)
-  let multisite (f: site:int -> TopoTree.t -> Align.t -> float) tree seq =
+  let multisite (f: site:int -> Phylogenetic_tree.t -> Align.t -> float) tree seq =
     let l = Align.length seq in
     List.fold (List.range 0 l) ~init:0.0 ~f:(fun acc x -> (f ~site:x tree seq) +. acc)
 

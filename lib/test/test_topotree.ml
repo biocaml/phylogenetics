@@ -1,4 +1,4 @@
-open Biocaml_phylogeny_core.TopoTree
+open Biocaml_phylogeny_core.Phylogenetic_tree
 open Alcotest
 
 let hs = Hashtbl.hash
@@ -15,7 +15,7 @@ let mytree = Node {
 
 let test_of_preorder () =
   of_preorder "0.135;0.23;0.11;0.18;0;1;2" |>
-  (check @@ testable Biocaml_phylogeny_core.TopoTree.pp (=)) "identical trees" mytree
+  (check @@ testable Biocaml_phylogeny_core.Phylogenetic_tree.pp (=)) "identical trees" mytree
 
 let tests = [
   "of_preorder", `Quick, test_of_preorder

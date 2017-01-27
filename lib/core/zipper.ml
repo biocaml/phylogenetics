@@ -1,12 +1,12 @@
 open Printf
 open Core_kernel.Std
-open TopoTree
+open Phylogenetic_tree
 
 
 (* ======= *)
 (*  TYPES  *)
 (* ======= *)
-type branch = float * TopoTree.t
+type branch = float * Phylogenetic_tree.t
 and metadata = {routing:routing_table; me:int}
 and t =
   | ZipNode of {b0:branch; b1:branch; b2:branch; meta:metadata}
@@ -85,7 +85,7 @@ let get_meta = function
 (* ========== *)
 let slide z d l = match d, z with
   | Dir0, ZipLeaf {index=i; b0=l2, t; meta={routing; me}} when l<l2
-    -> build_branch ~old_routing:routing (l2-.l, t) (l, TopoTree.build_leaf ~routing_no:me i)
+    -> build_branch ~old_routing:routing (l2-.l, t) (l, Phylogenetic_tree.build_leaf ~routing_no:me i)
   | Dir0, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l1
     -> build_branch ~old_routing:routing (l1-.l,t1) (l2+.l,t2)
   | Dir1, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l2
@@ -93,7 +93,7 @@ let slide z d l = match d, z with
   | (Dir0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2; meta={routing; me}} |
      Dir1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2; meta={routing; me}} |
      Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; meta={routing; me}}) when l<lf
-    -> build_branch ~old_routing:routing (lf-.l,tf) (l,TopoTree.build_node ~routing_no:me bb1 bb2)
+    -> build_branch ~old_routing:routing (lf-.l,tf) (l,Phylogenetic_tree.build_node ~routing_no:me bb1 bb2)
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
   | _ -> failwith "Cannot slide: length too long."
@@ -101,11 +101,11 @@ let slide z d l = match d, z with
 let move z i = match i, z with
   (* case 1: moving from leaf to node *)
   | Dir0, ZipLeaf {index=i; b0=l,Node {left=b0; right=b1; meta={routing_no; _}}; meta={routing; me}}
-    -> build_node ~old_routing:routing ~me:routing_no b0 b1 (l,TopoTree.build_leaf ~routing_no:me i)
+    -> build_node ~old_routing:routing ~me:routing_no b0 b1 (l,Phylogenetic_tree.build_leaf ~routing_no:me i)
 
   (* case 2: moving from leaf to leaf (degenerate case) *)
   | Dir0, ZipLeaf {index=i; b0=l,Leaf {index=j; meta={routing_no; _}}; meta={routing; me}}
-    -> build_leaf ~old_routing:routing ~me:routing_no j (l, TopoTree.build_leaf ~routing_no:me i)
+    -> build_leaf ~old_routing:routing ~me:routing_no j (l, Phylogenetic_tree.build_leaf ~routing_no:me i)
 
   (* case 3 moving from branch to node *)
   | Dir0, ZipBranch {b0=l0, Node {left=x; right=y; meta={routing_no; _}}; b1=l1, z; meta={routing; _}} |
@@ -124,7 +124,7 @@ let move z i = match i, z with
     -> let new_routing = (* changing the routing of old neighbours to old position; relies on order on directions (left<right) *)
          routing_set ~index:(get_routing_no ta) ~move:(RoutingLeft me) routing
          |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me)
-    in build_node ~old_routing:new_routing ~me:routing_no x y (l, TopoTree.build_node ~routing_no:me (la,ta) (lb,tb))
+    in build_node ~old_routing:new_routing ~me:routing_no x y (l, Phylogenetic_tree.build_node ~routing_no:me (la,ta) (lb,tb))
 
   (* case 6: move from node to leaf *)
   | Dir0, ZipNode {b0=l,Leaf {index=i; meta={routing_no; _}}; b1=(la,ta); b2=(lb,tb); meta={routing; me}} |
@@ -133,7 +133,7 @@ let move z i = match i, z with
     -> let new_routing = (* changing the routing of old neighbours to old position; relies on order on directions (left<right) *)
          routing_set ~index:(get_routing_no ta) ~move:(RoutingLeft me) routing
          |> routing_set ~index:(get_routing_no tb) ~move:(RoutingRight me)
-    in build_leaf ~old_routing:new_routing ~me:routing_no i (l, TopoTree.build_node ~routing_no:me (la,ta) (lb,tb))
+    in build_leaf ~old_routing:new_routing ~me:routing_no i (l, Phylogenetic_tree.build_node ~routing_no:me (la,ta) (lb,tb))
 
   (* case 7: incorrect direction  given the type of zipper *)
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _
@@ -237,7 +237,7 @@ let of_tree_dir t =
 let rec to_tree = function
   | (ZipNode {b0=l,_; _} |
      ZipLeaf {b0=l,_; _}) as z -> slide z Dir0 (l/.2.) |> to_tree
-  | ZipBranch {b0; b1; _} -> TopoTree.build_node b0 b1
+  | ZipBranch {b0; b1; _} -> Phylogenetic_tree.build_node b0 b1
 
 let branch z d = match d, z with
   | Dir0, ZipLeaf {b0=x;_} |
@@ -261,9 +261,9 @@ let to_pretty_string =
 
   let string_of_branch z d =
     match branch z d with l,t ->
-      TopoTree.pp Format.str_formatter t ;
+      Phylogenetic_tree.pp Format.str_formatter t ;
       Format.flush_str_formatter () |> indent "|    " |>
-      sprintf "* Branch %s length=%.3f [%d]\n|\n%s|" (string_of_dir d) l (TopoTree.get_meta t).id
+      sprintf "* Branch %s length=%.3f [%d]\n|\n%s|" (string_of_dir d) l (Phylogenetic_tree.get_meta t).id
 
   in function
     | ZipLeaf {index; meta={me;_}; _} as z ->

@@ -10,9 +10,9 @@ let sample_float_uniform ?(min=0.0) max () =
   (* (Distributions.Uniform.sample ~size:1 my_dist).(0) *)
 
 let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree () =
-  TopoTree.get_branch_lengths tree
+  Phylogenetic_tree.get_branch_lengths tree
   |> List.mapi ~f:(fun i l -> if branchs i then sampler () else l)
-  |> TopoTree.set_branch_lengths tree
+  |> Phylogenetic_tree.set_branch_lengths tree
 
 let sample_list_of_file path =
   In_channel.read_lines path

@@ -23,7 +23,7 @@ let zipper_explorer z =
     | _ -> printf "Unknown error.\n" ; help z
   in display z
 
-let _ = Biocaml_phylogeny_core.TopoTree.make_random 20
+let _ = Biocaml_phylogeny_core.Phylogenetic_tree.make_random 20
         |> of_tree
         |> init_routing
         |> zipper_explorer
