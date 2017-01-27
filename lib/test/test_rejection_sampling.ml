@@ -3,14 +3,6 @@ open Alcotest
 open Biocaml_phylogeny_core
 open Rejection_sampling
 
-let float_compare p f1 f2 =
-  let diff = f1-.f2 |> Pervasives.abs_float in
-  diff/.(Pervasives.abs_float f1) <= p
-
-let check_distrib = (* In practice, it just compares two lists of floats. *)
-  (check @@ list (testable (pp Alcotest.float) (float_compare 0.05)))
-    "Distributions with identical characteristics"
-
 
 (** {6 Test input parameters} *)
 
@@ -33,7 +25,7 @@ let sample amount =
   in [mean_prior; mean_post; acceptance]
 
 let test_rejection () =
-  check_distrib [2.5;2.8;0.012] (sample 500000)
+  Test_utils.check_distrib [2.5;2.8;0.012] (sample 500000)
 
 
 (** {6 Test list} *)

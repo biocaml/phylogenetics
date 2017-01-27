@@ -1,4 +1,20 @@
-(** Interfaces for external runs of bppml. Uses Sys and needs bpp executables in PATH. *)
+(** Various utility functions to be used in tests.
+    Includes bio++ interfaces and Alcotest comparison functions. *)
+
+open Biocaml_phylogeny_core
+
+
+(** {6 Comparison functions (including Alcotest testables)} *)
+
+(** Compares two distributions using estimators TODO *)
+val check_distrib: Stat_tools.sample_list -> Stat_tools.sample_list -> unit
+
+(** Compares two floats (which are supposed to be likelihood results) using the alcotest check *)
+val check_likelihood: float -> float -> unit
+
+
+(** {6 Interfaces for external runs of bppml.}
+    Uses Sys and needs bpp executables in PATH.*)
 
 (** Runs bppml and extracts initial log likelihood. Needs bppml in PATH. *)
 val felsenstein_bpp: ?alphabet:string -> ?model:string -> ?path:string -> tree:string -> string -> float

@@ -1,4 +1,27 @@
 open Core.Std
+open Alcotest
+
+(* ============= *)
+(*  COMPARISONS  *)
+(* ============= *)
+
+(* Function used to compare floats and tolerate relative imprecision.
+    Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
+let float_compare p f1 f2 =
+  let diff = f1-.f2 |> Pervasives.abs_float in
+  diff/.(Pervasives.abs_float f1) <= p
+
+let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods!"
+
+let check_distrib = (* In practice, it just compares two lists of floats. *)
+  (check @@ list (testable (pp Alcotest.float) (float_compare 0.05)))
+    "Distributions with identical characteristics"
+
+
+
+(* ================ *)
+(*  BPP INTERFACES  *)
+(* ================ *)
 
 (*  fails after printing the content of a file with a message*)
 let fail_file ?(path="tmp.data") message =

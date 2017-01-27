@@ -6,16 +6,8 @@ open Biocaml_phylogeny_core
 open Alcotest
 open Core_kernel.Std
 
+
 (** {6 Preliminary functions} *)
-
-(** Function used to compare floats and tolerate relative imprecision.
-    Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
-let float_compare p f1 f2 =
-  let diff = f1-.f2 |> Pervasives.abs_float in
-  diff/.(Pervasives.abs_float f1) <= p
-
-(** Compares two floats (which are supposed to be likelihood results) using the alcotest check *)
-let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods!"
 
 (** Generates a random tree, a random sequence (using the provided model),
     runs both biocaml felsenstein and bppml, and checks that the results are identical*)
@@ -41,7 +33,7 @@ let test_felsenstein
     with
     | Failure s -> Printf.printf "\027[0;31mERROR\027[0;0m(felsenstein_bpp): %s\n" s; 0.0
   end in
-  check_likelihood my_result bpp_result
+  Test_utils.check_likelihood my_result bpp_result
 
 (** Wrapper for test_felsenstein that uses the string to model identification using bpp format *)
 let test_felsenstein_str ?(model="JC69") ?(treesize=5) ?(seqsize=5) =
