@@ -12,10 +12,7 @@ type location_type =
   | LocBranch
   | LocNode
 
-type oriented_zipper = {
-  dir:direction;
-  zipper:t
-}
+type oriented_zipper
 
 val string_of_dir : direction -> string
 

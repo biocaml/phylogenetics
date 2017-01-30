@@ -12,7 +12,8 @@ module Make (E:Sigs.EVOL_MODEL) = struct
       if i>=nb_points then acc
       else
         let candidate, hastings_ratio = step prev in
-        let full_ratio = hastings_ratio *. (likelihood candidate)/.(likelihood prev) in (* FIXME unnecessary computation of f prev *)
+        let full_ratio = hastings_ratio *. (likelihood candidate)/.(likelihood prev) in
+        (* FIXME unnecessary computation of f prev *)
         if accept full_ratio then aux (i+1) candidate (candidate::acc)
         else aux i prev acc
     in
@@ -24,9 +25,10 @@ module MyMCMC = Make(Models.K80)
 
 type vector = {tree:Phylogenetic_tree.t; align:MyMCMC.Align.t}
 
-let my_likelihood v = Pervasives.exp (MyMCMC.felsenstein 2.0 v.tree v.align) *.
-                      (let newlength = List.nth_exn (Phylogenetic_tree.get_branch_lengths v.tree) 5 in
-                       if newlength>0. && newlength<5. then 1.0 else 0.0)
+let my_likelihood v =
+  Pervasives.exp (MyMCMC.felsenstein 2.0 v.tree v.align) *.
+  (let newlength = List.nth_exn (Phylogenetic_tree.get_branch_lengths v.tree) 5 in
+   if newlength>0. && newlength<5. then 1.0 else 0.0)
 
 let my_align = MyMCMC.Align.of_string_list ["A";"A";"A";"T"]
 let my_basetree = Phylogenetic_tree.of_preorder "0.1;0.1;0.1;0.1;0;1;3.0;0.1;2;3"
@@ -43,7 +45,8 @@ let my_step v =
   {align=v.align; tree=new_tree}, 1.
 
 let test i = MyMCMC.run my_theta0 my_step my_likelihood i
-             |> List.map ~f:(function {tree;_} -> List.nth_exn (Phylogenetic_tree.get_branch_lengths tree) 5)
+             |> List.map ~f:(function {tree;_} ->
+                 List.nth_exn (Phylogenetic_tree.get_branch_lengths tree) 5)
              |> List.filteri ~f:(fun x _ -> x>i/5)
              |> Stat_tools.plot_sample_list
            ; Stat_tools.pause ()
