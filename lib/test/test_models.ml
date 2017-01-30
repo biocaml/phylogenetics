@@ -1,30 +1,30 @@
+open Core_kernel.Std
 open Biocaml_phylogeny_core
 open Alcotest
-open Linear_algebra_tools
+open Test_utils
 open Models
 
-let compare_matrix = check @@ testable pp_mat (compare 0.0001)
 
 let test_JC69_exponential () =
-  compare_matrix
+  compare_matrices
     "identical exponential of transition matrix"
     (JC69.eMt_mat () 0.1)
     (JC69.eMt_series () 0.1)
 
 let test_K80_exponential () =
-  compare_matrix
+  compare_matrices
     "identical exponential of transition matrix"
     (K80.eMt_mat 2.0 0.1)
     (K80.eMt_series 2.0 0.1)
 
 let test_JC69_generated () =
-  compare_matrix
+  compare_matrices
     "identical exponential of transition matrix"
     (JC69.eMt_mat () 0.1)
     (JC69_generated.eMt_mat () 0.1)
 
 let test_K80_generated () =
-  compare_matrix
+  compare_matrices
     "identical exponential of transition matrix"
     (K80.eMt_mat 2.0 0.1)
     (K80_generated.eMt_mat 2.0 0.1)

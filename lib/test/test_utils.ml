@@ -1,5 +1,7 @@
 open Core.Std
 open Alcotest
+open Biocaml_phylogeny_core.Linear_algebra_tools
+
 
 (* ============= *)
 (*  COMPARISONS  *)
@@ -11,12 +13,16 @@ let float_compare p f1 f2 =
   let diff = f1-.f2 |> Pervasives.abs_float in
   diff/.(Pervasives.abs_float f1) <= p
 
-let check_likelihood = (check @@ testable (pp Alcotest.float) (float_compare 0.00001)) "identical log likelihoods!"
+let check_likelihood = (check @@ testable
+                          (pp Alcotest.float)
+                          (float_compare 0.00001)
+                       ) "identical log likelihoods!"
 
 let check_distrib = (* In practice, it just compares two lists of floats. *)
   (check @@ list (testable (pp Alcotest.float) (float_compare 0.05)))
     "Distributions with identical characteristics"
 
+let compare_matrices = check @@ testable pp_mat (compare 0.0001)
 
 
 (* ================ *)
@@ -46,8 +52,10 @@ let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
     In_channel.read_lines "tmp.data"
     |> List.filter ~f:(fun l->String.prefix l 11 = "Initial log")
   with (* looking for a very specific line *)
-  | [l] -> Scanf.sscanf l "Initial log likelihood.................: %f" (fun x->x)
-  | _ -> fail_file "unexpected bppml output"
+  | [l] ->
+    Scanf.sscanf l "Initial log likelihood.................: %f" (fun x->x)
+  | _ ->
+    fail_file "unexpected bppml output"
 
 let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
   let script = Printf.sprintf

@@ -1,5 +1,9 @@
+open Core_kernel.Std
 open Biocaml_phylogeny_core.Phylogenetic_tree
 open Alcotest
+
+
+(** {6 Test input parameters} *)
 
 let hs = Hashtbl.hash
 
@@ -13,9 +17,15 @@ let mytree = Node {
     meta = {routing_no= -1; id=hs (hs "T2" + hs (hs "T0" + hs "T1"))}
   }
 
+
+(** {6 Test functions} *)
+
 let test_of_preorder () =
   of_preorder "0.135;0.23;0.11;0.18;0;1;2" |>
   (check @@ testable Biocaml_phylogeny_core.Phylogenetic_tree.pp (=)) "identical trees" mytree
+
+
+(** {6 Test list} *)
 
 let tests = [
   "of_preorder", `Quick, test_of_preorder
