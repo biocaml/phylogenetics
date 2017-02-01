@@ -256,7 +256,7 @@ let branch z d = match d, z with
 let equal z1 z2 = match z1, z2 with
   | ZipLeaf {index=i; b0=b,t; _}, ZipLeaf {index=i2; b0=b2,t2; _} ->
     Phylogenetic_tree.(i=i2 && (get_meta t).id = (get_meta t2).id && b=b2)
-  | ZipBranch {b0=b00,t00; b1=b01,t01; _}, ZipNode {b0=b10,t10; b1=b11,t11; _} ->
+  | ZipBranch {b0=b00,t00; b1=b01,t01; _}, ZipBranch {b0=b10,t10; b1=b11,t11; _} ->
     Phylogenetic_tree.(
       (get_meta t00).id = (get_meta t10).id && b00 = b10 &&
       (get_meta t01).id = (get_meta t11).id && b01 = b11
@@ -267,7 +267,9 @@ let equal z1 z2 = match z1, z2 with
       (get_meta t01).id = (get_meta t11).id && b01 = b11 &&
       (get_meta t02).id = (get_meta t12).id && b02 = b12
     )
-  | _ -> false (* FIXME enumerate cases *)
+  | ZipLeaf _, ZipBranch _ | ZipLeaf _, ZipNode _ |
+    ZipBranch _, ZipLeaf _ | ZipBranch _, ZipNode _ |
+    ZipNode _, ZipLeaf _ | ZipNode _, ZipBranch _ -> false
 
 
 (* ================= *)
