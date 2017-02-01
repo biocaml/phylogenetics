@@ -54,6 +54,8 @@ val to_tree : t -> Phylogenetic_tree.t
 
 val branch : t -> direction -> branch
 
+val equal : t -> t -> bool
+
 val pp : Format.formatter -> t -> unit
 
 val print : t -> unit

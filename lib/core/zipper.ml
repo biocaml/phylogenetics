@@ -250,6 +250,26 @@ let branch z d = match d, z with
     failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
 
 
+(* ============ *)
+(*  COMPARISON  *)
+(* ============ *)
+let equal z1 z2 = match z1, z2 with
+  | ZipLeaf {index=i; b0=_,t; _}, ZipLeaf {index=i2; b0=_,t2; _} ->
+    Phylogenetic_tree.(i=i2 && (get_meta t).id = (get_meta t2).id)
+  | ZipBranch {b0=_,t00; b1=_,t01; _}, ZipNode {b0=_,t10; b1=_,t11; _} ->
+    Phylogenetic_tree.(
+      (get_meta t00).id = (get_meta t10).id &&
+      (get_meta t01).id = (get_meta t11).id
+    )
+  | ZipNode {b0=_,t00; b1=_,t01; b2=_,t02; _}, ZipNode {b0=_,t10; b1=_,t11; b2=_,t12; _} ->
+    Phylogenetic_tree.(
+      (get_meta t00).id = (get_meta t10).id &&
+      (get_meta t01).id = (get_meta t11).id &&
+      (get_meta t02).id = (get_meta t12).id
+    )
+  | _ -> false (* FIXME enumerate cases *)
+
+
 (* ================= *)
 (*  PRETTY PRINTING  *)
 (* ================= *)
