@@ -7,7 +7,6 @@ type sample_list = float list
 let sample_float_uniform ?(min=0.0) max () =
   let my_dist = Distributions.Uniform.create ~lower:min ~upper:max in
   Distributions.Uniform.quantile my_dist ~p:(Random.float 1.0)
-  (* (Distributions.Uniform.sample ~size:1 my_dist).(0) *)
 
 let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree () =
   Phylogenetic_tree.get_branch_lengths tree
@@ -24,6 +23,10 @@ let sample_list_extrema d =
   with
     (Some mi, Some ma) -> (mi, ma) | _ -> failwith "empty input distribution"
 
+let sample_list_mean d =
+  List.fold d ~init:(0., 0) ~f:(fun (s, c) x -> (s+.x, c+1))
+  |> fun (s, c) -> s /. (float_of_int c)
+
 
 (* ========== *)
 (*  PLOTTING  *)
@@ -38,8 +41,8 @@ let bins ?(nb=20) d =
     ) in
   List.init nb ~f:(
     fun x -> (float_of_int x +. 0.5) *. bin_size,
-            (nb * count x |> float_of_int)
-            /. (List.length d |> float_of_int |> ( *. ) (dmax -. dmin))
+             (nb * count x |> float_of_int)
+             /. (List.length d |> float_of_int |> ( *. ) (dmax -. dmin))
   )
 
 let plot_sample_list ?(nb=20) d =
