@@ -18,15 +18,13 @@ let mysampler = Stat_tools.sample_branch_lengths ~branchs:(fun i -> i=5)
 let sample amount =
   let prior_trees = RS_DNA.generate_trees ~sampler:mysampler amount in
   let post_trees = RS_DNA.reject 2.0 myalign prior_trees in
-  let mean_prior, mean_post, acceptance =
-    (RS_DNA.mean_specific_branch 5 prior_trees),
-    (RS_DNA.mean_specific_branch 5 post_trees),
-    (List.length post_trees |> float_of_int) /.
-    (List.length prior_trees |> float_of_int)
-  in [mean_prior; mean_post; acceptance]
+  List.map post_trees ~f:(fun t ->
+      Phylogenetic_tree.get_branch_lengths t
+      |> fun l -> List.nth_exn l 5
+    )
 
 let test_rejection () =
-  Test_utils.check_distrib [2.5; 2.8; 0.012] (sample 500000)
+  Test_utils.check_distrib [2.8] (sample 500000)
 
 
 (** {6 Test list} *)

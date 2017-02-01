@@ -1,6 +1,7 @@
 open Core.Std
 open Alcotest
 open Biocaml_phylogeny_core.Linear_algebra_tools
+open Biocaml_phylogeny_core.Stat_tools
 
 
 (* ============= *)
@@ -18,9 +19,10 @@ let check_likelihood = (check @@ testable
                           (float_compare 0.00001)
                        ) "identical log likelihoods!"
 
-let check_distrib = (* In practice, it just compares two lists of floats. *)
+let check_distrib ref_estim d =
   (check @@ list (testable (pp Alcotest.float) (float_compare 0.05)))
     "Distributions with identical characteristics"
+    ref_estim [sample_list_mean d]
 
 let compare_matrices = check @@ testable pp_mat (compare 0.0001)
 
