@@ -12,10 +12,10 @@ module Make (E:Sigs.EVOL_MODEL) = struct
       if i>=nb_points then acc
       else
         let candidate, hastings_ratio = step prev in
-        let full_ratio = hastings_ratio *. (likelihood candidate)/.(likelihood prev) in
+        let full_ratio = hastings_ratio *. (likelihood candidate) /. (likelihood prev) in
         (* FIXME unnecessary computation of f prev *)
         if accept full_ratio then aux (i+1) candidate (candidate::acc)
-        else aux i prev acc
+        else aux i prev (prev::acc)
     in
     aux 0 theta0 []
 
@@ -36,7 +36,7 @@ let my_theta0 = {align=my_align; tree=my_basetree}
 
 let my_step v =
   let lengths = Phylogenetic_tree.get_branch_lengths v.tree |> List.mapi ~f:(
-      let range = 0.1 in
+      let range = 5.0 in
       fun i x -> if i=5
         then x -. (range/.2.) +. (Random.float range)
         else x
