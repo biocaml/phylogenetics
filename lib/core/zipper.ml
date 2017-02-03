@@ -223,6 +223,10 @@ let get_index = function
   | ZipLeaf {index; _} -> index
   | ZipBranch _ | ZipNode _ -> failwith "Zipper is not a leaf. Cannot get index."
 
+(* assumes a correct routing table *)
+let random_node z =
+  (get_meta z).routing |> List.length |> fun x -> (Random.int (x-1))+1 |> goto z
+
 
 (* ======================= *)
 (*  CREATION / CONVERSION  *)

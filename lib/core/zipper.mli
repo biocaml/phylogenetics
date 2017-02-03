@@ -46,6 +46,8 @@ val length_right : oriented_zipper -> float
 
 val get_index : t -> Sigs.index
 
+val random_node : t -> t
+
 val of_tree : Phylogenetic_tree.t -> t
 
 val of_tree_dir : Phylogenetic_tree.t -> oriented_zipper
