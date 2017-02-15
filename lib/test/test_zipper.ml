@@ -11,22 +11,36 @@ open Alcotest
 \--0.100--<T2>*)
 let mytree = Phylogenetic_tree.of_preorder "0.2;0.1;0.4;0.3;0;1;2"
 let mybranches = Phylogenetic_tree.[of_preorder "0.4;0.3;0;1"; of_preorder "2"]
-
+(*
+/--0.200--<T0>
+\--0.200--/--0.300--<T1>
+          \--0.300--<T2>*)
+let myothertree = Phylogenetic_tree.of_preorder "0.2;0.2;0;0.3;0.3;1;2"
 
 (** {6 Test functions} *)
 
 let test_of_tree_check_subtress () =
   of_tree mytree |> (fun z -> [branch z Dir0; branch z Dir1] |> List.map ~f:(fun (_,x) -> x)) |>
-  (check @@ slist (testable Phylogenetic_tree.pp (=)) compare) "identical branch sets" mybranches
+  (check @@ slist (testable Phylogenetic_tree.pp (=)) compare) "identical subtrees" mybranches
 
 let test_of_tree_check_lengths () =
   of_tree mytree |> (fun z -> [get_length z Dir0; get_length z Dir1]) |>
-  (check @@ slist float compare) "identical branch sets" [0.1; 0.2]
+  (check @@ slist float compare) "identical branch lengths" [0.1; 0.2]
+
+let test_tree_and_back () =   (* WARNING not guaranteed to not reorder branches in tree ;*)
+  of_tree mytree |> to_tree |> (* failing this test can be either a real problem or just *)
+  (check @@ testable Phylogenetic_tree.pp (=)) "identical trees" mytree   (* reordering. *)
+
+let test_of_tree_dir_move_and_back () = (* WARNING not guaranteed to not reorder branches *)
+  of_tree_dir mytree |> move_left |> unorient |> to_tree |>           (* (same as above). *)
+  (check @@ testable Phylogenetic_tree.pp (=)) "identical trees" myothertree
 
 
 (** {6 Test list} *)
 
 let tests = [
   "of_tree (check subtrees)", `Quick, test_of_tree_check_subtress;
-  "of_tree (check lengths)", `Quick, test_of_tree_check_lengths
+  "of_tree (check lengths)", `Quick, test_of_tree_check_lengths;
+  "of_tree and back to_tree", `Quick, test_tree_and_back;
+  "of_tree_dir, move_left and back to_tree", `Quick, test_of_tree_dir_move_and_back
 ]

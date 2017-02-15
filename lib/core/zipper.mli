@@ -34,6 +34,8 @@ val move_right : oriented_zipper -> oriented_zipper
 
 val orient : t -> direction -> oriented_zipper
 
+val unorient : oriented_zipper -> t
+
 val init_routing : t -> t
 
 val goto : t -> int -> t

@@ -149,6 +149,8 @@ let move_right z =
 
 let orient (z:t) d = {dir=d; zipper=z}
 
+let unorient {zipper; dir=_} = zipper
+
 
 (* ================ *)
 (*  ROUTING TABLES  *)
