@@ -245,7 +245,7 @@ let rec to_tree = function
      ZipLeaf {b0=l,_; _}) as z -> slide z Dir0 (l/.2.) |> to_tree
   | ZipBranch {b0; b1; _} -> Phylogenetic_tree.build_node b0 b1
 
-let branch z d = match d, z with
+let get_branch z d = match d, z with
   | Dir0, ZipLeaf {b0=x;_} |
     Dir0, ZipBranch {b0=x;_} |
     Dir1, ZipBranch {b1=x;_} |
@@ -288,7 +288,7 @@ let to_pretty_string =
     |> sprintf "%s%s\n" sep in
 
   let string_of_branch z d =
-    match branch z d with l,t ->
+    match get_branch z d with l,t ->
       Phylogenetic_tree.pp Format.str_formatter t ;
       Format.flush_str_formatter () |> indent "|    " |>
       sprintf "* Branch %s length=%.3f [%d]\n|\n%s|" (string_of_dir d) l (Phylogenetic_tree.get_meta t).id

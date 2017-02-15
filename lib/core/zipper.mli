@@ -56,7 +56,7 @@ val of_tree_dir : Phylogenetic_tree.t -> oriented_zipper
 
 val to_tree : t -> Phylogenetic_tree.t
 
-val branch : t -> direction -> branch
+val get_branch : t -> direction -> branch
 
 val equal : t -> t -> bool
 
