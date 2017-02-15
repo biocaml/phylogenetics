@@ -27,13 +27,13 @@ let test_of_tree_check_lengths () =
   of_tree mytree |> (fun z -> [get_length z Dir0; get_length z Dir1]) |>
   (check @@ slist float compare) "identical branch lengths" [0.1; 0.2]
 
-let test_tree_and_back () =   (* WARNING not guaranteed to not reorder branches in tree ;*)
-  of_tree mytree |> to_tree |> (* failing this test can be either a real problem or just *)
-  (check @@ testable Phylogenetic_tree.pp (=)) "identical trees" mytree   (* reordering. *)
+let test_tree_and_back () =
+  of_tree mytree |> to_tree |>
+  Phylogenetic_tree.(check @@ testable pp equal) "identical trees" mytree
 
-let test_of_tree_dir_move_and_back () = (* WARNING not guaranteed to not reorder branches *)
-  of_tree_dir mytree |> move_left |> unorient |> to_tree |>           (* (same as above). *)
-  (check @@ testable Phylogenetic_tree.pp (=)) "identical trees" myothertree
+let test_of_tree_dir_move_and_back () =
+  of_tree_dir mytree |> move_left |> unorient |> to_tree |>
+  Phylogenetic_tree.(check @@ testable pp equal) "identical trees" myothertree
 
 
 (** {6 Test list} *)
