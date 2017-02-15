@@ -43,4 +43,4 @@ let test_MCMC () =
 (** {6 Test list} *)
 
 let tests = [
-  "Specific branch length on tiny tree with 500k points.", `Slow, test_MCMC]
+  "Specific branch length on tiny tree with 10k points.", `Slow, test_MCMC]
