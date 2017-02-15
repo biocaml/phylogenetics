@@ -37,7 +37,7 @@ let sample amount = MyMCMC.run my_theta0 my_step my_likelihood amount
              |> List.filteri ~f:(fun x _ -> x > amount / 5)
 
 let test_MCMC () =
-  Test_utils.check_distrib [2.8] (sample 500000)
+  Test_utils.check_distrib [2.8] (sample 10000)
 
 
 (** {6 Test list} *)

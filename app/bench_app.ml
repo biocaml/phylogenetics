@@ -23,4 +23,4 @@ let _ = Random.self_init ()
 
 (* let _ = Rejection_sampling.test 500000 *)
 
-let _ = MCMC.test 500000
+let _ = MCMC.test 10000

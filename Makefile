@@ -1,5 +1,7 @@
 include $(shell opam config var solvuu-build:lib)/solvuu.mk
 
+.PHONY: edit test bench explorer doc ca
+
 all: native byte doc
 
 edit: .ocamlinit .merlin ./_build/lib/biocaml_phylogeny_core.cma ./_build/lib/biocaml_phylogeny_test.cma
