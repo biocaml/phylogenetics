@@ -167,6 +167,12 @@ let rec get_branch_lengths = function
   | Leaf _ -> []
 
 
+(* ============ *)
+(*  COMPARISON  *)
+(* ============ *)
+let equal t1 t2 = (get_meta t1).id = (get_meta t2).id
+
+
 (* ================= *)
 (*  PRETTY PRINTING  *)
 (* ================= *)
