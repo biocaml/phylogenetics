@@ -21,8 +21,8 @@ let myothertree = Phylogenetic_tree.of_preorder "0.2;0.2;0;0.3;0.3;1;2"
 (** {6 Test functions} *)
 
 let test_of_tree_check_subtress () =
-  of_tree mytree |> (fun z -> [get_branch z Dir0; get_branch z Dir1] |> List.map ~f:(fun (_,x) -> x)) |>
-  (check @@ slist (testable Phylogenetic_tree.pp (=)) compare) "identical subtrees" mybranches
+  of_tree mytree |> (fun z -> [get_tree z Dir0; get_tree z Dir1]) |>
+  (check @@ slist Phylogenetic_tree.(testable pp equal) compare) "identical subtrees" mybranches
 
 let test_of_tree_check_lengths () =
   of_tree mytree |> (fun z -> [get_length z Dir0; get_length z Dir1]) |>

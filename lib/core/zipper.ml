@@ -255,6 +255,8 @@ let get_branch z d = match d, z with
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _ ->
     failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
 
+let get_tree z d = match get_branch z d with _, t -> t
+
 
 (* ============ *)
 (*  COMPARISON  *)
