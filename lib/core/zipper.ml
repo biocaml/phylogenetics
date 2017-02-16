@@ -292,22 +292,23 @@ let to_pretty_string =
   let string_of_branch z d =
     match get_branch z d with l,t ->
       Phylogenetic_tree.pp Format.str_formatter t ;
-      Format.flush_str_formatter () |> indent "|    " |>
-      sprintf "* Branch %s length=%.3f [%d]\n|\n%s|" (string_of_dir d) l (Phylogenetic_tree.get_meta t).id
+      Format.flush_str_formatter () |> indent (Utils.fancy_sprintf "|  ") |>
+      Utils.fancy_sprintf "<$green$Branch$$> $magenta$%s$$ length=$cyan$%.3f$$ [$yellow$%d$$]\n|\n%s|"
+        (string_of_dir d) l (Phylogenetic_tree.get_meta t).id
 
   in function
     | ZipLeaf {index; meta={me;_}; _} as z ->
-      sprintf "\n<ZipLeaf %s, routing_no=%d>\n%s" index me
-        (string_of_branch z Dir0 |> indent ". ")
+      Utils.fancy_sprintf "\n<$green$ZipLeaf$$> $blue$%s$$, routing_no=%d\n%s" index me
+        (string_of_branch z Dir0 |> indent "    ")
     | ZipBranch {meta={me; _}; _} as z ->
-      sprintf "\n<ZipBranch routing_no=%d>\n%s%s" me
-        (string_of_branch z Dir0 |> indent ". ")
-        (string_of_branch z Dir1 |> indent ". ")
+      Utils.fancy_sprintf "\n<$green$ZipBranch$$> routing_no=%d\n%s%s" me
+        (string_of_branch z Dir0 |> indent "    ")
+        (string_of_branch z Dir1 |> indent "    ")
     | ZipNode {meta={me; _}; _} as z ->
-      sprintf "\n<ZipNode routing_no=%d>\n%s%s%s" me
-        (string_of_branch z Dir0 |> indent ". ")
-        (string_of_branch z Dir1 |> indent ". ")
-        (string_of_branch z Dir2 |> indent ". ")
+      Utils.fancy_sprintf "\n<$green$ZipNode$$> routing_no=%d\n%s%s%s" me
+        (string_of_branch z Dir0 |> indent "    ")
+        (string_of_branch z Dir1 |> indent "    ")
+        (string_of_branch z Dir2 |> indent "    ")
 
 let pp = Utils.pp to_pretty_string
 
