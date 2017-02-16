@@ -1,21 +1,6 @@
 open Core_kernel.Std
 open Printf
 
-let dim to_dim string =
-  String.concat_map string ~f:(fun c ->
-      if String.contains to_dim c
-      then sprintf "\027[2m%c\027[0m" c
-      else sprintf "%c" c)
-
-let apply_options options s =
-  List.fold options ~init:s ~f:(fun s f -> f s)
-
-let print ?(options=[]) f = fun s -> f s |> apply_options options |> printf "%s"
-
-let pp ?(options=[]) f = fun fmt s -> f s |> apply_options options |> Format.fprintf fmt "%s"
-
-
-
 let rec insert_colors str =
   match String.lsplit2 ~on:'$' str with
   | None -> str
@@ -30,7 +15,7 @@ and marker = function
   | "blue" -> "\027[34m"
   | "magenta" -> "\027[35m"
   | "cyan" -> "\027[36m"
-  | _ -> failwith "Unrecognized marker."
+  | s -> failwith (sprintf "Unrecognized marker %s." s)
 
 let rec defancy str =
   match String.lsplit2 ~on:'\027' str with
@@ -48,6 +33,26 @@ let fancy_format format =
 (** sprintf variant that recognizes markers for colored output.*)
 let fancy_sprintf format = sprintf (fancy_format format)
 
-
 let test () = let mystr = fancy_sprintf "$cyan$%.3f$$" 1.0 in
   fancy_length mystr, String.length "1.000"
+
+let dim to_dim string =
+  String.concat_map string ~f:(fun c ->
+      if String.contains to_dim c
+      then sprintf "\027[2m%c\027[0m" c
+      else sprintf "%c" c)
+
+let colorize color to_colorize string =
+  String.concat_map string ~f:(fun c ->
+      if String.contains to_colorize c
+      then fancy_sprintf "%s%c$$" (marker color) c
+      else sprintf "%c" c)
+
+let apply_options options s =
+  List.fold options ~init:s ~f:(fun s f -> f s)
+
+let print ?(options=[]) f = fun s -> f s |> apply_options options |> printf "%s"
+
+let pp ?(options=[]) f = fun fmt s -> f s |> apply_options options |> Format.fprintf fmt "%s"
+
+

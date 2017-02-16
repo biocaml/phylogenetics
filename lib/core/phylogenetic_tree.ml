@@ -184,7 +184,7 @@ type pp_aux = {
 
 let to_pretty_string tree =
   let mysprintf = Utils.fancy_sprintf in
-  let mylength s = let l = Utils.fancy_length s in printf "LENGTH:%d\n" l ; l in
+  let mylength = Utils.fancy_length in
 
   let indent sep str =
     String.rstrip str
@@ -203,7 +203,7 @@ let to_pretty_string tree =
         let difffl, maxfl = abs (l1_l - l2_l), max l1_l l2_l in
         let total, stem = maxfl+5, (aux1.stem + aux1.size + aux2.stem)/2 in
         let stem_string l_s symbol = String.init (difffl+6) ~f:(function
-            | 0 -> symbol | 2 -> '$' | _ -> '-'
+            | 0 -> symbol | 3 -> '$' | _ -> '-'
           ) |> String.concat_map ~f:(function '$'->l_s | c -> String.init 1 ~f:(fun _->c)) in
         let stemup, stemdown = stem_string l1_s '/', stem_string l2_s '\\' in
         let indent_string compare bound stem i =
@@ -220,7 +220,7 @@ let to_pretty_string tree =
           size = aux1.size + aux2.size ;
           stem
         }
-  in (aux tree).text
+  in (aux tree).text |> Utils.colorize "red" "-|<>/\\"
 
 let pp = Utils.pp to_pretty_string
 

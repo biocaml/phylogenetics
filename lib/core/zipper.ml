@@ -311,4 +311,4 @@ let to_pretty_string =
 
 let pp = Utils.pp to_pretty_string
 
-let print = Utils.print ~options:[Utils.dim "/\\|-<>"] to_pretty_string
+let print = Utils.print to_pretty_string
