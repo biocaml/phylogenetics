@@ -183,6 +183,9 @@ type pp_aux = {
 }
 
 let to_pretty_string tree =
+  let mysprintf = Utils.fancy_sprintf in
+  let mylength s = let l = Utils.fancy_length s in printf "LENGTH:%d\n" l ; l in
+
   let indent sep str =
     String.rstrip str
     |> String.split_lines
@@ -192,19 +195,17 @@ let to_pretty_string tree =
     |> String.concat ~sep:"\n"
 
   in let rec aux = function
-      | Leaf {index=i; _} -> {text = sprintf "<%s>" i; size=1; stem=0}
+      | Leaf {index=i; _} -> {text = mysprintf "<$blue$%s$$>" i; size=1; stem=0}
       | Node {left=l1,l; right=l2,r; _} ->
         let aux1, aux2 = aux l, aux r in
-        let l1_s, l2_s = sprintf "%.3f" l1, sprintf "%.3f" l2 in
-        let l1_l, l2_l = String.length l1_s, String.length l2_s in
-        let maxfl = max l1_l l2_l in
+        let l1_s, l2_s = mysprintf "$cyan$%.3f$$" l1, mysprintf "$cyan$%.3f$$" l2 in
+        let l1_l, l2_l = mylength l1_s, mylength l2_s in
+        let difffl, maxfl = abs (l1_l - l2_l), max l1_l l2_l in
         let total, stem = maxfl+5, (aux1.stem + aux1.size + aux2.stem)/2 in
-        let stem_string l_l l_s symbol = String.init total ~f:(function
-            | 0 -> symbol
-            | x when x>2 && x<(3+l_l) -> l_s.[x-3]
-            | _ -> '-'
-          ) in
-        let stemup, stemdown = stem_string l1_l l1_s '/', stem_string l2_l l2_s '\\' in
+        let stem_string l_s symbol = String.init (difffl+6) ~f:(function
+            | 0 -> symbol | 2 -> '$' | _ -> '-'
+          ) |> String.concat_map ~f:(function '$'->l_s | c -> String.init 1 ~f:(fun _->c)) in
+        let stemup, stemdown = stem_string l1_s '/', stem_string l2_s '\\' in
         let indent_string compare bound stem i =
           if compare i bound then String.make total ' '
           else if i = bound then stem
@@ -223,4 +224,4 @@ let to_pretty_string tree =
 
 let pp = Utils.pp to_pretty_string
 
-let print = Utils.print ~options:[Utils.dim "/\\|-<>"] to_pretty_string
+let print = Utils.print to_pretty_string
