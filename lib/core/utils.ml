@@ -1,13 +1,7 @@
 open Core_kernel.Std
 open Printf
 
-let rec insert_colors str =
-  match String.lsplit2 ~on:'$' str with
-  | None -> str
-  | Some (beg, en) -> beg ^ (match String.lsplit2_exn ~on:'$' en with
-      | m, en2 -> (marker m) ^ (insert_colors en2)
-    )
-and marker = function
+let marker = function
   | "" -> "\027[0m"
   | "red" -> "\027[31m"
   | "green" -> "\027[32m"
@@ -16,6 +10,13 @@ and marker = function
   | "magenta" -> "\027[35m"
   | "cyan" -> "\027[36m"
   | s -> failwith (sprintf "Unrecognized marker %s." s)
+
+let rec insert_colors str =
+  match String.lsplit2 ~on:'$' str with
+  | None -> str
+  | Some (beg, en) -> beg ^ (match String.lsplit2_exn ~on:'$' en with
+      | m, en2 -> (marker m) ^ (insert_colors en2)
+    )
 
 let rec defancy str =
   match String.lsplit2 ~on:'\027' str with
@@ -51,8 +52,8 @@ let colorize color to_colorize string =
 let apply_options options s =
   List.fold options ~init:s ~f:(fun s f -> f s)
 
-let print ?(options=[]) f = fun s -> f s |> apply_options options |> printf "%s"
+let print ?(options=[]) f = fun s -> f s |> defancy |> apply_options options |> printf "%s"
+
+let print_fancy ?(options=[]) f = fun s -> f s |> apply_options options |> printf "%s"
 
 let pp ?(options=[]) f = fun fmt s -> f s |> apply_options options |> Format.fprintf fmt "%s"
-
-
