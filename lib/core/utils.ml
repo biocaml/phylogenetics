@@ -56,4 +56,4 @@ let print ?(options=[]) f = fun s -> f s |> defancy |> apply_options options |> 
 
 let print_fancy ?(options=[]) f = fun s -> f s |> apply_options options |> printf "%s"
 
-let pp ?(options=[]) f = fun fmt s -> f s |> apply_options options |> Format.fprintf fmt "%s"
+let pp ?(options=[]) f = fun fmt s -> f s |> defancy |> apply_options options |> Format.fprintf fmt "%s"
