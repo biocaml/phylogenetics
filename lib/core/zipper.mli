@@ -60,11 +60,11 @@ val location: t -> location_type
 
 (** {6 Movement} *)
 
+val goto: t -> int -> t
+
+val init_routing: t -> t
+
 val left: oriented_zipper -> direction
-
-val right: oriented_zipper -> direction
-
-val slide: t -> direction -> float -> t
 
 val move: t -> direction -> t
 
@@ -72,11 +72,11 @@ val move_left: oriented_zipper -> oriented_zipper
 
 val move_right: oriented_zipper -> oriented_zipper
 
-val goto: t -> int -> t
-
 val random_node: t -> t
 
-val init_routing: t -> t
+val right: oriented_zipper -> direction
+
+val slide: t -> direction -> float -> t
 
 
 (** {6 Pretty printing} *)
