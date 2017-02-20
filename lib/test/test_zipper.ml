@@ -5,17 +5,17 @@ open Alcotest
 
 
 (** {6 Test input parameters} *)
-(*
-/--0.200--/--0.400--<T0>
-|         \--0.300--<T1>
-\--0.100--<T2>*)
+
+(*/--0.200--/--0.400--<T0>
+  |         \--0.300--<T1>
+  \--0.100--<T2>*)
 let mytree = Phylogenetic_tree.of_preorder "0.2;0.1;0.4;0.3;0;1;2"
 let mybranches = Phylogenetic_tree.[of_preorder "0.4;0.3;0;1"; of_preorder "2"]
-(*
-/--0.200--<T0>
-\--0.200--/--0.300--<T1>
-          \--0.300--<T2>*)
-let myothertree = Phylogenetic_tree.of_preorder "0.2;0.2;0;0.3;0.3;1;2"
+
+(*/--0.200--<T0>
+  \--0.200--/--0.300--<T1>
+            \--0.300--<T2>*)
+let myothertree = Phylogenetic_tree.of_preorder "0.2;0.2;0;0.3;0.3;1;1"
 
 
 (** {6 Test functions} *)
