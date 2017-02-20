@@ -227,7 +227,7 @@ let get_index = function
 
 (* assumes a correct routing table *)
 let random_node z =
-  (get_meta z).routing |> List.length |> fun x -> (Random.int (x-1))+1 |> goto z
+(get_meta z).routing |> List.length |> fun x -> (Random.int (x-1))+1 |> goto z
 
 
 (* ======================= *)
@@ -263,17 +263,17 @@ let get_tree z d = match get_branch z d with _, t -> t
 (* ============ *)
 let equal z1 z2 = match z1, z2 with
   | ZipLeaf {index=i; b0=b,t; _}, ZipLeaf {index=i2; b0=b2,t2; _} ->
-    Phylogenetic_tree.(i=i2 && (get_meta t).id = (get_meta t2).id && b=b2)
+    Phylogenetic_tree.equal t t2 && b = b2 && i = i2
   | ZipBranch {b0=b00,t00; b1=b01,t01; _}, ZipBranch {b0=b10,t10; b1=b11,t11; _} ->
     Phylogenetic_tree.(
-      (get_meta t00).id = (get_meta t10).id && b00 = b10 &&
-      (get_meta t01).id = (get_meta t11).id && b01 = b11
+      equal t00 t10 && b00 = b10 &&
+      equal t01 t11 && b01 = b11
     )
   | ZipNode {b0=b00,t00; b1=b01,t01; b2=b02,t02; _}, ZipNode {b0=b10,t10; b1=b11,t11; b2=b12,t12; _} ->
     Phylogenetic_tree.(
-      (get_meta t00).id = (get_meta t10).id && b00 = b10 &&
-      (get_meta t01).id = (get_meta t11).id && b01 = b11 &&
-      (get_meta t02).id = (get_meta t12).id && b02 = b12
+      equal t00 t10 && b00 = b10 &&
+      equal t01 t11 && b01 = b11 &&
+      equal t02 t12 && b02 = b12
     )
   | ZipLeaf _, ZipBranch _ | ZipLeaf _, ZipNode _ |
     ZipBranch _, ZipLeaf _ | ZipBranch _, ZipNode _ |
