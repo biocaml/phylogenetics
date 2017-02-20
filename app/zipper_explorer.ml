@@ -15,7 +15,7 @@ let zipper_explorer z =
     | ["random_node"] -> random_node z |> display
     | ["exit"] -> ()
     | _ -> help z
-  and help z = printf "Available commands:\n* move dir\n* slide dir len\n* goto int\n* exit\n" ; prompt z
+  and help z = printf "Available commands:\n* move dir\n* slide dir len\n* goto int\n* random_node\n* exit\n" ; prompt z
   and display z = print_fancy z ; flush_all () ; prompt z
   and prompt z = printf "Type a command: " ; flush_all () ;
     let c = get_command () in
