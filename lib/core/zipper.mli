@@ -1,3 +1,7 @@
+(** Zipper type for fast operations on large phylogenetic trees. *)
+
+(** {6 Types} *)
+
 type t
 
 type branch = float * Phylogenetic_tree.t
@@ -14,11 +18,47 @@ type location_type =
 
 type oriented_zipper
 
+
+(** {6 Creation / conversion} *)
+
+val of_tree: Phylogenetic_tree.t -> t
+
+val of_tree_dir: Phylogenetic_tree.t -> oriented_zipper
+
+val to_tree: t -> Phylogenetic_tree.t
+
+val orient: t -> direction -> oriented_zipper
+
+val unorient: oriented_zipper -> t
+
+
+(** {6 Constructors / object manipulation} *)
+
 val string_of_dir: direction -> string
 
 val dir_of_string: string -> direction
 
+
+(** {6 Observation} *)
+
+val equal: t -> t -> bool
+
+val get_branch: t -> direction -> branch
+
+val get_index: t -> Sigs.index
+
+val get_length: t -> direction -> float
+
+val get_tree: t -> direction -> Phylogenetic_tree.t
+
+val length_left: oriented_zipper -> float
+
+val length_right: oriented_zipper -> float
+
 val location: t -> location_type
+
+
+(** {6 Movement} *)
 
 val left: oriented_zipper -> direction
 
@@ -32,35 +72,14 @@ val move_left: oriented_zipper -> oriented_zipper
 
 val move_right: oriented_zipper -> oriented_zipper
 
-val orient: t -> direction -> oriented_zipper
-
-val unorient: oriented_zipper -> t
-
-val init_routing: t -> t
-
 val goto: t -> int -> t
-
-val get_length: t -> direction -> float
-
-val length_left: oriented_zipper -> float
-
-val length_right: oriented_zipper -> float
-
-val get_index: t -> Sigs.index
 
 val random_node: t -> t
 
-val of_tree: Phylogenetic_tree.t -> t
+val init_routing: t -> t
 
-val of_tree_dir: Phylogenetic_tree.t -> oriented_zipper
 
-val to_tree: t -> Phylogenetic_tree.t
-
-val get_branch: t -> direction -> branch
-
-val get_tree: t -> direction -> Phylogenetic_tree.t
-
-val equal: t -> t -> bool
+(** {6 Pretty printing} *)
 
 val pp: Format.formatter -> t -> unit
 
