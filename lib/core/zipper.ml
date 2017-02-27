@@ -291,7 +291,7 @@ let to_pretty_string =
 
   let string_of_branch z d =
     match get_branch z d with l,t ->
-      Phylogenetic_tree.pp Format.str_formatter t ;
+      Phylogenetic_tree.pp_fancy Format.str_formatter t ;
       Format.flush_str_formatter () |> indent (Utils.fancy_sprintf "|    ") |>
       Utils.fancy_sprintf "<$green$Branch$$> $magenta$%s$$ length=$cyan$%.3f$$ [$yellow$%d$$]\n|\n%s|"
         (string_of_dir d) l (Phylogenetic_tree.get_meta t).id
@@ -310,8 +310,4 @@ let to_pretty_string =
         (string_of_branch z Dir1 |> indent "  ")
         (string_of_branch z Dir2 |> indent "  ")
 
-let pp = Utils.pp to_pretty_string
-
-let print = Utils.print to_pretty_string
-
-let print_fancy = Utils.print_fancy to_pretty_string
+let pp, pp_fancy, print, print_fancy = Utils.all_printers to_pretty_string

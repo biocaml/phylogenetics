@@ -71,6 +71,8 @@ val equal: t -> t -> bool
 
 val pp: Format.formatter -> t -> unit
 
+val pp_fancy: Format.formatter -> t -> unit
+
 val print: t -> unit
 
 val print_fancy: t -> unit 

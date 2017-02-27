@@ -222,8 +222,4 @@ let to_pretty_string tree =
         }
   in (aux tree).text |> Utils.colorize "red" "-|<>/\\"
 
-let pp = Utils.pp to_pretty_string
-
-let print = Utils.print to_pretty_string
-
-let print_fancy = Utils.print_fancy to_pretty_string
+let pp, pp_fancy, print, print_fancy = Utils.all_printers to_pretty_string

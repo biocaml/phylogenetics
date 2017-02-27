@@ -52,8 +52,12 @@ let colorize color to_colorize string =
 let apply_options options s =
   List.fold options ~init:s ~f:(fun s f -> f s)
 
-let print ?(options=[]) f = fun s -> f s |> defancy |> apply_options options |> printf "%s"
+let print f = fun s -> f s |> defancy |> printf "%s"
 
 let print_fancy ?(options=[]) f = fun s -> f s |> apply_options options |> printf "%s"
 
-let pp ?(options=[]) f = fun fmt s -> f s |> defancy |> apply_options options |> Format.fprintf fmt "%s"
+let pp f = fun fmt s -> f s |> defancy |> Format.fprintf fmt "%s"
+
+let pp_fancy ?(options=[]) f = fun fmt s -> f s |> apply_options options |> Format.fprintf fmt "%s"
+
+let all_printers ?(options=[]) f = pp f, pp_fancy ~options f, print f, print_fancy ~options f
