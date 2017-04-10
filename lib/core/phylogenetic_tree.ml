@@ -46,6 +46,7 @@ let get_routing_no t = (get_meta t).routing_no
 let of_newick str =
   let rec aux = function
     | Newick.Node (l::r::[],_) -> build_node (branch l) (branch r)
+    | Newick.Node (l::r::_,_) -> Printf.printf "WARNING: non-binary newick tree (some branches will be missing)!\n" ; build_node (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
   and branch = function

@@ -17,6 +17,7 @@ tree:
 | itree SEMICOLON { $1 }
 
 itree:
+| LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN FLOAT { Node (branches, None) }
 | LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN i = BOOT { Node (branches, Some i) }
 | LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN { Node (branches, None) }
 ;
