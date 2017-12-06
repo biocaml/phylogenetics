@@ -1,8 +1,9 @@
-open Core.Std
+open Core
 open Alcotest
-open Biocaml_phylogeny_core.Linear_algebra_tools
-open Biocaml_phylogeny_core.Stat_tools
+open Biocaml_phylogeny.Linear_algebra_tools
+open Biocaml_phylogeny.Stat_tools
 
+let eps = 0.1
 
 (* ============= *)
 (*  COMPARISONS  *)
@@ -15,12 +16,12 @@ let float_compare p f1 f2 =
   diff/.(Pervasives.abs_float f1) <= p
 
 let check_likelihood = (check @@ testable
-                          (pp Alcotest.float)
+                          (pp (Alcotest.float eps))
                           (float_compare 0.00001)
                        ) "identical log likelihoods!"
 
 let check_distrib ref_estim d =
-  (check @@ list (testable (pp Alcotest.float) (float_compare 0.05)))
+  (check @@ list (testable (pp (Alcotest.float eps)) (float_compare 0.05)))
     "Distributions with identical characteristics"
     ref_estim [sample_list_mean d]
 
@@ -34,7 +35,7 @@ let compare_matrices = check @@ testable pp_mat (compare 0.0001)
 (*  fails after printing the content of a file with a message*)
 let fail_file ?(path="tmp.data") message =
   Printf.sprintf "ERROR (bpp_interface): %s:\n%s"
-    message (In_channel.read_all path) |> prerr_endline; flush_all ();
+    message (In_channel.read_all path) |> prerr_endline; Out_channel.flush stdout;
   failwith message
 
 let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =

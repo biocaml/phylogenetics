@@ -1,4 +1,4 @@
-open Biocaml_phylogeny_core
+open Biocaml_phylogeny
 open Core_kernel.Std
 open Alcotest
 

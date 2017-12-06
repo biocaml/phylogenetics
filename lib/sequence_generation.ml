@@ -45,7 +45,7 @@ struct
       let raw = my_seqgen tree size in
       List.init (List.length raw) ~f:(
         fun i ->
-          List.Assoc.find_exn raw (Phylogenetic_tree.index_of_int i)
+          List.Assoc.find_exn ~equal:String.( = ) raw (Phylogenetic_tree.index_of_int i)
           |> Seq.of_list |> Seq.to_string
       )
 end

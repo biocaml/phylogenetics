@@ -1,7 +1,7 @@
 (** Various utility functions to be used in tests.
     Includes bio++ interfaces and Alcotest comparison functions. *)
 
-open Biocaml_phylogeny_core
+open Biocaml_phylogeny
 
 
 (** {6 Comparison functions (including Alcotest testables)} *)

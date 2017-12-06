@@ -1,0 +1,5 @@
+(jbuild_version 1)
+
+(library
+ ((name biocaml_phylogeny_test)
+  (libraries (alcotest biocaml_phylogeny))))

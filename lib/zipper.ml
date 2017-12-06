@@ -47,8 +47,8 @@ let right z = match location z.zipper, z.dir with
 (* ============== *)
 (*  CONSTRUCTORS  *)
 (* ============== *)
-let routing_set (t:routing_table) ~index:i ~move:m = List.Assoc.add t i m
-let routing_get (t:routing_table) ~index:i = List.Assoc.find_exn t i
+let routing_set (t:routing_table) ~index:i ~move:m = List.Assoc.add ~equal:Int.( = ) t i m
+let routing_get (t:routing_table) ~index:i = List.Assoc.find_exn ~equal:Int.( = ) t i
 
 let build_leaf ?(old_routing=[]) ?(me= -1) index (l,t0) =
   let routing = (* point only neighbour to current pos *)

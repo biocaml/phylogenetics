@@ -1,8 +1,9 @@
-open Core_kernel.Std
-open Biocaml_phylogeny_core
+open Core_kernel
+open Biocaml_phylogeny
 open Zipper
 open Alcotest
 
+let eps = 0.1
 
 (** {6 Test input parameters} *)
 
@@ -26,7 +27,7 @@ let test_of_tree_check_subtress () =
 
 let test_of_tree_check_lengths () =
   of_tree mytree |> (fun z -> [get_length z Dir0; get_length z Dir1]) |>
-  (check @@ slist float compare) "identical branch lengths" [0.1; 0.2]
+  (check @@ slist (float eps) compare) "identical branch lengths" [0.1; 0.2]
 
 let test_tree_and_back () =
   of_tree mytree |> to_tree |>

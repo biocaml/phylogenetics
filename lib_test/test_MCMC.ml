@@ -1,6 +1,6 @@
 open Core_kernel.Std
 open Alcotest
-open Biocaml_phylogeny_core
+open Biocaml_phylogeny
 open MCMC
 
 
