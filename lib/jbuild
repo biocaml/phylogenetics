@@ -1,8 +1,8 @@
 (jbuild_version 1)
 
 (library
- ((name biocaml_phylogeny)
-  (public_name biocaml_phylogeny)
+ ((name phylogenetics)
+  (public_name phylogenetics)
   (libraries (biocaml.ez core_kernel gnuplot lacaml pareto))))
 
 (menhir

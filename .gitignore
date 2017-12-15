@@ -6,3 +6,4 @@ _build
 *~
 test_data/new_xp.sh
 tmp*
+*.install
