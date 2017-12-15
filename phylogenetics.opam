@@ -16,7 +16,7 @@ depends: [
   "biocaml" {>= "0.8.0"}
   "jbuilder" {build & >= "1.0+beta16"}
   "gnuplot"
-  "lacaml"
+  "lacaml" {>= "10.0.2"}
   "ocamlfind" {build}
   "pareto"
   "menhir"

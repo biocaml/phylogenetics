@@ -1,7 +1,7 @@
 open Lacaml.D
 
-type mat = Lacaml_float64.mat
-type vec = Lacaml_float64.vec
+type mat = Lacaml__Float64.mat
+type vec = Lacaml__Float64.vec
 
 let init_mat size f = Mat.init_rows size size f
 
