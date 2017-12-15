@@ -1,7 +1,7 @@
 %{
     (* http://evolution.genetics.washington.edu/phylip/newicktree.html *)
     open Printf
-    open Newick
+    open Newick_types
 %}
 
 %token <float> FLOAT
@@ -10,7 +10,7 @@
 %token COMMA COLON SEMICOLON LPAREN RPAREN
 
 %start tree
-%type <Newick.tree> tree
+%type <Newick_types.tree> tree
 
 %%
 tree:
