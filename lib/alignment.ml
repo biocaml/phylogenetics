@@ -1,6 +1,6 @@
-open Sigs
+open Core_kernel
 open Biocaml_ez (* for fasta parsing *)
-open Core_kernel.Std
+open Sigs
 
 
 module Make (S:SEQUENCE) = struct

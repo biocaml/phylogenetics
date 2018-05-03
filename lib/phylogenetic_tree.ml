@@ -1,8 +1,4 @@
-open Core_kernel.Std
-open Printf
-
-let _ = Random.self_init ()
-
+open Core_kernel
 
 (* ======= *)
 (*  TYPES  *)
@@ -70,7 +66,7 @@ let of_newick str =
     |> failwith
 
 let of_newick_file path =
-  Core_kernel.Std.In_channel.read_all path
+  In_channel.read_all path
   |> of_newick
 
 (* Generation of tree from post-order enumeration of nodes

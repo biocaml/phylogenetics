@@ -1,6 +1,5 @@
 %{
     (* http://evolution.genetics.washington.edu/phylip/newicktree.html *)
-    open Printf
     open Newick_types
 %}
 

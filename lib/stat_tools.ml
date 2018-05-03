@@ -1,4 +1,4 @@
-open Core_kernel.Std
+open Core_kernel
 open Gnuplot
 open Pareto
 
@@ -19,7 +19,7 @@ let sample_list_of_file path =
 
 let sample_list_extrema d =
   match
-    List.min_elt ~cmp:Float.compare d, List.max_elt ~cmp:Float.compare d
+    List.min_elt ~compare:Float.compare d, List.max_elt ~compare:Float.compare d
   with
     (Some mi, Some ma) -> (mi, ma) | _ -> failwith "empty input distribution"
 

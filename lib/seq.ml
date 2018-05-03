@@ -1,5 +1,5 @@
+open Core_kernel
 open Sigs
-open Core_kernel.Std
 
 module Make (B:BASE) = struct
   type base = B.t

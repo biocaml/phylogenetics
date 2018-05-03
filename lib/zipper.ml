@@ -1,5 +1,4 @@
-open Printf
-open Core_kernel.Std
+open Core_kernel
 open Phylogenetic_tree
 
 

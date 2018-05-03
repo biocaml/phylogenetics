@@ -1,5 +1,4 @@
-open Core_kernel.Std
-open Printf
+open Core_kernel
 
 let marker = function
   | "" -> "\027[0m"

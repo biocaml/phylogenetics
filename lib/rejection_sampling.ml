@@ -1,4 +1,4 @@
-open Core_kernel.Std
+open Core_kernel
 
 module Make (E:Sigs.EVOL_MODEL) = struct
   include Sequence_generation.Make (E)

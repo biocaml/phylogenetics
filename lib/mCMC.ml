@@ -1,4 +1,4 @@
-open Core_kernel.Std
+open Core_kernel
 
 let accept p =
   Random.float 1.0 <= p
