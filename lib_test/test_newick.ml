@@ -1,5 +1,5 @@
-open Biocaml_phylogeny
-open Core_kernel.Std
+open Phylogenetics
+open Core_kernel
 open Alcotest
 
 let f s =

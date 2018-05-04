@@ -1,5 +1,5 @@
 open Core_kernel
-open Biocaml_phylogeny
+open Phylogenetics
 open Zipper
 open Alcotest
 

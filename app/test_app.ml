@@ -1,5 +1,5 @@
 open Alcotest
-open Biocaml_phylogeny_test
+open Phylogenetics_test
 
 let () =
   Alcotest.run "All tests" [

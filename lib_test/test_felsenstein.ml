@@ -2,9 +2,9 @@
     to check correctness. A variety of models and problem sizes are used to generate
     trees and alignments which are submitted to our felsenstein implementation and
     bppml.*)
-open Biocaml_phylogeny
+open Phylogenetics
 open Alcotest
-open Core_kernel.Std
+open Core_kernel
 
 
 (** {6 Preliminary functions} *)

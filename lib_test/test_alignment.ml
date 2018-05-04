@@ -1,5 +1,5 @@
-open Core_kernel.Std
-open Biocaml_phylogeny
+open Core_kernel
+open Phylogenetics
 open Alcotest
 
 

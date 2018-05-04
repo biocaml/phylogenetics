@@ -1,6 +1,6 @@
-open Core_kernel.Std
+open Core_kernel
 open Alcotest
-open Biocaml_phylogeny
+open Phylogenetics
 open Rejection_sampling
 
 

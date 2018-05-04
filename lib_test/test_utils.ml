@@ -1,7 +1,7 @@
 open Core
 open Alcotest
-open Biocaml_phylogeny.Linear_algebra_tools
-open Biocaml_phylogeny.Stat_tools
+open Phylogenetics.Linear_algebra_tools
+open Phylogenetics.Stat_tools
 
 let eps = 0.1
 

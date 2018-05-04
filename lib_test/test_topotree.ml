@@ -1,5 +1,5 @@
-open Core_kernel.Std
-open Biocaml_phylogeny.Phylogenetic_tree
+open Core_kernel
+open Phylogenetics.Phylogenetic_tree
 open Alcotest
 
 
@@ -22,7 +22,7 @@ let mytree = Node {
 
 let test_of_preorder () =
   of_preorder "0.135;0.23;0.11;0.18;0;1;2" |>
-  (check @@ testable Biocaml_phylogeny.Phylogenetic_tree.pp (=)) "identical trees" mytree
+  (check @@ testable Phylogenetics.Phylogenetic_tree.pp (=)) "identical trees" mytree
 
 
 (** {6 Test list} *)
