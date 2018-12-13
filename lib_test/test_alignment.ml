@@ -20,7 +20,7 @@ let test_of_string_list () =
   (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
 let test_of_fasta () =
-  Align.of_fasta "test_data/tiny1.fasta" |>
+  Align.of_fasta "../test_data/tiny1.fasta" |>
   (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
 let test_get_base () =

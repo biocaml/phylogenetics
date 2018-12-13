@@ -10,3 +10,8 @@
  (modules test_app)
  (libraries alcotest phylogenetics_test)
  (preprocess (pps ppx_jane)))
+
+(alias
+ (name   runtest)
+ (action (run ./test_app.exe))
+ (deps ../test_data/tiny1.fasta))
