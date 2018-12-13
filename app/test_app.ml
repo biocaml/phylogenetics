@@ -1,4 +1,3 @@
-open Alcotest
 open Phylogenetics_test
 
 let () =

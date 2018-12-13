@@ -1,6 +1,5 @@
 open Phylogenetics
 open Core_kernel
-open Alcotest
 
 let f s =
   let buf = Lexing.from_string s in

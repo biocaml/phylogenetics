@@ -3,7 +3,6 @@
     trees and alignments which are submitted to our felsenstein implementation and
     bppml.*)
 open Phylogenetics
-open Alcotest
 open Core_kernel
 
 
