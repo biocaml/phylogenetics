@@ -1,0 +1,12 @@
+(executable
+ (name phylosim)
+ (public_name phylosim)
+ (modules phylosim)
+ (libraries phylogenetics)
+ (preprocess (pps ppx_jane)))
+
+(executable
+ (name test_app)
+ (modules test_app)
+ (libraries alcotest phylogenetics_test)
+ (preprocess (pps ppx_jane)))

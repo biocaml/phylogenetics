@@ -1,0 +1,9 @@
+(library
+ (name phylogenetics)
+ (public_name phylogenetics)
+ (libraries biocaml.ez core_kernel gnuplot lacaml pareto))
+
+(menhir
+ (modules newick_parser))
+
+(ocamllex newick_lexer)

@@ -1,0 +1,3 @@
+(library
+ (name phylogenetics_test)
+ (libraries alcotest phylogenetics))
