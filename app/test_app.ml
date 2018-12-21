@@ -9,5 +9,6 @@ let () =
     "Models", Test_models.tests;
     "Felsenstein", Test_felsenstein.tests;
     "Rejection_sampling", Test_rejection_sampling.tests;
-    "MCMC", Test_MCMC.tests
+    "MCMC", Test_MCMC.tests ;
+    "Newick", Test_newick.tests ;
   ]

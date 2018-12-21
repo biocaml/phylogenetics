@@ -41,29 +41,21 @@ let get_routing_no t = (get_meta t).routing_no
 (* ======================= *)
 let of_newick str =
   let rec aux = function
-    | Newick.Node (l::r::[],_) -> build_node (branch l) (branch r)
-    | Newick.Node (l::r::_,_) ->
-      Printf.printf "WARNING: non-binary newick tree (some branches will be missing)!\n" ;
+    | Newick.Node { children = [] ; name } ->
+      build_leaf (Option.value ~default:"" name)
+    | Newick.Node { children = [ l ; r ] ; _ } ->
       build_node (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
   and branch = function
-    | {Newick.id=Some s; Newick.length=Some l; _} ->
-      l, build_leaf s
     | {Newick.length=Some l; Newick.tip=t; _} -> l, aux t
     | _ -> invalid_arg "Malformed branch in newick tree."
 
   in
   let mybuf = Lexing.from_string str in
-  try
-    Newick_parser.tree Newick_lexer.token mybuf |> aux
-  with
-  | Newick_parser.Error ->
-    let open Lexing in
-    let pos = mybuf.lex_curr_p in
-    sprintf "Parser error (%s:%d:%d)" pos.pos_fname
-      pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1)
-    |> failwith
+  match Newick_parser.start Newick_lexer.token mybuf with
+  | Tree t -> aux t
+  | Branch b -> aux b.tip
 
 let of_newick_file path =
   In_channel.read_all path
