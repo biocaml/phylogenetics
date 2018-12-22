@@ -40,15 +40,16 @@ let get_routing_no t = (get_meta t).routing_no
 (*  CREATION / CONVERSION  *)
 (* ======================= *)
 let of_newick str =
-  let rec aux = function
-    | Newick.Node { children = [] ; name } ->
+  let rec aux : Newick.tree -> t = function
+    | Tree.{ branches = [] ; node_data = { name } } ->
       build_leaf (Option.value ~default:"" name)
-    | Newick.Node { children = [ l ; r ] ; _ } ->
+    | Tree.{ branches = [ l ; r ] ; _ } ->
       build_node (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
-  and branch = function
-    | {Newick.length=Some l; Newick.tip=t; _} -> l, aux t
+  and branch (b : Newick_types.branch) =
+    match b.branch_data.length with
+    | Some l -> l, aux b.tip
     | _ -> invalid_arg "Malformed branch in newick tree."
 
   in

@@ -1,14 +1,14 @@
-type tree = Node of {
-    children : branch list ;
-    name : string option ;
-  }
+type node_info = { name : string option }
 
-and branch = {
+type branch_info = {
   length : float option ;
-  tip : tree ;
-  tags : tag list
+  tags : tag list ;
 }
-
 and tag = string * string
 
-and data = Tree of tree | Branch of branch
+type branch = (node_info, branch_info) Tree.branch
+type tree = (node_info, branch_info) Tree.t
+
+type data =
+    Tree of tree
+  | Branch of branch
