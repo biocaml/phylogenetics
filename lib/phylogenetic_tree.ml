@@ -47,7 +47,7 @@ let of_newick str =
       build_node (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
-  and branch (b : Newick_types.branch) =
+  and branch (b : Newick.branch) =
     match b.branch_data.length with
     | Some l -> l, aux b.tip
     | _ -> invalid_arg "Malformed branch in newick tree."

@@ -1,6 +1,6 @@
 open Core_kernel
 
-include Newick_types
+include Newick_ast
 
 let parse buf =
   try Newick_parser.start Newick_lexer.token buf

@@ -9,6 +9,6 @@ and tag = string * string
 type branch = (node_info, branch_info) Tree.branch
 type tree = (node_info, branch_info) Tree.t
 
-type data =
+type t =
     Tree of tree
   | Branch of branch

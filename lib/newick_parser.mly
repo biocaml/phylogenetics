@@ -1,6 +1,6 @@
 %{
     (* http://evolution.genetics.washington.edu/phylip/newicktree.html *)
-    open Newick_types
+    open Newick_ast
     let list_of_opt = Base.Option.value ~default:[]
 %}
 
@@ -9,7 +9,7 @@
 %token COMMA COLON SEMICOLON LPAREN RPAREN LBRACKET RBRACKET NHXTAG EQUAL
 
 %start start
-%type <Newick_types.data> start
+%type <Newick_ast.t> start
 
 %%
 start:

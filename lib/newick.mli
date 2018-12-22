@@ -1,4 +1,4 @@
-include module type of Newick_types
+include module type of Newick_ast
 
-val from_file : string -> data
-val from_string : string -> data
+val from_file : string -> t
+val from_string : string -> t
