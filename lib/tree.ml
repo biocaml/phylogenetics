@@ -26,6 +26,15 @@ let leaves t =
     )
   |> List.rev
 
+let rec map t ~node ~branch =
+  { node_data = node t.node_data ;
+    branches = List.map t.branches ~f:(map_branch ~node ~branch) }
+
+and map_branch b ~node ~branch = {
+  branch_data = branch b.branch_data ;
+  tip = map b.tip ~node ~branch ;
+}
+
 let propagate t ~root ~node ~branch =
   let rec inner parent_value parent_branch_value t =
     let node_data = node parent_value parent_branch_value in
@@ -38,4 +47,3 @@ let propagate t ~root ~node ~branch =
   in
   let branches = List.map t.branches ~f:(inner_branch root) in
   { node_data = root ; branches }
-  
