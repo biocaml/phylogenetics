@@ -15,8 +15,10 @@ rule token = parse
   | "&&NHX" { NHXTAG }
   | '=' { EQUAL }
 
-  | ['0'-'9']+ '.' ['0'-'9']* ('e' '-'? ['0'-'9']*)? as f
-               { FLOAT (float_of_string f) }
+  | ['0'-'9']+ as i
+               { INT i }
+  | ['0'-'9']+ ('.' ['0'-'9']*)? ('e' '-'? ['0'-'9']*)? as f
+               { FLOAT f }
 
   | ['A'-'Z''a'-'z''0'-'9''-''_''.']+ as lxm { STRING(lxm) }
 

@@ -4,7 +4,8 @@
     let list_of_opt = Base.Option.value ~default:[]
 %}
 
-%token <float> FLOAT
+%token <string> FLOAT
+%token <string> INT
 %token <string> STRING
 %token COMMA COLON SEMICOLON LPAREN RPAREN LBRACKET RBRACKET NHXTAG EQUAL
 
@@ -33,7 +34,7 @@ branch_with_length:
     {{ tip ; branch_data = { length = Some l ; tags = list_of_opt tags } }}
 ;
 
-length: COLON l = FLOAT { l }
+length: COLON l = FLOAT { float_of_string l }
 ;
 
 tags:
@@ -42,4 +43,6 @@ tags:
 
 tag:
 | key = STRING EQUAL data = STRING { (key, data) }
+| key = STRING EQUAL data = FLOAT { (key, data) }
+| key = STRING EQUAL data = INT { (key, data) }
 ;
