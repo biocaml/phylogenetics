@@ -34,7 +34,9 @@ branch_with_length:
     {{ tip ; branch_data = { length = Some l ; tags = list_of_opt tags } }}
 ;
 
-length: COLON l = FLOAT { float_of_string l }
+length:
+  | COLON l = FLOAT { float_of_string l }
+  | COLON l = INT { float_of_string l }
 ;
 
 tags:
