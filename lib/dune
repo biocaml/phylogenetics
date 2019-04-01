@@ -1,7 +1,9 @@
 (library
  (name phylogenetics)
  (public_name phylogenetics)
- (libraries biocaml.ez core_kernel gnuplot lacaml pareto))
+ (inline_tests)
+ (libraries biocaml.ez core_kernel gnuplot lacaml pareto)
+ (preprocess (pps ppx_inline_test)))
 
 (menhir
  (modules newick_parser))
