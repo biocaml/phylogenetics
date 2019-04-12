@@ -29,3 +29,9 @@ val pre :
   'c
 
 val leaves : ('a, 'b) t -> 'a list
+
+val node_prefix_synthesis :
+  ('a, 'b) t ->
+  init:'c ->
+  f:('c -> 'a -> 'd list -> 'c * 'd) ->
+  ('d, 'b) t

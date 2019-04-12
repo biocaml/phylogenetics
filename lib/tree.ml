@@ -47,3 +47,18 @@ let propagate t ~root ~node ~branch =
   in
   let branches = List.map t.branches ~f:(inner_branch root) in
   { node_data = root ; branches }
+
+let node_prefix_synthesis tree ~init ~f =
+  let rec loop tree ~init =
+    let state, children =
+      List.fold_right tree.branches ~init:(init, []) ~f:(fun b (acc, t) ->
+          let state, h = loop b.tip ~init:acc in
+          state, h :: t
+        )
+    in
+    let children_results = List.map children ~f:(fun n -> n.node_data) in
+    let branches = List.map2_exn tree.branches children ~f:(fun b n -> { b with tip = n }) in
+    let new_state, node_data = f state tree.node_data children_results in
+    new_state, { node_data ; branches }
+  in
+  snd (loop tree ~init)
