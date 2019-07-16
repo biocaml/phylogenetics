@@ -19,9 +19,17 @@ let rec pre t ~init ~node ~branch =
 and pre_branch b ~init ~node ~branch =
   pre b.tip ~init:(branch init b) ~node ~branch
 
+let map_leaves t ~root ~f =
+  pre t ~init:([], root) ~branch:(fun (acc, _) b -> acc, b.branch_data) ~node:(fun (acc, b) t ->
+      if t.branches = [] then (f t.node_data b :: acc, b)
+      else (acc, b)
+    )
+  |> fst
+  |> List.rev
+
 let leaves t =
   pre t ~init:[] ~branch:(fun acc _ -> acc) ~node:(fun acc t ->
-      if t.branches = [] then t.node_data :: acc
+      if t.branches = [] then (t.node_data :: acc)
       else acc
     )
   |> List.rev

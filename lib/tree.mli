@@ -30,6 +30,12 @@ val pre :
 
 val leaves : ('a, 'b) t -> 'a list
 
+val map_leaves :
+  ('a, 'b) t ->
+  root:'b ->
+  f:('a -> 'b -> 'c) ->
+  'c list
+
 val node_prefix_synthesis :
   ('a, 'b) t ->
   init:'c ->
