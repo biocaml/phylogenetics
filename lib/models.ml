@@ -86,7 +86,7 @@ module JC69 =
           else if i=j then 1.0
           else 0.0),
       (fun t -> init_mat 4 (fun i j ->
-           if i = j then match i with 1 -> 1.0 | _ -> Pervasives.exp (t *. -4./.3.)
+           if i = j then match i with 1 -> 1.0 | _ -> Stdlib.exp (t *. -4./.3.)
            else 0.0)),
       init_mat 4 (fun i j ->
           if i=1 then 0.25
@@ -128,8 +128,8 @@ module K80 =
       (fun t -> init_mat 4 (fun i j ->
            if i=j then match i with
              | 1 -> 1.0
-             | 2 -> Pervasives.exp (t *. (-4.)/.(k+.2.))
-             | _ -> Pervasives.exp (t *. (-2.*.k-.2.)/.(k+.2.))
+             | 2 -> Stdlib.exp (t *. (-4.)/.(k+.2.))
+             | _ -> Stdlib.exp (t *. (-2.*.k-.2.)/.(k+.2.))
            else 0.0)),
       init_mat 4 (fun i j -> match (i,j) with
           | (1,_) | (2,3) | (2,4) -> 0.25
