@@ -4,5 +4,5 @@
 open Sigs
 
 (** Main functor ; uses a hashtable. *)
-module Make (S:SEQUENCE):
+module Make (S : Seq.S):
   ALIGNMENT with type base = S.base and type sequence = S.t

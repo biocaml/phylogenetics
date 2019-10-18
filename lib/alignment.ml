@@ -1,9 +1,7 @@
 open Core_kernel
 open Biocaml_ez (* for fasta parsing *)
-open Sigs
 
-
-module Make (S:SEQUENCE) = struct
+module Make(S : Seq.S) = struct
   type base = S.base
   type sequence = S.t
   type index = string
@@ -21,7 +19,7 @@ module Make (S:SEQUENCE) = struct
     let align = String.Table.create ~size:(List.length l) () in
     (* arbitrarily indexes sequences by string Ti where i is an integer;
        this mimics the format used by bppseqgen *)
-    List.iteri ~f:(fun i s -> Hashtbl.add_exn ~key:(Printf.sprintf "T%d" i) ~data:(S.of_string s) align) l ;
+    List.iteri ~f:(fun i s -> Hashtbl.add_exn ~key:(Printf.sprintf "T%d" i) ~data:(S.of_string_exn s) align) l ;
     align
 
   let of_fasta filename =
@@ -29,7 +27,7 @@ module Make (S:SEQUENCE) = struct
     Fasta.with_file filename ~f:(fun _ stream -> (* using biocaml_ez to get a stream of fasta sequences *)
         CFStream.Stream.iter ~f:(fun item -> (* iterating on said stream *)
             (*  stream element is a record {sequence:string; description:string} *)
-            let data = S.of_string item.Fasta.sequence in
+            let data = S.of_string_exn item.Fasta.sequence in
             Hashtbl.add_exn ~key:item.Fasta.description ~data:data align) stream
       ) ;
     align

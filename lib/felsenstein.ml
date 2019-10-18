@@ -2,17 +2,34 @@ open Core_kernel
 open Phylogenetic_tree
 open Linear_algebra_tools
 
-module Make (E:Sigs.EVOL_MODEL) =
-struct
-  open E
+module type Base = sig
+  type t
+end
 
+module type Alignment = sig
+  type t
+  type base
+  val get_base : t -> seq:string -> pos:int -> base
+  val length : t -> int
+end
+
+module type Evol_model = sig
+  type t
+  type base
+  val eMt_mat : t -> float -> mat
+  val known_vector : base -> vec
+  val stat_dist_vec : t -> vec
+end
+
+module Make(Base : Base)(Align : Alignment with type base := Base.t)(E : Evol_model with type base := Base.t) =
+struct
   (* ======================= *)
   (* | Generic Felsenstein | *)
   (* ======================= *)
   let felsenstein_single ?(shift=fun _ _ v->v,0.0) param =
     (* First, specialize the eMt function to compute the diagonalization
        of the transition matrix once and for all. *)
-    let spec_eMt = eMt_mat param in
+    let spec_eMt = E.eMt_mat param in
 
     fun ~site tree seq ->
       let rec aux = function (* then, go recursively through the topology tree *)
@@ -22,7 +39,7 @@ struct
       (* On leaves, the probability vector is of the form (0,0,..,0,1,0,...0)
          where the position of the 1 is the position of the observed base. *)
       and leaf i = Align.get_base seq ~seq:i ~pos:site
-                   |> known_vector |> shift 0.0 0.0
+                   |> E.known_vector |> shift 0.0 0.0
       (* there is no need to shift here, but the function is called anyways in case
          shift does not return the vector directly*)
 
@@ -35,7 +52,7 @@ struct
                             it is allowed to divide the result and carry the log along the tree*)
 
       in let res_vec, res_shift = aux tree in
-      res_vec |> vec_vec_mul (stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
+      res_vec |> vec_vec_mul (E.stat_dist_vec param) |> sum_vec_elements |> log |> (+.) res_shift
         (* In the end, multiply result vector by the static distribution of the model,
         then sum elements to get the likelihood, then take its log and add the log shifts
         that were performed to avoid underflows. *)
