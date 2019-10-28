@@ -8,9 +8,9 @@ open Alcotest
 module DNA = Seq.DNA
 module Align = Alignment.Make (DNA)
 
-let mytab = Align.of_assoc_list Nucleotide.[("T0",DNA.of_list [A;T;T]);
-                                            ("T1",DNA.of_list [T;G;C]);
-                                            ("T2",DNA.of_list [G;T;C])]
+let mytab = Align.of_assoc_list Nucleotide.[("T0",DNA.of_list [a;t;t]);
+                                            ("T1",DNA.of_list [t;g;c]);
+                                            ("T2",DNA.of_list [g;t;c])]
 
 
 (** {6 Test functions} *)
@@ -24,8 +24,9 @@ let test_of_fasta () =
   (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
 let test_get_base () =
-  Align.get_base ~seq:"T1" ~pos:2 mytab |> Nucleotide.to_string |>
-  (check string) "get base from sequence" "C"
+  Align.get_base ~seq:"T1" ~pos:2 mytab
+  |> Nucleotide.to_char
+  |> check char "get base from sequence" 'C'
 
 
 (** {6 Test list} *)

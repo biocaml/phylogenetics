@@ -11,22 +11,23 @@ open Core_kernel
 (** Generates a random tree, a random sequence (using the provided model),
     runs both biocaml felsenstein and bppml, and checks that the results are identical*)
 let test_felsenstein
-    ?(model=(module Models.JC69:Sigs.EVOL_MODEL))
+    ?(model=(module Models.JC69:Models.S))
     ?(treesize=5)
     ?(seqsize=5)
     ?(param="")
     ()
   =
   let module M = (val model) in
-  let module F = Felsenstein.Make (M) in
-  let module SG = Sequence_generation.Make (M) in
+  let module Align = Alignment.Make(Seq.DNA) in
+  let module F = Felsenstein.Make(Nucleotide)(Align)(M) in
+  let module SG = Sequence_generation.Make(Nucleotide)(Seq.DNA)(Align)(M) in
   let param = M.of_string param in
   let tree = Phylogenetic_tree.make_random treesize in
-  let align =  SG.seqgen_string_list param tree seqsize |> M.Align.of_string_list in
+  let align =  SG.seqgen_string_list param tree seqsize |> Align.of_string_list in
   let my_result = F.felsenstein param tree align in
   let bpp_result = begin
     Phylogenetic_tree.to_newick_file tree "tmp.tree" ; (* TODO unique file name *)
-    M.Align.to_file align "tmp.seq" ;
+    Align.to_file align "tmp.seq" ;
     try
       Test_utils.felsenstein_bpp ~model:(Printf.sprintf "\"%s\"" (M.to_string param)) ~tree:("tmp.tree") "tmp.seq"
     with
@@ -35,9 +36,11 @@ let test_felsenstein
   Test_utils.check_likelihood my_result bpp_result
 
 (** Wrapper for test_felsenstein that uses the string to model identification using bpp format *)
-let test_felsenstein_str ?(model="JC69") ?(treesize=5) ?(seqsize=5) =
+let test_felsenstein_str ?(model="JC69") ?(treesize=5) ?(seqsize=5) () =
   let my_model = Models.of_string model in
-  test_felsenstein ~model:my_model.Models.model ~treesize ~seqsize ~param:my_model.Models.param
+  Option.iter my_model ~f:(fun model ->
+      test_felsenstein ~model:model.Models.model ~treesize ~seqsize ~param:model.Models.param ()
+    )
 
 
 (** {6 Test list} *)

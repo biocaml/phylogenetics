@@ -1,4 +1,4 @@
-open Core
+open Core_kernel
 open Alcotest
 open Phylogenetics.Linear_algebra_tools
 open Phylogenetics.Stat_tools
@@ -13,7 +13,7 @@ let eps = 0.1
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
 let float_compare p f1 f2 =
   let diff = f1-.f2 |> Float.abs in
-  diff /. (Float.abs f1) <= p
+  diff /. Float.abs f1 <= p
 
 let check_likelihood = (check @@ testable
                           (pp (Alcotest.float eps))

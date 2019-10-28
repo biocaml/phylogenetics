@@ -7,13 +7,13 @@ open Alcotest
 
 module DNA = Seq.DNA
 
-let myseq = DNA.of_list Nucleotide.[A;G;C;T]
+let myseq = DNA.of_list Nucleotide.[a;g;c;t]
 
 
 (** {6 Test functions} *)
 
 let test_of_string () =
-  DNA.of_string "AGCT" |>
+  DNA.of_string_exn "AGCT" |>
   (check @@ testable DNA.pp (=)) "identical sequences" myseq
 
 
