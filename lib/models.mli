@@ -17,6 +17,13 @@ module type S = sig
   val known_vector: Nucleotide.t -> vec
 end
 
+module type MODEL_WITH_DIAG = sig
+  type t
+  val transition_mat: t -> mat
+  val stat_dist_vec: t -> vec
+  val diag_mats: t -> mat * (float -> mat) * mat
+end
+
 (** Jukes-Cantor model with analytical diagonalization of transition matrix. *)
 module JC69 : S with type t = unit
 
@@ -24,7 +31,10 @@ module JC69 : S with type t = unit
 module JC69_generated : S with type t = unit
 
 (** K80 model with analytical diagonalization of transition matrix (parametrized by kappa) *)
-module K80 : S with type t = float
+module K80 : sig
+  include S with type t = float
+  include MODEL_WITH_DIAG with type t := t
+end
 
 (** K80 model with numerical diagonalization of transition matrix
     (needs to recompute for every value of kappa) *)

@@ -14,7 +14,7 @@ module type TRANSITION_MATRIX = sig
 end
 
 module type MODEL_WITH_DIAG = sig
-  include TRANSITION_MATRIX
+  type t
   val transition_mat: t -> mat
   val stat_dist_vec: t -> vec
   val diag_mats: t -> mat * (float -> mat) * mat
@@ -49,11 +49,9 @@ module type Base = sig
 end
 
 (** If possible, creates a model module from a transition matrix *)
-module Make_exp(Base : Base)(E : MODEL_WITH_DIAG with type base := Base.t) =
+module Make_exp(Base : Base)(E : MODEL_WITH_DIAG) =
 struct
   include E
-  module Seq = Seq.Make(Base)
-  module Align = Alignment.Make(Seq)
   let eMt_series e t = exp (scal_mat_mul (E.transition_mat e) t)
   let eMt_mat e =
     let diag_p, diag, diag_p_inv = E.diag_mats e in
@@ -75,7 +73,7 @@ module Make(Base : Base)(M : TRANSITION_MATRIX with type base := Base.t) = struc
       match diagonalize (transition_mat p) with
         a, b, c -> a, (fun t -> init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
   end
-
+  include M
   include Make_exp(Base)(Diag)
 end
 
@@ -90,9 +88,10 @@ module JC69_mat = struct
   let to_string _ = "JC69"
 end
 
-module JC69 =
-  Make_exp(Nucleotide)(struct
-    include JC69_mat
+module JC69 = struct
+  include JC69_mat
+  module Diagonalization = struct
+    type nonrec t = t
     let transition_mat () = init_mat 4 (fun i j ->
         transition () (Nucleotide.of_int_exn (i-1)) (Nucleotide.of_int_exn (j-1)) )
     let stat_dist_vec () = init_vec 4 (fun _->0.25)
@@ -109,7 +108,9 @@ module JC69 =
           if i=1 then 0.25
           else if i=j then 0.75
           else -0.25)
-  end)
+  end
+  include Make_exp(Nucleotide)(Diagonalization)
+end
 
 module JC69_generated = Make(Nucleotide)(JC69_mat)
 
@@ -128,9 +129,10 @@ module K80_mat = struct
 end
 
 
-module K80 =
-  Make_exp(Nucleotide)(struct
-    include K80_mat
+module K80 = struct
+  include K80_mat
+  module Diagonalization = struct
+    type nonrec t = t
     let transition_mat k = init_mat 4 (fun i j ->
         transition k (Nucleotide.of_int_exn (i-1)) (Nucleotide.of_int_exn (j-1)) )
     let stat_dist_vec _ = init_vec 4 (fun _->0.25)
@@ -151,7 +153,9 @@ module K80 =
           | (3,4) | (4,3) -> 0.5
           | (3,2) | (4,1) -> -0.5
           | _ -> 0.0)
-  end)
+  end
+  include Make_exp(Nucleotide)(Diagonalization)
+end
 
 module K80_generated = Make(Nucleotide)(K80_mat)
 
