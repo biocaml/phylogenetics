@@ -1,13 +1,14 @@
 open Core_kernel
+open Sigs
 
-module Make (E:Sigs.EVOL_MODEL) = struct
-  include Sequence_generation.Make (E)
-
+module Make(Align : ALIGNMENT) = struct
   let generate_trees ~(sampler:unit->Phylogenetic_tree.t) amount =
     List.init amount ~f:(fun _ -> sampler ())
 
-  let reject p align trees =
-    List.filter_map trees ~f:(fun t -> if Align.equal align (seqgen p t 1) then Some t else None)
+  let reject seqgen p align trees =
+    List.filter_map trees ~f:(fun t ->
+        if Align.equal align (seqgen p t 1) then Some t else None
+      )
 
   let mean_floats l =
     List.fold l ~init:0.0 ~f:(fun acc x -> acc +. x)
