@@ -135,22 +135,21 @@ module K80 =
         transition k (Nucleotide.of_int_exn (i-1)) (Nucleotide.of_int_exn (j-1)) )
     let stat_dist_vec _ = init_vec 4 (fun _->0.25)
     let diag_mats k =
-
       init_mat 4 (fun i j -> match (i,j) with
-          | (_,1) | (3,2) | (4,2) | (2,4) | (4,3) -> 1.0
-          | (1,2) | (2,2) | (1,4) | (3,3) -> -1.0
+          | (_,1) | (2,2) | (3,4) | (4,2) | (4,3) -> 1.0
+          | (1,2) | (2,3) | (1,4) | (3,2) -> -1.0
           | _ -> 0.0),
       (fun t -> init_mat 4 (fun i j ->
            if i=j then match i with
              | 1 -> 1.0
-             | 2 -> Stdlib.exp (t *. (-4.)/.(k+.2.))
-             | _ -> Stdlib.exp (t *. (-2.*.k-.2.)/.(k+.2.))
+             | 2 -> Stdlib.exp (t *. (-4.) /. (k +. 2.))
+             | _ -> Stdlib.exp (t *. (-2. *. k -. 2.) /. (k +. 2.))
            else 0.0)),
       init_mat 4 (fun i j -> match (i,j) with
-          | (1,_) | (2,3) | (2,4) -> 0.25
+          | (1,_) | (2,2) | (2,4) -> 0.25
           | (2,_) -> -0.25
-          | (3,4) | (4,2) -> 0.5
-          | (3,3) | (4,1) -> -0.5
+          | (3,4) | (4,3) -> 0.5
+          | (3,2) | (4,1) -> -0.5
           | _ -> 0.0)
   end)
 
