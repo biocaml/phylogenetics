@@ -8,6 +8,16 @@ and ('a, 'b) branch = {
   tip : ('a, 'b) t ;
 }
 
+val node :
+  'a ->
+  ('a, 'b) branch list ->
+  ('a, 'b) t
+
+val branch :
+  'b -> 
+  ('a, 'b) t ->
+  ('a, 'b) branch
+
 val map :
   ('a, 'b) t ->
   node:('a -> 'c) ->

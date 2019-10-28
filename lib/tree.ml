@@ -10,6 +10,9 @@ and ('a, 'b) branch = {
   tip : ('a, 'b) t ;
 }
 
+let node node_data branches = { node_data ; branches }
+let branch branch_data tip = { branch_data ; tip }
+
 let rec pre t ~init ~node ~branch =
   List.fold
     t.branches
