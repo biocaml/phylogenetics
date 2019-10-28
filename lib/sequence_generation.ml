@@ -1,21 +1,34 @@
 open Core_kernel
 open Sigs
 
-module Make (E:EVOL_MODEL) =
-struct
-  include E
+module type Base = sig
+  type t
+  val of_int_exn : int -> t
+end
 
+module type Sequence = sig
+  type t
+  type base
+  val to_string: t -> string
+  val of_list: base list -> t
+end
+
+module Make
+    (Base : Base)
+    (Seq : Sequence with type base = Base.t)
+    (Align : ALIGNMENT with type sequence = Seq.t)
+    (E : EVOL_MODEL with type base := Base.t) =
+struct
   let proba param =
-    let my_eMt = eMt_mat param in
-    fun base t -> Linear_algebra_tools.mat_vec_mul (my_eMt t) (known_vector base)
+    let my_eMt = E.eMt_mat param in
+    fun base t -> Linear_algebra_tools.mat_vec_mul (my_eMt t) (E.known_vector base)
 
   let draw_base vec =
-    let open Base in
     (* for all base check if x is smaller than transition proba,
        if yes return base else decrement x *)
     let rec aux i x =
       let proba = Linear_algebra_tools.get_vec vec i in
-      if x < proba then of_int (i-1)
+      if x < proba then Base.of_int_exn (i-1)
       else aux (i+1) (x-.proba)
     in
     Random.float 1.0 |> aux 1
@@ -29,7 +42,7 @@ struct
           aux l (List.map bl ~f:(fun b->draw_base (my_proba b t1)))
           @ aux r (List.map bl ~f:(fun b->draw_base (my_proba b t2)))
       in
-      List.init size ~f:(fun _->draw_base (stat_dist_vec param))
+      List.init size ~f:(fun _->draw_base (E.stat_dist_vec param))
       |> aux tree
 
   let seqgen param =
