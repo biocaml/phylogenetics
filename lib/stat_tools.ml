@@ -1,12 +1,7 @@
 open Core_kernel
 open Gnuplot
-open Pareto
 
 type sample_list = float list
-
-let sample_float_uniform ?(min=0.0) max () =
-  let my_dist = Distributions.Uniform.create ~lower:min ~upper:max in
-  Distributions.Uniform.quantile my_dist ~p:(Random.float 1.0)
 
 let sample_branch_lengths ~(branchs:int->bool) ~(sampler:unit->float) tree () =
   Phylogenetic_tree.get_branch_lengths tree

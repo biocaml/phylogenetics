@@ -2,8 +2,6 @@
 
 (** {6 Samplers} *)
 
-val sample_float_uniform: ?min:float -> float -> unit -> float
-
 val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> Phylogenetic_tree.t -> unit -> Phylogenetic_tree.t
 
 
