@@ -12,8 +12,8 @@ let eps = 0.1
 (* Function used to compare floats and tolerate relative imprecision.
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
 let float_compare p f1 f2 =
-  let diff = f1-.f2 |> Pervasives.abs_float in
-  diff/.(Pervasives.abs_float f1) <= p
+  let diff = f1-.f2 |> Float.abs in
+  diff /. (Float.abs f1) <= p
 
 let check_likelihood = (check @@ testable
                           (pp (Alcotest.float eps))
