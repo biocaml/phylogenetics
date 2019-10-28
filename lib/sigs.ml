@@ -50,14 +50,12 @@ end
     transition matrix diagonalization.*)
 module type EVOL_MODEL = sig
   type t
-  module Base:BASE
-  module Seq:SEQUENCE with type base=Base.t
-  module Align:ALIGNMENT with type base=Base.t and type sequence=Seq.t
-  val transition: t -> Base.t -> Base.t -> float
+  type base
+  val transition: t -> base -> base -> float
   val of_string: string -> t
   val to_string: t -> string
   val eMt_mat: t -> float -> mat
   val eMt_series: t -> float -> mat
   val stat_dist_vec: t -> vec
-  val known_vector: Base.t -> vec
+  val known_vector: base -> vec
 end
