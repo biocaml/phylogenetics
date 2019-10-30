@@ -1,4 +1,4 @@
-open Linear_algebra_tools
+open Linear_algebra_tools.Lacaml
 
 (* =================================== *)
 (*  SIGNATURES FOR FUNCTOR PARAMETERS  *)
@@ -52,12 +52,13 @@ end
 module Make_exp(Base : Base)(E : MODEL_WITH_DIAG) =
 struct
   include E
-  let eMt_series e t = exp (scal_mat_mul (E.transition_mat e) t)
+  let eMt_series e t = Mat.expm (scal_mat_mul (E.transition_mat e) t)
   let eMt_mat e =
     let diag_p, diag, diag_p_inv = E.diag_mats e in
-    fun t -> mult (mult diag_p (diag t)) diag_p_inv
-  let known_vector b = init_vec Base.card
-    @@ fun x -> if x = Base.to_int b + 1 then 1. else 0.
+    fun t -> Mat.mul (Mat.mul diag_p (diag t)) diag_p_inv
+  let known_vector b = Vec.init Base.card ~f:(fun x ->
+      if x = Base.to_int b + 1 then 1. else 0.
+    )
 end
 
 module Make(Base : Base)(M : TRANSITION_MATRIX with type base := Base.t) = struct
@@ -65,13 +66,13 @@ module Make(Base : Base)(M : TRANSITION_MATRIX with type base := Base.t) = struc
     include M
     (* LATools versions of things for convenience *)
     let transition_mat p =
-      init_mat Base.card (fun i j ->
+      Mat.init Base.card ~f:(fun i j ->
           transition p (Base.of_int_exn (i-1)) (Base.of_int_exn (j-1))
         )
     let stat_dist_vec p = stat_dist (transition_mat p)
     let diag_mats p =
-      match diagonalize (transition_mat p) with
-        a, b, c -> a, (fun t -> init_diag (scal_vec_mul_cpy b t |> unlog_vec)), c
+      match Mat.diagonalize (transition_mat p) with
+        a, b, c -> a, (fun t -> Mat.init_diag (scal_vec_mul_cpy b t |> Vec.exp)), c
   end
   include M
   include Make_exp(Base)(Diag)
@@ -92,19 +93,19 @@ module JC69 = struct
   include JC69_mat
   module Diagonalization = struct
     type nonrec t = t
-    let transition_mat () = init_mat 4 (fun i j ->
+    let transition_mat () = Mat.init 4 ~f:(fun i j ->
         transition () (Nucleotide.of_int_exn (i-1)) (Nucleotide.of_int_exn (j-1)) )
-    let stat_dist_vec () = init_vec 4 (fun _->0.25)
+    let stat_dist_vec () = Vec.init 4 ~f:(fun _ -> 0.25)
     let diag_mats () =
-      init_mat 4 (fun i j ->
+      Mat.init 4 ~f:(fun i j ->
           if j=1 then 1.0
           else if i=1 then -1.0
           else if i=j then 1.0
           else 0.0),
-      (fun t -> init_mat 4 (fun i j ->
+      (fun t -> Mat.init 4 ~f:(fun i j ->
            if i = j then match i with 1 -> 1.0 | _ -> Stdlib.exp (t *. -4./.3.)
            else 0.0)),
-      init_mat 4 (fun i j ->
+      Mat.init 4 ~f:(fun i j ->
           if i=1 then 0.25
           else if i=j then 0.75
           else -0.25)
@@ -133,21 +134,21 @@ module K80 = struct
   include K80_mat
   module Diagonalization = struct
     type nonrec t = t
-    let transition_mat k = init_mat 4 (fun i j ->
+    let transition_mat k = Mat.init 4 ~f:(fun i j ->
         transition k (Nucleotide.of_int_exn (i-1)) (Nucleotide.of_int_exn (j-1)) )
-    let stat_dist_vec _ = init_vec 4 (fun _->0.25)
+    let stat_dist_vec _ = Vec.init 4 ~f:(fun _->0.25)
     let diag_mats k =
-      init_mat 4 (fun i j -> match (i,j) with
+      Mat.init 4 ~f:(fun i j -> match (i,j) with
           | (_,1) | (2,2) | (3,4) | (4,2) | (4,3) -> 1.0
           | (1,2) | (2,3) | (1,4) | (3,2) -> -1.0
           | _ -> 0.0),
-      (fun t -> init_mat 4 (fun i j ->
+      (fun t -> Mat.init 4 ~f:(fun i j ->
            if i=j then match i with
              | 1 -> 1.0
              | 2 -> Stdlib.exp (t *. (-4.) /. (k +. 2.))
              | _ -> Stdlib.exp (t *. (-2. *. k -. 2.) /. (k +. 2.))
            else 0.0)),
-      init_mat 4 (fun i j -> match (i,j) with
+      Mat.init 4 ~f:(fun i j -> match (i,j) with
           | (1,_) | (2,2) | (2,4) -> 0.25
           | (2,_) -> -0.25
           | (3,4) | (4,3) -> 0.5

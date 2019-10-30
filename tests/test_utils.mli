@@ -12,7 +12,11 @@ val check_distrib: Stat_tools.sample_list -> Stat_tools.sample_list -> unit
 (** Compares two floats (which are supposed to be likelihood results) using the alcotest check *)
 val check_likelihood: float -> float -> unit
 
-val compare_matrices: string -> Linear_algebra_tools.mat -> Linear_algebra_tools.mat -> unit
+val compare_matrices:
+  string ->
+  Linear_algebra_tools.Lacaml.mat ->
+  Linear_algebra_tools.Lacaml.mat ->
+  unit
 
 
 (** {6 Interfaces for external runs of bppml.}

@@ -19,15 +19,17 @@ module Make
     (Align : ALIGNMENT with type sequence = Seq.t)
     (E : EVOL_MODEL with type base := Base.t) =
 struct
+  open Linear_algebra_tools.Lacaml
+
   let proba param =
     let my_eMt = E.eMt_mat param in
-    fun base t -> Linear_algebra_tools.mat_vec_mul (my_eMt t) (E.known_vector base)
+    fun base t -> mat_vec_mul (my_eMt t) (E.known_vector base)
 
   let draw_base vec =
     (* for all base check if x is smaller than transition proba,
        if yes return base else decrement x *)
     let rec aux i x =
-      let proba = Linear_algebra_tools.get_vec vec i in
+      let proba = Vec.get vec i in
       if x < proba then Base.of_int_exn (i-1)
       else aux (i+1) (x-.proba)
     in

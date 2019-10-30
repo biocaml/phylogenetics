@@ -1,7 +1,7 @@
 (** Functions that implement Felsenstein's "pruning" algorithm to compute
     likelihood of phylogenetic trees with known sequences at leaves.*)
 
-open Linear_algebra_tools
+open Linear_algebra_tools.Lacaml
 
 module type Base = sig
   type t
@@ -25,7 +25,7 @@ end
 module Make(Base : Base)(Align : Alignment with type base := Base.t)(E : Evol_model with type base := Base.t) : sig
 
   (** Single-site. felsenstein without underflow prevention. *)
-  val felsenstein_single : ?shift:(float -> float -> Linear_algebra_tools.vec -> Linear_algebra_tools.vec * float) ->
+  val felsenstein_single : ?shift:(float -> float -> vec -> vec * float) ->
     E.t -> site:int -> Phylogenetic_tree.t -> Align.t -> float
 
   (** Single-site felsenstein with underflow prevention (configure threshold through threshold parameter). *)

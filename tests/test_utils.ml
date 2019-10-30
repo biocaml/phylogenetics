@@ -1,6 +1,6 @@
 open Core_kernel
 open Alcotest
-open Phylogenetics.Linear_algebra_tools
+open Phylogenetics.Linear_algebra_tools.Lacaml
 open Phylogenetics.Stat_tools
 
 let eps = 0.1
@@ -25,7 +25,7 @@ let check_distrib ref_estim d =
     "Distributions with identical characteristics"
     ref_estim [sample_list_mean d]
 
-let compare_matrices = check @@ testable pp_mat (compare 0.0001)
+let compare_matrices = check @@ testable Mat.pp (Mat.compare ~tol:0.0001)
 
 
 (* ================ *)
