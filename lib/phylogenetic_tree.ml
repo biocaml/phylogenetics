@@ -136,6 +136,14 @@ let index_of_string s = s
 
 let index_of_int i = sprintf "T%d" i
 
+let to_tree t =
+  let rec tree = function
+    | Node n ->
+      Tree.binary_node n.meta (branch n.left) (branch n.right)
+    | Leaf l -> Tree.leaf (l.meta, l.index)
+  and branch (l, t) = Tree.branch l (tree t)
+  in
+  tree t
 
 (* ============================== *)
 (*  PARAMETERS / TRANSFORMATIONS  *)

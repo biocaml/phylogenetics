@@ -28,6 +28,7 @@ val to_newick_file: t -> string -> unit
 
 val to_dot: t -> string
 
+val to_tree : t -> (metadata, metadata * string, float) Tree.t
 
 (** {6 Parameters and transformations} *)
 
