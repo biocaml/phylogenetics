@@ -54,62 +54,66 @@ module Make(A : Alphabet)(L : Linalg) = struct
 
   let indicator ~i ~n = L.Vec.init n ~f:(fun j -> if i = j then 1. else 0.)
 
-  let pruning tree ~transition_matrix ~leaf_state ~root_frequencies =
-    let rec node (n : _ Tree.t) =
-      match n.branches with
-      | [] ->
-        let state = leaf_state n.node_data in
+  let pruning t ~transition_matrix ~leaf_state ~root_frequencies =
+    let rec tree (t : _ Tree.t) =
+      match t with
+      | Leaf l ->
+        let state = leaf_state l in
         indicator ~i:(A.to_int state) ~n:A.card
         |> SV.of_vec
-      | _ :: _ ->
-        List.map n.branches ~f:(fun b ->
-            SV.mat_vec_mul (transition_matrix b) (node b.tip)
+      | Node n ->
+        Non_empty_list.map n.branches ~f:(fun (Branch b) ->
+            SV.mat_vec_mul (transition_matrix b.data) (tree b.tip)
           )
+        |> Non_empty_list.to_list
         |> List.reduce_exn ~f:SV.mul
     in
-    let SV (v, carry) = SV.mul (node tree) (SV.of_vec root_frequencies) in
+    let SV (v, carry) = SV.mul (tree t) (SV.of_vec root_frequencies) in
     Float.log (Vec.sum v) +. carry
-    
 
-  let conditionial_likelihoods tree ~transition_matrix ~leaf_state =
-    let rec node (n : _ Tree.t) =
-      match n.branches with
-      | [] ->
-        let state = leaf_state n.node_data in
+  let conditionial_likelihoods t ~transition_matrix ~leaf_state =
+    let rec tree (t : _ Tree.t) =
+      match t with
+      | Leaf l ->
+        let state = leaf_state l in
         let cl = indicator ~i:(A.to_int state) ~n:A.card in
-        Tree.node (SV.of_vec cl) []
-        
-      | _ :: _ ->
-        let children = List.map n.branches ~f:branch in
+        Tree.leaf (SV.of_vec cl)
+
+      | Node n ->
+        let children = Non_empty_list.map n.branches ~f:branch in
         let cl =
-          List.map children ~f:Tree.(fun b ->
-            SV.mat_vec_mul b.branch_data b.tip.node_data
-          )
+          Non_empty_list.map children ~f:Tree.(fun (Branch b) ->
+            SV.mat_vec_mul b.data (Tree.data b.tip)
+            )
+          |> Non_empty_list.to_list
           |> List.reduce_exn ~f:SV.mul
         in
-        Tree.node cl children
-    and branch (b : _ Tree.branch) =
-      let mat = transition_matrix b in
-      Tree.branch mat (node b.tip)
+        Tree.Node { data = cl ; branches = children }
+    and branch ((Branch b) : _ Tree.branch) =
+      let mat = transition_matrix b.data in
+      Tree.branch mat (tree b.tip)
     in
-    node tree
+    tree t
 
-  let conditional_simulation tree ~root_frequencies ~choose =
-    let rec node (n : _ Tree.t) prior =
-      let SV (conditional_likelihood, _) = n.node_data in 
-      let state = 
+  let conditional_simulation t ~root_frequencies ~choose =
+    let rec tree (t : _ Tree.t) prior =
+      let SV (conditional_likelihood, _) = Tree.data t in
+      let state =
         Vec.mul prior conditional_likelihood
         |> choose
       in
-      Tree.node
-        state
-        (List.map n.branches ~f:(fun br -> branch br state))
-    and branch br parent_state =
-      let prior = Mat.row br.branch_data parent_state in
+      match t with
+      | Leaf _ -> Tree.leaf state
+      | Node n ->
+        let branches = Non_empty_list.map n.branches ~f:(fun br -> branch br state) in
+        Tree.node state branches
+
+    and branch (Branch br) parent_state =
+      let prior = Mat.row br.data parent_state in
       (* FIXME: lacaml is not good at getting a row (while it is for
          columns). Maybe change operations so that this operation is
          avoided? *)
-      Tree.branch br.branch_data (node br.tip prior)
+      Tree.branch br.data (tree br.tip prior)
     in
-    node tree root_frequencies
+    tree t root_frequencies
 end

@@ -16,27 +16,28 @@ let from_file fn =
 let from_string s =
   parse (Lexing.from_string s)
 
-let rec unparse_tree tree =
+let rec unparse_tree (tree : _ Tree.t) =
   let branches =
-    match tree.Tree.branches with
-    | [] -> ""
-    | xs ->
-      List.map xs ~f:unparse_branch
+    match tree with
+    | Leaf _ -> ""
+    | Node n ->
+      Non_empty_list.map n.branches ~f:unparse_branch
+      |> Non_empty_list.to_list
       |> String.concat ~sep:","
       |> sprintf "(%s)"
   in
-  let node = Option.value ~default:"" tree.node_data.name in
-  branches ^ node
+  let tree = Option.value ~default:"" (Tree.data tree).name in
+  branches ^ tree
 
-and unparse_branch b =
+and unparse_branch (Branch b) =
   let length =
     Option.value_map
-      b.Tree.branch_data.length
+      b.data.length
       ~default:""
       ~f:(sprintf ":%g")
   in
   let tags =
-    match b.branch_data.tags with
+    match b.data.tags with
     | [] -> ""
     | xs ->
       List.map xs ~f:unparse_tag

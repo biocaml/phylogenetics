@@ -40,23 +40,23 @@ let get_routing_no t = (get_meta t).routing_no
 (*  CREATION / CONVERSION  *)
 (* ======================= *)
 let of_newick str =
-  let rec aux : Newick.tree -> t = function
-    | Tree.{ branches = [] ; node_data = { name } } ->
+  let rec tree : Newick.tree -> t = function
+    | Leaf { name } ->
       build_leaf (Option.value ~default:"" name)
-    | Tree.{ branches = [ l ; r ] ; _ } ->
+    | Node { branches = Cons (l, [ r ]) ; _ } ->
       build_node (branch l) (branch r)
     | _ -> invalid_arg "Non-binary or malformed newick tree."
 
-  and branch (b : Newick.branch) =
-    match b.branch_data.length with
-    | Some l -> l, aux b.tip
+  and branch (Branch b : Newick.branch) =
+    match b.data.length with
+    | Some l -> l, tree b.tip
     | _ -> invalid_arg "Malformed branch in newick tree."
 
   in
   let mybuf = Lexing.from_string str in
   match Newick_parser.start Newick_lexer.token mybuf with
-  | Tree t -> aux t
-  | Branch b -> aux b.tip
+  | Tree t -> tree t
+  | Branch (Branch b) -> tree b.tip
 
 let of_newick_file path =
   In_channel.read_all path

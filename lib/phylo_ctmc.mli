@@ -31,21 +31,21 @@ module Make(A : Alphabet)(L : Linalg) : sig
   type shifted_vector = SV of vec * float
 
   val pruning :
-    ('a, 'b) Tree.t ->
-    transition_matrix:(('a, 'b) Tree.branch -> L.mat) ->
-    leaf_state:('a -> A.t) ->
+    ('n, 'l, 'b) Tree.t ->
+    transition_matrix:('b -> L.mat) ->
+    leaf_state:('l -> A.t) ->
     root_frequencies:vec ->
     float
 
   val conditionial_likelihoods :
-    ('a, 'b) Tree.t ->
-    transition_matrix:(('a, 'b) Tree.branch -> L.mat) ->
-    leaf_state:('a -> A.t) ->
-    (shifted_vector, mat) Tree.t
+    ('n, 'l, 'b) Tree.t ->
+    transition_matrix:('b -> L.mat) ->
+    leaf_state:('l -> A.t) ->
+    (shifted_vector, shifted_vector, mat) Tree.t
 
   val conditional_simulation :
-    (shifted_vector, mat) Tree.t ->
+    (shifted_vector, shifted_vector, mat) Tree.t ->
     root_frequencies:vec ->
     choose:(Vec.t -> int) ->
-    (int, mat) Tree.t
+    (int, int, mat) Tree.t
 end

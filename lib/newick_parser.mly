@@ -20,18 +20,20 @@ start:
 
 tree:
   | name = option(STRING)
-    { Tree.{ branches = [] ; node_data = { name } } }
+    { Tree.leaf { name } }
   | LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN name = option(STRING)
-    { Tree.{ branches ; node_data = { name } } }
+    { match branches with
+      | [] -> assert false
+      | h :: t -> Tree.node { name } (Non_empty_list.cons h t) }
 
 branch:
   | tip = tree length = option(length) tags = option(tags)
-    {{ tip ; branch_data = { length ; tags = list_of_opt tags }}}
+    { Tree.branch { length ; tags = list_of_opt tags } tip }
 ;
 
 branch_with_length:
   | tip = tree l = length tags = option(tags)
-    {{ tip ; branch_data = { length = Some l ; tags = list_of_opt tags } }}
+    { Tree.branch { length = Some l ; tags = list_of_opt tags } tip }
 ;
 
 length:

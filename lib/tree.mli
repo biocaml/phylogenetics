@@ -1,53 +1,67 @@
-type ('a, 'b) t = {
-  node_data : 'a ;
-  branches : ('a, 'b) branch list ;
+type ('n, 'l, 'b) t =
+  | Node of {
+      data : 'n ;
+      branches : ('n, 'l, 'b) branch Non_empty_list.t ;
+    }
+  | Leaf of 'l
+
+and ('n, 'l, 'b) branch = Branch of {
+  data : 'b ;
+  tip : ('n, 'l, 'b) t ;
 }
 
-and ('a, 'b) branch = {
-  branch_data : 'b ;
-  tip : ('a, 'b) t ;
-}
+val leaf : 'l -> (_, 'l, 'b) t
 
 val node :
   'a ->
-  ('a, 'b) branch list ->
-  ('a, 'b) t
+  ('a, 'b, 'c) branch Non_empty_list.t ->
+  ('a, 'b, 'c) t
+
+val binary_node :
+  'a ->
+  ('a, 'b, 'c) branch ->
+  ('a, 'b, 'c) branch ->
+  ('a, 'b, 'c) t
 
 val branch :
-  'b -> 
-  ('a, 'b) t ->
-  ('a, 'b) branch
+  'c ->
+  ('a, 'b, 'c) t ->
+  ('a, 'b, 'c) branch
+
+val data : ('a, 'a, _) t -> 'a
 
 val map :
-  ('a, 'b) t ->
-  node:('a -> 'c) ->
-  branch:('b -> 'd) ->
-  ('c, 'd) t
+  ('a, 'b, 'c) t ->
+  node:('a -> 'd) ->
+  leaf:('b -> 'e) ->
+  branch:('c -> 'f) ->
+  ('d, 'e, 'f) t
 
 val propagate :
-  ('a, 'b) t ->
-  root:'c ->
-  node:('c -> 'b -> 'c) ->
-  branch:('c -> 'b -> 'd) ->
-  ('c, 'd) t
+  ('a, 'b, 'c) t ->
+  root:('d * 'c) ->
+  node:('d -> 'c -> 'd) ->
+  leaf:('d -> 'c -> 'e) ->
+  ('d, 'e, 'c) t
 
 val pre :
-  ('a, 'b) t ->
+  ('n, 'l, 'b) t ->
   init:'c ->
-  node:('c -> ('a, 'b) t -> 'c) ->
-  branch:('c -> ('a, 'b) branch -> 'c) ->
+  node:('c -> 'n -> 'c) ->
+  leaf:('c -> 'l -> 'c) ->
+  branch:('c -> 'b -> 'c) ->
   'c
 
-val leaves : ('a, 'b) t -> 'a list
+val leaves : (_, 'l, _) t -> 'l list
 
 val map_leaves :
-  ('a, 'b) t ->
+  ('a, 'l, 'b) t ->
   root:'b ->
-  f:('a -> 'b -> 'c) ->
+  f:('l -> 'b -> 'c) ->
   'c list
 
-val node_prefix_synthesis :
-  ('a, 'b) t ->
-  init:'c ->
-  f:('c -> 'a -> 'd list -> 'c * 'd) ->
-  ('d, 'b) t
+(* val node_prefix_synthesis :
+ *   ('a, 'b, 'l) t ->
+ *   init:'c ->
+ *   f:('c -> 'a -> 'd list -> 'c * 'd) ->
+ *   ('d, 'b) t *)

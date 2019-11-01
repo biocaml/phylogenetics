@@ -6,4 +6,4 @@ type param = {
 val simulate :
   param ->
   float ->
-  (int, float) Tree.branch
+  (int, int, float) Tree.branch
