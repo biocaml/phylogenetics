@@ -93,21 +93,21 @@ module Lacaml : sig
     (** Prints a matrix to the standard output (display may be messy). *)
     val pp : Format.formatter -> mat -> unit
   end
-  
+
   (** Matrix-vector product. *)
   val mat_vec_mul: mat -> vec -> vec
 
   (** Multiplication of a matrix by a scalar. *)
-  val scal_mat_mul: mat -> float -> mat
+  val scal_mat_mul : float -> mat -> mat
 
   (** Scalar-vector product (in-place). *)
-  val scal_vec_mul: vec -> float -> vec
+  val inplace_scal_vec_mul: float -> vec -> unit
 
-  (** Scalar-vector product (in a copy). *)
-  val scal_vec_mul_cpy: vec -> float -> vec
+  (** Scalar-vector product *)
+  val scal_vec_mul : float -> vec -> vec
 
   (** Scalar-vector addition. *)
-  val scal_vec_add: vec -> float -> vec
+  val scal_vec_add: float -> vec -> vec
 
   (** Computes the static distribution (ie, eigenvector for eigenvalue 0) of a given matrix. *)
   val stat_dist: mat -> vec

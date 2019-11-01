@@ -66,7 +66,7 @@ struct
     if Vec.min v > thre then (v, acc1 +. acc2)
     else
       let mv = Vec.max v in (* then divide by its max and add the log of the max to *)
-      (scal_vec_mul v (1.0 /. mv), acc1 +. acc2 +. (log mv)) (* an accumulator *)
+      (scal_vec_mul (1.0 /. mv) v, acc1 +. acc2 +. (log mv)) (* an accumulator *)
 
   let felsenstein_single_shift ?threshold:(threshold=0.0000001) param =
     felsenstein_single

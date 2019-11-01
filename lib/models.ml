@@ -52,7 +52,7 @@ end
 module Make_exp(Base : Base)(E : MODEL_WITH_DIAG) =
 struct
   include E
-  let eMt_series e t = Mat.expm (scal_mat_mul (E.transition_mat e) t)
+  let eMt_series e t = Mat.expm (scal_mat_mul t (E.transition_mat e))
   let eMt_mat e =
     let diag_p, diag, diag_p_inv = E.diag_mats e in
     fun t -> Mat.mul (Mat.mul diag_p (diag t)) diag_p_inv
@@ -72,7 +72,7 @@ module Make(Base : Base)(M : TRANSITION_MATRIX with type base := Base.t) = struc
     let stat_dist_vec p = stat_dist (transition_mat p)
     let diag_mats p =
       match Mat.diagonalize (transition_mat p) with
-        a, b, c -> a, (fun t -> Mat.init_diag (scal_vec_mul_cpy b t |> Vec.exp)), c
+        a, b, c -> a, (fun t -> Mat.init_diag (scal_vec_mul t b |> Vec.exp)), c
   end
   include M
   include Make_exp(Base)(Diag)

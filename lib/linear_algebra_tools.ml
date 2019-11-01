@@ -8,13 +8,20 @@ module Lacaml = struct
 
   let mat_vec_mul m v = gemv m v
 
-  let scal_mat_mul a f = (Lacaml.D.Mat.scal f a ; a)
+  let inplace_scal_mat_mul f a = Mat.scal f a
 
-  let scal_vec_mul v s = (scal s v ; v)
+  let scal_mat_mul f a =
+    let r = lacpy a in
+    inplace_scal_mat_mul f r ;
+    r
 
-  let scal_vec_mul_cpy v s = (let tmp = copy v in scal s tmp ; tmp)
+  let inplace_scal_vec_mul s v = scal s v
 
-  let scal_vec_add v s = Lacaml.D.Vec.add_const s v
+  let scal_vec_mul s v =
+    let r = copy v in
+    scal s r ; r
+
+  let scal_vec_add s v = Lacaml.D.Vec.add_const s v
 
   module Mat = struct
     type t = mat
@@ -49,7 +56,7 @@ module Lacaml = struct
     let log m = Mat.log m
 
     let compare ~tol:p m1 m2 =
-      let diff = add m1 (scal_mat_mul m2 (-1.)) in (* substract two matrices *)
+      let diff = add m1 (scal_mat_mul (-1.) m2) in (* substract two matrices *)
       let relative_diff = (* element-wise diff/m1 *)
         mul diff (Mat.map (fun x -> 1./.x) m1)
         |> Mat.abs
@@ -95,6 +102,6 @@ module Lacaml = struct
     | (_,_,c,_) ->
       let vec = Lacaml.D.Mat.col c 1 in
       (* normalize so the sum of elements equals 1 *)
-      scal_vec_mul vec (1./.(Vec.sum vec))
+      scal_vec_mul (1. /. (Vec.sum vec)) vec
 
 end
