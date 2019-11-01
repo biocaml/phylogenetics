@@ -11,4 +11,5 @@ let () =
     "Rejection_sampling", Test_rejection_sampling.tests;
     "MCMC", Test_MCMC.tests ;
     "Newick", Test_newick.tests ;
+    "PhyloCTMC", Test_phylo_ctmc.tests ;
   ]
