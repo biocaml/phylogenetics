@@ -22,7 +22,7 @@ module type Linalg = sig
     type t = mat
     val row : t -> int -> vec
   end
-  val scal_vec_mul : vec -> float -> vec
+  val scal_vec_mul : float -> vec -> vec
   val mat_vec_mul : mat -> vec -> vec
 end
 

@@ -24,7 +24,7 @@ module type Linalg = sig
     type t = mat
     val row : t -> int -> vec
   end
-  val scal_vec_mul : vec -> float -> vec
+  val scal_vec_mul : float -> vec -> vec
   val mat_vec_mul : mat -> vec -> vec
 end
 
@@ -40,7 +40,7 @@ module Make(A : Alphabet)(L : Linalg) = struct
       else
         let mv = Vec.max v in
         SV (
-          scal_vec_mul v (1. /. mv),
+          scal_vec_mul (1. /. mv) v,
           carry +. log mv
         )
 
