@@ -80,6 +80,9 @@ module Lacaml : sig
     (** Access a specific element of a matrix. *)
     val get : mat -> int -> int -> float
 
+    (** Copy row from a matrix *)
+    val row : mat -> int -> vec
+
     (** Diagonalizes a matrix M so that M = PxDxP^T; returns P,v,P^T where
         v is the diagonal vector of D.*)
     val diagonalize : mat -> mat * vec * mat

@@ -8,7 +8,6 @@ module Lacaml = struct
 
   let mat_vec_mul m v = gemv m v
 
-  (* FIXME: doesn't it modify its argument? *)
   let scal_mat_mul a f = (Lacaml.D.Mat.scal f a ; a)
 
   let scal_vec_mul v s = (scal s v ; v)
@@ -22,6 +21,8 @@ module Lacaml = struct
     let init size ~f = Mat.init_rows size size f
     let init_diag v = Mat.of_diag v
     let mul a ?alpha:(al=1.) b = gemm a b ~alpha:al
+
+    let row mat r = Mat.copy_row mat r (* FIXME: costly operation! *)
 
     (* FIXME: do a lot better by breaking in 2 exponent for even
        exponent *)
