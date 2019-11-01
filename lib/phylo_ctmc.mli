@@ -12,21 +12,17 @@ module type Linalg = sig
   module Vec : sig
     type t = vec
     val get : t -> int -> float
-    val indicator :
-      i:int ->
-      n:int ->
-      vec
+    val init : int -> f:(int -> float) -> vec
+    val mul : t -> t -> t
     val min : t -> float
     val max : t -> float
     val sum : t -> float
-    val choose : t -> int
   end
   module Mat : sig
     type t = mat
     val row : t -> int -> vec
   end
-  val scal_vec_mul : float -> vec -> vec
-  val vec_vec_mul : vec -> vec -> vec
+  val scal_vec_mul : vec -> float -> vec
   val mat_vec_mul : mat -> vec -> vec
 end
 
@@ -50,5 +46,6 @@ module Make(A : Alphabet)(L : Linalg) : sig
   val conditional_simulation :
     (shifted_vector, mat) Tree.t ->
     root_frequencies:vec ->
+    choose:(Vec.t -> int) ->
     (int, mat) Tree.t
 end
