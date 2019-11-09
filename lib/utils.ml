@@ -33,15 +33,6 @@ let fancy_format format =
 (** sprintf variant that recognizes markers for colored output.*)
 let fancy_sprintf format = sprintf (fancy_format format)
 
-let test () = let mystr = fancy_sprintf "$cyan$%.3f$$" 1.0 in
-  fancy_length mystr, String.length "1.000"
-
-let dim to_dim string =
-  String.concat_map string ~f:(fun c ->
-      if String.contains to_dim c
-      then sprintf "\027[2m%c\027[0m" c
-      else sprintf "%c" c)
-
 let colorize color to_colorize string =
   String.concat_map string ~f:(fun c ->
       if String.contains to_colorize c
