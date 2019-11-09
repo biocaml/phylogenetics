@@ -21,4 +21,6 @@
     (dune (>= 1.11))
     gnuplot
     (lacaml (>= 10.0.2))
-    menhir))
+    menhir
+    owl
+    ppx_deriving))

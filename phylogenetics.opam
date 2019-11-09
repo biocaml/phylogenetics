@@ -12,6 +12,8 @@ depends: [
   "gnuplot"
   "lacaml" {>= "10.0.2"}
   "menhir"
+  "owl"
+  "ppx_deriving"
 ]
 build: [
   ["dune" "subst"] {pinned}
