@@ -24,6 +24,7 @@ module type S_int = sig
              and type 'a matrix = private 'a array array
   val of_int : int -> t option
   val of_int_exn : int -> t
+  val vector_of_array_exn : 'a array -> 'a vector
 end
 
 module Make(X : sig val card : int end) = struct
@@ -45,6 +46,9 @@ module Make(X : sig val card : int end) = struct
     Array.init card ~f:(fun i -> Array.init card ~f:(f i))
   let to_int i = i
   type 'a vector = 'a array
+  let vector_of_array_exn a =
+    if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
+    else a
   let ( .%() ) v i = v.(i)
   let ( .%()<- ) v i x = v.(i) <- x
   let reduce xs ~f = Array.reduce_exn xs ~f
