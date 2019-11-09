@@ -26,5 +26,5 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   Test_utils.check_likelihood felsenstein_result ctmc_result
 
 let tests = [
-  ("Felsenstein vs Phylo_ctmc", `Slow, test_pruning ~tree_size:2 ~seq_size:1) ;
+  ("Felsenstein vs Phylo_ctmc", `Slow, test_pruning ~tree_size:100 ~seq_size:10) ;
 ]
