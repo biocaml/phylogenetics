@@ -111,7 +111,7 @@ module Make(A : Alphabet.S_int) = struct
 
   let%test "gtr stationary distribution" =
     let pi = random_profile 10. in
-    let gtr_params = Rng.Owl_rng.profile (A.card * (A.card - 1) / 2) in
+    let gtr_params = Utils.random_profile (A.card * (A.card - 1) / 2) in
     let gtr_rates = gtr ~equilibrium_frequencies:pi ~transition_rates:gtr_params in
     let pi' = stationary_distribution gtr_rates in
     Utils.float_array_robust_equal (pi :> float array) (pi' :> float array)

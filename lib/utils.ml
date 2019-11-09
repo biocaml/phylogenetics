@@ -67,3 +67,11 @@ let float_array_robust_equal x y =
     fprintf stderr "expected: %s\ngot: %s\n" (show_float_array x) (show_float_array y)
   );
   res
+
+let random_profile n =
+  let v = Array.init n ~f:(fun _ ->
+      Owl.Stats.uniform_rvs ~a:0. ~b:1.
+    )
+  in
+  let s = Array.fold v ~init:0. ~f:( +. ) in
+  Array.map v ~f:(fun x -> x /. s)
