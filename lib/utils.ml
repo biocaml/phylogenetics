@@ -51,3 +51,19 @@ let pp f = fun fmt s -> f s |> defancy |> Format.fprintf fmt "%s"
 let pp_fancy ?(options=[]) f = fun fmt s -> f s |> apply_options options |> Format.fprintf fmt "%s"
 
 let all_printers ?(options=[]) f = pp f, pp_fancy ~options f, print f, print_fancy ~options f
+
+type float_array = float array
+[@@deriving show]
+
+type float_array_array = float array array
+[@@deriving show]
+
+let robust_equal x y =
+  Float.robustly_compare x y = 0
+
+let float_array_robust_equal x y =
+  let res = Array.for_alli x ~f:(fun i _ -> robust_equal x.(i) y.(i)) in
+  if not res then (
+    fprintf stderr "expected: %s\ngot: %s\n" (show_float_array x) (show_float_array y)
+  );
+  res

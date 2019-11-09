@@ -7,3 +7,12 @@ val all_printers :
   (Format.formatter -> 'a -> unit) *
   ('a -> unit) * ('a -> unit)
 val colorize : string -> string -> string -> string
+
+type float_array = float array
+[@@deriving show]
+
+type float_array_array = float array array
+[@@deriving show]
+
+val robust_equal : float -> float -> bool
+val float_array_robust_equal : float array -> float array -> bool
