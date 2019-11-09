@@ -1,11 +1,11 @@
 (** Probability and statistics tools (eg, samplers and distribution handling). *)
 
-(** {6 Samplers} *)
+(** {5 Samplers} *)
 
 val sample_branch_lengths: branchs:(int->bool) -> sampler:(unit->float) -> Phylogenetic_tree.t -> unit -> Phylogenetic_tree.t
 
 
-(** {6 Distributions} *)
+(** {5 Distributions} *)
 
 type sample_list = float list
 
@@ -16,7 +16,7 @@ val sample_list_extrema: sample_list -> float * float
 val sample_list_mean: sample_list -> float
 
 
-(** {6 Plots} *)
+(** {5 Plots} *)
 
 val bins: ?nb:int -> sample_list -> (float * float) list
 

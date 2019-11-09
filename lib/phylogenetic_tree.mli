@@ -1,6 +1,6 @@
 (** Module for phylogenetic trees. *)
 
-(** {6 Types} *)
+(** {5 Types} *)
 
 (** Type for evolutionary trees: binary trees
     whose edges are labelled with lengths (floats)
@@ -12,7 +12,7 @@ and branch = float * t
 and metadata = {id:int; routing_no:int}
 
 
-(** {6 Creation/Conversion} *)
+(** {5 Creation/Conversion} *)
 
 val of_preorder: string -> t
 
@@ -30,7 +30,7 @@ val to_dot: t -> string
 
 val to_tree : t -> (metadata, metadata * string, float) Tree.t
 
-(** {6 Parameters and transformations} *)
+(** {5 Parameters and transformations} *)
 
 val nb_branches: t -> int
 
@@ -39,7 +39,7 @@ val get_branch_lengths: t -> float list
 val set_branch_lengths: t -> float list -> t
 
 
-(** {6 Constructors} *)
+(** {5 Constructors} *)
 
 val build_leaf: ?routing_no:int -> Sigs.index -> t
 
@@ -50,7 +50,7 @@ val index_of_int: int -> Sigs.index
 val index_of_string: string -> Sigs.index
 
 
-(** {6 Getters and setters} *)
+(** {5 Getters and setters} *)
 
 val get_id: t -> int
 
@@ -63,12 +63,12 @@ val get_routing_no: t -> int
 val set_routing_no: t -> int -> t
 
 
-(** {6 Comparison} *)
+(** {5 Comparison} *)
 
 val equal: t -> t -> bool
 
 
-(** {6 Pretty printers} *)
+(** {5 Pretty printers} *)
 
 val pp: Format.formatter -> t -> unit
 

@@ -1,6 +1,6 @@
 (** Zipper type for fast operations on large phylogenetic trees. *)
 
-(** {6 Types} *)
+(** {5 Types} *)
 
 type t
 
@@ -19,7 +19,7 @@ type location_type =
 type oriented_zipper
 
 
-(** {6 Creation / conversion} *)
+(** {5 Creation / conversion} *)
 
 val of_tree: Phylogenetic_tree.t -> t
 
@@ -32,14 +32,14 @@ val orient: t -> direction -> oriented_zipper
 val unorient: oriented_zipper -> t
 
 
-(** {6 Constructors / object manipulation} *)
+(** {5 Constructors / object manipulation} *)
 
 val string_of_dir: direction -> string
 
 val dir_of_string: string -> direction
 
 
-(** {6 Observation} *)
+(** {5 Observation} *)
 
 val equal: t -> t -> bool
 
@@ -58,7 +58,7 @@ val length_right: oriented_zipper -> float
 val location: t -> location_type
 
 
-(** {6 Movement} *)
+(** {5 Movement} *)
 
 val goto: t -> int -> t
 
@@ -79,7 +79,7 @@ val right: oriented_zipper -> direction
 val slide: t -> direction -> float -> t
 
 
-(** {6 Pretty printing} *)
+(** {5 Pretty printing} *)
 
 val pp: Format.formatter -> t -> unit
 

@@ -45,7 +45,7 @@ module Lacaml : sig
   module Mat : sig
     type t = mat
 
-    (** {6 Matrix and vector creation} *)
+    (** {5 Matrix and vector creation} *)
 
     (** Initialises a square matrix from a int->int->float function. *)
     val init : int -> f:(int -> int -> float) -> mat
