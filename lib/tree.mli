@@ -38,11 +38,12 @@ val map :
   ('d, 'e, 'f) t
 
 val propagate :
-  ('a, 'b, 'c) t ->
-  root:('d * 'c) ->
-  node:('d -> 'c -> 'd) ->
-  leaf:('d -> 'c -> 'e) ->
-  ('d, 'e, 'c) t
+  ('n, 'l, 'b) t ->
+  init:'d ->
+  node:('d -> 'n -> 'd) ->
+  leaf:('d -> 'l -> 'e) ->
+  branch:('d -> 'b -> 'd) ->
+  ('d, 'e, 'b) t
 
 val pre :
   ('n, 'l, 'b) t ->

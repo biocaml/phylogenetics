@@ -69,22 +69,22 @@ and map_branch (Branch b) ~node ~leaf ~branch =
     tip = map b.tip ~node ~leaf ~branch ;
   }
 
-let propagate t ~root:(parent_value, parent_branch_value) ~node ~leaf =
-  let rec inner parent_value parent_branch_value t =
+let propagate t ~init ~node ~leaf ~branch =
+  let rec inner acc t =
     match t with
     | Node n ->
-      let data = node parent_value parent_branch_value in
-      let branches = Non_empty_list.map n.branches ~f:(inner_branch data) in
-      Node { data ; branches }
-    | Leaf _ -> Leaf (leaf parent_value parent_branch_value)
+      let acc = node acc n.data in
+      let branches = Non_empty_list.map n.branches ~f:(inner_branch acc) in
+      Node { data = acc ; branches }
+    | Leaf l -> Leaf (leaf acc l)
 
-  and inner_branch parent_value (Branch b) =
+  and inner_branch acc (Branch b) =
     Branch {
       data = b.data ;
-      tip = inner parent_value b.data b.tip
+      tip = inner (branch acc b.data) b.tip
     }
   in
-  inner parent_value parent_branch_value t
+  inner init t
 
 (* let node_prefix_synthesis tree ~init ~f =
  *   let rec loop tree ~init =
