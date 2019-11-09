@@ -6,6 +6,8 @@ module Nucleotide_rates = Rate_matrix.Nucleotide
 module Amino_acid_rates = Rate_matrix.Make(Amino_acid)
 module Codon_rate = Rate_matrix.Make(NSCodon)
 
+type rate_matrix = Codon_rate.t
+
 type param = {
   nucleotide_rates : Rate_matrix.Nucleotide.t ;
   nucleotide_stat_dist : float Nucleotide.vector ;

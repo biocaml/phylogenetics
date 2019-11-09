@@ -6,6 +6,8 @@
 module NSCodon = Codon.Universal_genetic_code.NS
 module Codon_rate : module type of Rate_matrix.Make(NSCodon)
 
+type rate_matrix = Codon_rate.t
+
 type param = {
   nucleotide_rates : Rate_matrix.Nucleotide.t ;
   nucleotide_stat_dist : float Nucleotide.vector ;
@@ -13,7 +15,7 @@ type param = {
   scaled_fitness : float Amino_acid.vector ;
   gBGC : float ;
 }
-(** 
+(**
 
 *)
 
@@ -22,5 +24,5 @@ val random_param :
   alpha_fitness:float ->
   param
 
-val rate_matrix : param -> Codon_rate.t
+val rate_matrix : param -> rate_matrix
 val stationary_distribution : param -> float NSCodon.vector
