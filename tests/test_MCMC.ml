@@ -26,10 +26,12 @@ let my_step (v : MCMC.vector) =
 
 (** {6 Test functions} *)
 
-let sample amount = MCMC.run my_theta0 my_step my_likelihood amount
-             |> List.map ~f:(function {MCMC.tree;_} ->
-                 List.nth_exn (Phylogenetic_tree.get_branch_lengths tree) 5)
-             |> List.filteri ~f:(fun x _ -> x > amount / 5)
+let sample amount =
+  MCMC.run my_theta0 my_step my_likelihood amount
+  |> List.map ~f:(fun { MCMC.tree ; _ } ->
+      List.nth_exn (Phylogenetic_tree.get_branch_lengths tree) 5
+    )
+  |> List.filteri ~f:(fun x _ -> x > amount / 5)
 
 let test_MCMC () =
   Test_utils.check_distrib [2.8] (sample 10000)
