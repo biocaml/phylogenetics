@@ -1,0 +1,57 @@
+(** Continuous Time Markov Chain rate matrix
+
+    A rate matrix is the
+   {{:https://en.wikipedia.org/wiki/Infinitesimal_generator_(stochastic_processes)}infinitesimal
+   generator} for a discrete-space continuous time markov process. It
+   is basically a matrix such that all off-diagonal elements are
+   positive and each diagonal element is minus the sum of all other
+   elements in the row.  *)
+
+
+module type S = sig
+  type 'a vector
+  type 'a matrix
+  type symbol
+  type t = private float matrix
+
+  val make : (symbol -> symbol -> float) -> t
+
+  val jc69 : unit -> t
+  (** {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#JC69_model_(Jukes_and_Cantor_1969)}Jukes and Cantor 1969} *)
+
+  val gtr :
+    equilibrium_frequencies:float vector ->
+    transition_rates:float array ->
+    t
+  (**
+     {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#GTR_model_(Tavar%C3%A9_1986)}Generalised
+     Time-Reversible model} *)
+
+  val stationary_distribution : t -> float vector
+  (** [stationary_distribution r] numerically computes the asymptotic
+     probability distribution [pi] of the CTMC defined by [r]. *)
+
+  val scaled_rate_matrix : float vector -> t -> t
+  (** [scaled_rate_matrix pi r] is a new matrix rate such that the
+     corresponding CTMC has one expected transition per unit of
+     time. In addition, if [r] is symetrical, the result has [pi] as
+     stationary distribution. *)
+
+  val scale_matrix : float matrix -> float matrix
+  (** rescale matrix such that the sum of off-diagonal elements is 1. *)
+end
+
+module Make(A : Alphabet.S_int) : S with type symbol := A.t
+                                     and type 'a vector := 'a A.vector
+                                     and type 'a matrix := 'a A.matrix
+
+
+module Nucleotide : sig
+  include module type of Make(Nucleotide)
+  val k80 : float -> t
+end
+
+val transition_probability_matrix :
+  tau:float ->
+  rates:float array array ->
+  float array array
