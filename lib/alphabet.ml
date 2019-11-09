@@ -8,9 +8,16 @@ module type S = sig
   val all : t list
   val card : int
   val to_int : t -> int
-  val vector : (t -> 'a) -> 'a vector
-  val vector_map : 'a vector -> f:('a -> 'b) -> 'b vector
-  val reduce : 'a vector -> f:('a -> 'a -> 'a) -> 'a
+  module Vector : sig
+    val init : (t -> 'a) -> 'a vector
+    val map : 'a vector -> f:('a -> 'b) -> 'b vector
+    val reduce : 'a vector -> f:('a -> 'a -> 'a) -> 'a
+    val normalize : float vector -> float vector
+  end
+  val flat_profile : unit -> float vector
+  val random_profile :
+    float ->
+    float vector
   val matrix : (t -> t -> 'a) -> 'a matrix
   val ( .%() ) : 'a vector -> t -> 'a
   val ( .%()<- ) : 'a vector -> t -> 'a -> unit
@@ -40,8 +47,22 @@ module Make(X : sig val card : int end) = struct
 
   let equal = Int.( = )
   let all = List.init card ~f:Fn.id
-  let vector f = Array.init card ~f
-  let vector_map = Array.map
+  module Vector = struct
+    let init f = Array.init card ~f
+    let map = Array.map
+    let reduce xs ~f = Array.reduce_exn xs ~f
+    let normalize v =
+      let s = reduce v ~f:( +. ) in
+      map v ~f:(fun x -> x /. s)
+  end
+
+  let flat_profile () =
+    let theta = Float.(1. / of_int card) in
+    Vector.init (fun _ -> theta)
+
+  let random_profile alpha =
+    Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha)
+
   let matrix f =
     Array.init card ~f:(fun i -> Array.init card ~f:(f i))
   let to_int i = i
@@ -51,7 +72,6 @@ module Make(X : sig val card : int end) = struct
     else a
   let ( .%() ) v i = v.(i)
   let ( .%()<- ) v i x = v.(i) <- x
-  let reduce xs ~f = Array.reduce_exn xs ~f
   type 'a matrix = 'a array array
   let ( .%{} ) m (i,j) = m.(i).(j)
   let ( .%{}<- ) m (i, j) x = m.(i).(j) <- x
