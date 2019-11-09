@@ -2,8 +2,6 @@ module type Alphabet = sig
   type t
   val card : int
   val to_int : t -> int
-  type 'a vector
-  val vector : (t -> 'a) -> 'a vector
 end
 
 module type Linalg = sig
