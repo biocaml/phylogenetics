@@ -57,7 +57,7 @@ struct
     let diag_p, diag, diag_p_inv = E.diag_mats e in
     fun t -> Mat.mul (Mat.mul diag_p (diag t)) diag_p_inv
   let known_vector b = Vec.init Base.card ~f:(fun x ->
-      if x = Base.to_int b + 1 then 1. else 0.
+      if x = Base.to_int b then 1. else 0.
     )
 end
 

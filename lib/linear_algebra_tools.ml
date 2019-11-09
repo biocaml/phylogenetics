@@ -82,7 +82,7 @@ module Lacaml = struct
 
   module Vec = struct
     type t = vec
-    let init size ~f = Vec.init size f
+    let init size ~f = Vec.init size (fun i -> f (i - 1))
     let add v1 v2 = Vec.add v1 v2
     let mul v1 v2 = Vec.mul v1 v2
     let sum v = Vec.sum v
