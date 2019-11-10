@@ -3,10 +3,10 @@
 
 module Lacaml : sig
   (** A square matrix of floats. *)
-  type mat
+  type mat = Lacaml.D.mat
 
   (** A vector of floats. *)
-  type vec
+  type vec = Lacaml.D.vec
 
   module Vec : sig
     type t = vec

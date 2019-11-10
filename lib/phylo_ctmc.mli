@@ -44,6 +44,6 @@ module Make(A : Alphabet)(L : Linalg) : sig
   val conditional_simulation :
     (shifted_vector, shifted_vector, mat) Tree.t ->
     root_frequencies:vec ->
-    choose:(Vec.t -> int) ->
+    choose:(vec -> int) ->
     (int, int, mat) Tree.t
 end
