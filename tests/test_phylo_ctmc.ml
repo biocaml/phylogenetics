@@ -2,7 +2,7 @@ open Core_kernel
 open Phylogenetics
 
 let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
-  let module M = Models.JC69 in
+  let module M = Site_evolution_model.JC69 in
   let module Align = Alignment.Make(Seq.DNA) in
   let module F = Felsenstein.Make(Nucleotide)(Align)(M) in
   let module SG = Sequence_generation.Make(Nucleotide)(Seq.DNA)(Align)(M) in

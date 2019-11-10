@@ -11,7 +11,7 @@ let mysampler = Stat_tools.sample_branch_lengths ~branchs:(fun i -> i=5)
     ~sampler:(fun () -> Owl.Stats.uniform_rvs ~a:0. ~b: 5.0) mybasetree
 
 module K80 = struct
-  include Models.K80
+  include Site_evolution_model.K80
   type base = Nucleotide.t
 end
 

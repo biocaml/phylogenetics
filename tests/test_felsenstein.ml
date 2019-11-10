@@ -11,7 +11,7 @@ open Core_kernel
 (** Generates a random tree, a random sequence (using the provided model),
     runs both biocaml felsenstein and bppml, and checks that the results are identical*)
 let test_felsenstein
-    ?(model=(module Models.JC69:Models.S))
+    ?(model=(module Site_evolution_model.JC69:Site_evolution_model.S))
     ?(treesize=5)
     ?(seqsize=5)
     ?(param="")
@@ -37,9 +37,9 @@ let test_felsenstein
 
 (** Wrapper for test_felsenstein that uses the string to model identification using bpp format *)
 let test_felsenstein_str ?(model="JC69") ?(treesize=5) ?(seqsize=5) () =
-  let my_model = Models.of_string model in
+  let my_model = Site_evolution_model.of_string model in
   Option.iter my_model ~f:(fun model ->
-      test_felsenstein ~model:model.Models.model ~treesize ~seqsize ~param:model.Models.param ()
+      test_felsenstein ~model:model.Site_evolution_model.model ~treesize ~seqsize ~param:model.Site_evolution_model.param ()
     )
 
 

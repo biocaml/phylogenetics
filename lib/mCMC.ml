@@ -17,7 +17,7 @@ let run (theta0:'a) (step:'a->'a*float) (likelihood:'a->float) (nb_points:int) =
 
 module M = struct
   module Alignment = Alignment.Make(Seq.DNA)
-  module Felsenstein = Felsenstein.Make(Nucleotide)(Alignment)(Models.K80)
+  module Felsenstein = Felsenstein.Make(Nucleotide)(Alignment)(Site_evolution_model.K80)
 end
 
 type vector = {

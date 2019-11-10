@@ -1,6 +1,6 @@
 open Phylogenetics
 open Test_utils
-open Models
+open Site_evolution_model
 
 
 let test_JC69_exponential () =
