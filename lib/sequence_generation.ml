@@ -3,6 +3,7 @@ open Sigs
 
 module type Base = sig
   type t
+  val to_int : t -> int
   val of_int_exn : int -> t
 end
 
@@ -23,7 +24,7 @@ struct
 
   let proba param =
     let my_eMt = E.eMt_mat param in
-    fun base t -> mat_vec_mul (my_eMt t) (E.known_vector base)
+    fun base t -> Mat.row (my_eMt t) (Base.to_int base)
 
   let draw_base vec =
     (* for all base check if x is smaller than transition proba,
