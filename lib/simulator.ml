@@ -20,9 +20,8 @@ module type Evolution_model = sig
   type param
   type vector
   type matrix
-  type rate_matrix = private matrix
   val stationary_distribution : param -> vector
-  val rate_matrix : param -> rate_matrix
+  val rate_matrix : param -> matrix
 end
 
 module Make

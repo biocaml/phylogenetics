@@ -12,7 +12,7 @@ module type S = sig
   type vector
   type matrix
   type symbol
-  type t = private matrix
+  type t = matrix
 
   val make : (symbol -> symbol -> float) -> t
 
