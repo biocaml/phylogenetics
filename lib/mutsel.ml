@@ -4,9 +4,7 @@ module NSCodon = Codon.Universal_genetic_code.NS
 
 module Nucleotide_rates = Rate_matrix.Nucleotide
 module Amino_acid_rates = Rate_matrix.Make(Amino_acid)
-module Codon_rate = Rate_matrix.Make(NSCodon)
-
-type rate_matrix = Codon_rate.t
+module NSCodon_rate_matrix = Rate_matrix.Make(NSCodon)
 
 type param = {
   nucleotide_rates : Rate_matrix.Nucleotide.t ;
@@ -59,7 +57,7 @@ let fixation_probability delta =
 
 let rate_matrix { nucleotide_rates ; omega ; scaled_fitness = _F_ ; gBGC ; _ } =
   let nuc_rates = (nucleotide_rates :> Nucleotide.matrix) in
-  Codon_rate.make (fun p q ->
+  NSCodon_rate_matrix.make (fun p q ->
       match NSCodon.neighbours p q with
       | Some (_, x_a, x_b) ->
         let _B_ = match Nucleotide.(inspect x_a, inspect x_b) with
@@ -104,7 +102,7 @@ let test_stationary_distribution_sums_to_one stationary_distribution =
   Utils.robust_equal 1. (NSCodon.Vector.sum pi)
 
 let stationary_distribution_by_linear_resolution p =
-  Codon_rate.stationary_distribution (rate_matrix p)
+  NSCodon_rate_matrix.stationary_distribution (rate_matrix p)
 
 let%test "Codon model stationary distribution sums to one" =
   test_stationary_distribution_sums_to_one stationary_distribution
@@ -146,7 +144,7 @@ let%test "Codon model stationary distribution with flat nucleotidic parameters h
 
 let test_both_stationary_distribution_calculation p =
   let pi = (stationary_distribution p :> Owl.Arr.arr) in
-  let pi' = (Codon_rate.stationary_distribution (rate_matrix p) :> Owl.Arr.arr) in
+  let pi' = (NSCodon_rate_matrix.stationary_distribution (rate_matrix p) :> Owl.Arr.arr) in
   let res = Owl.Arr.approx_equal pi pi' in
   if not res then (
     let pi = Owl.Arr.to_array pi in

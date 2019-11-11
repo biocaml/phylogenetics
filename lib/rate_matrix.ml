@@ -40,10 +40,10 @@ module Make(A : Alphabet.S_int) = struct
 
   let jc69 () =
     let r = Float.(1. / (of_int A.card - 1.)) in
-    A.matrix (fun i j -> if A.equal i j then -1. else r)
+    A.Matrix.init (fun i j -> if A.equal i j then -1. else r)
 
   let make f =
-    let r = A.matrix (fun _ _ -> 0.) in
+    let r = A.Matrix.init (fun _ _ -> 0.) in
     List.iter A.all ~f:(fun i->
       let total = ref 0. in
       List.iter A.all ~f:(fun j ->
@@ -73,7 +73,7 @@ module Make(A : Alphabet.S_int) = struct
             )
         )
     in
-    A.matrix Float.(fun i j -> rate.A.%{i, j} / mu)
+    A.Matrix.init Float.(fun i j -> rate.A.%{i, j} / mu)
 
   let ut_index i j =
     let n = A.card in
@@ -122,7 +122,7 @@ module Nucleotide = struct
   include Make(Nucleotide)
 
   let k80 kappa =
-    Nucleotide.matrix (fun i j ->
+    Nucleotide.Matrix.init (fun i j ->
         if i = j then -1.
         else if Nucleotide.transversion i j then kappa /. (kappa +. 2.)
         else 1. /. (kappa +. 2.)

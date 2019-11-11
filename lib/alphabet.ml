@@ -23,7 +23,11 @@ module type S = sig
   end
   val flat_profile : unit -> vector
   val random_profile : float -> vector
-  val matrix : (t -> t -> float) -> matrix
+  module Matrix : sig
+    val init : (t -> t -> float) -> matrix
+    val scal_mul : matrix -> float -> matrix
+    val expm : matrix -> matrix
+  end
   val ( .%() ) : vector -> t -> float
   val ( .%()<- ) : vector -> t -> float -> unit
   val ( .%{} ) : matrix -> t * t -> float
@@ -81,8 +85,14 @@ module Make(X : sig val card : int end) = struct
     [| Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha) |]
     |> Owl.Arr.of_arrays
 
-  let matrix f =
-    Owl.Mat.init_2d card card f
+  module Matrix = struct
+    let init f =
+      Owl.Mat.init_2d card card f
+
+    let expm = Owl.Linalg.D.expm
+
+    let scal_mul mat tau = Owl.Mat.(mat *$ tau)
+  end
 
   let to_int i = i
   type vector = Owl.Arr.arr
