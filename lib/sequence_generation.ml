@@ -38,6 +38,7 @@ struct
 
   let seqgen_raw param =
     let my_proba = proba param in
+    let stat_dist = E.stat_dist_vec param in
     fun tree size ->
       let rec aux tree bl = match tree with
         | Phylogenetic_tree.Leaf {index=i; _} -> [(i,bl)]
@@ -45,7 +46,7 @@ struct
           aux l (List.map bl ~f:(fun b->draw_base (my_proba b t1)))
           @ aux r (List.map bl ~f:(fun b->draw_base (my_proba b t2)))
       in
-      List.init size ~f:(fun _->draw_base (E.stat_dist_vec param))
+      List.init size ~f:(fun _->draw_base stat_dist)
       |> aux tree
 
   let seqgen param =
