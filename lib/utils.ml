@@ -74,4 +74,4 @@ let random_profile n =
     )
   in
   let s = Array.fold v ~init:0. ~f:( +. ) in
-  Owl.Arr.init [| n |] (fun i -> v.(i) /. s)
+  Linear_algebra.Vec.init n ~f:(fun i -> v.(i) /. s)

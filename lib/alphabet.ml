@@ -1,4 +1,4 @@
-open Base
+open Core_kernel
 
 module type S = sig
   type t
@@ -20,12 +20,13 @@ module type S = sig
     val sum : vector -> float
     val normalize : vector -> vector
     val of_array_exn : float array -> vector
+    val upcast_exn : Linear_algebra.vec -> vector
   end
   val flat_profile : unit -> vector
   val random_profile : float -> vector
   module Matrix : sig
     val init : (t -> t -> float) -> matrix
-    val scal_mul : matrix -> float -> matrix
+    val scal_mul : float -> matrix -> matrix
     val expm : matrix -> matrix
   end
   val ( .%() ) : vector -> t -> float
@@ -36,12 +37,11 @@ end
 
 module type S_int = sig
   include S with type t = private int
-             and type vector = private Owl.Arr.arr
-             and type matrix = private Owl.Mat.mat
+             and type vector = private Linear_algebra.vec
+             and type matrix = private Linear_algebra.mat
              and type 'a table = private 'a array
   val of_int : int -> t option
   val of_int_exn : int -> t
-  val vector_of_arr_exn : Owl.Arr.arr -> vector
 end
 
 module Make(X : sig val card : int end) = struct
@@ -66,15 +66,21 @@ module Make(X : sig val card : int end) = struct
       else a
   end
   module Vector = struct
-    let init f = Owl.Arr.init [|card|] f
-    let map v ~f = Owl.Arr.map f v
-    let sum xs = Owl.Arr.sum' xs
+    let init f = Linear_algebra.Vec.init card ~f
+    let map v ~f = Linear_algebra.Vec.map v ~f
+    let sum xs = Linear_algebra.Vec.sum xs
     let normalize v =
       let s = sum v in
       map v ~f:(fun x -> x /. s)
     let of_array_exn a =
       if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
-      else Owl.Arr.of_array a [| card |]
+      else Linear_algebra.Vec.init card ~f:(fun i -> a.(i))
+    let upcast_exn (a : Linear_algebra.vec) =
+      match Owl.Arr.shape (a :> Owl.Mat.mat) with
+      | [| n ; 1 |] when n = card -> a
+      | a ->
+        let shape = Sexp.to_string_hum ([%sexp_of: int array] a) in
+        invalid_argf "vector_of_arr_exn: argument has shape %s" shape ()
   end
 
   let flat_profile () =
@@ -82,29 +88,24 @@ module Make(X : sig val card : int end) = struct
     Vector.init (fun _ -> theta)
 
   let random_profile alpha =
-    [| Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha) |]
-    |> Owl.Arr.of_arrays
+    let v = Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha) in
+    Vector.init (fun i -> v.(i))
 
   module Matrix = struct
     let init f =
-      Owl.Mat.init_2d card card f
+      Linear_algebra.Mat.init card ~f
 
-    let expm = Owl.Linalg.D.expm
+    let expm = Linear_algebra.Mat.expm
 
-    let scal_mul mat tau = Owl.Mat.(mat *$ tau)
+    let scal_mul = Linear_algebra.Mat.scal_mul
   end
 
   let to_int i = i
-  type vector = Owl.Arr.arr
+  type vector = Linear_algebra.vec
 
-  let vector_of_arr_exn a =
-    match Owl.Arr.shape a with
-    | [| n |] when n = card -> a
-    | _ -> raise (Invalid_argument "vector_of_array_exn")
-
-  let ( .%() ) v i = Owl.Arr.get v [|i|]
-  let ( .%()<- ) v i x = Owl.Arr.set v [| i |] x
-  type matrix = Owl.Mat.mat
-  let ( .%{} ) m (i,j) = Owl.Mat.get m  i j
-  let ( .%{}<- ) m (i, j) x = Owl.Mat.set m i j x
+  let ( .%() ) v i = Linear_algebra.Vec.get v i
+  let ( .%()<- ) v i x = Linear_algebra.Vec.set v i x
+  type matrix = Linear_algebra.mat
+  let ( .%{} ) m (i,j) = Linear_algebra.Mat.get m i j
+  let ( .%{}<- ) m (i, j) x = Linear_algebra.Mat.set m i j x
 end

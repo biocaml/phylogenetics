@@ -1,4 +1,5 @@
 open Core_kernel
+open Linear_algebra
 
 module type S = sig
   type vector
@@ -12,7 +13,7 @@ module type S = sig
 
   val gtr :
     equilibrium_frequencies:vector ->
-    transition_rates:Owl.Arr.arr -> (* FIXME: introduce symmetric matrices? *)
+    transition_rates:vec -> (* FIXME: introduce symmetric matrices? *)
     t
 
   val stationary_distribution : t -> vector
@@ -32,11 +33,9 @@ module Make(A : Alphabet.S_int) = struct
     |> A.Vector.of_array_exn
 
   let stationary_distribution (m : A.matrix) =
-    let module M = Owl.Mat in
-    let a = M.(transpose (m :> mat) @= ones 1 A.card)
-    and b = M.init_2d (A.card + 1) 1 (fun i _ -> if i < A.card then 0. else 1.) in
-    Owl.Linalg.D.linsolve a b
-    |> A.vector_of_arr_exn
+    let open Linear_algebra in
+    Mat.zero_eigen_vector (m :> mat)
+    |> A.Vector.upcast_exn
 
   let jc69 () =
     let r = Float.(1. / (of_int A.card - 1.)) in
@@ -98,7 +97,7 @@ module Make(A : Alphabet.S_int) = struct
         let jj = j in
         let i = (i :> int) in
         let j = (j :> int) in
-        Owl.Arr.get rates [| ut_index (min i j) (max i j) |] *. stationary_distribution.A.%(jj)
+        Vec.get rates (ut_index (min i j) (max i j)) *. stationary_distribution.A.%(jj)
       ) in
     scaled_rate_matrix stationary_distribution m
 
@@ -107,7 +106,7 @@ module Make(A : Alphabet.S_int) = struct
     let gtr_params = Utils.random_profile (A.card * (A.card - 1) / 2) in
     let gtr_rates = gtr ~equilibrium_frequencies:pi ~transition_rates:gtr_params in
     let pi' = stationary_distribution gtr_rates in
-    Owl.Arr.approx_equal (pi :> Owl.Arr.arr) (pi' :> Owl.Arr.arr)
+    Owl.Mat.approx_equal (pi :> Owl.Arr.arr) (pi' :> Owl.Arr.arr)
 end
 
 

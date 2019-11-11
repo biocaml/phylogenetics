@@ -1,16 +1,18 @@
 (** This modules wraps linear algebra functions *)
 
 (** A square matrix of floats. *)
-type mat = Owl.Mat.mat
+type mat = private Owl.Mat.mat
 
 (** A vector of floats. *)
-type vec = Owl.Mat.mat
+type vec = private Owl.Mat.mat
 
 module Vec : sig
   type t = vec
 
   (** Initialises a vector from a int->float function. *)
   val init : int -> f:(int -> float) -> vec
+
+  val map : vec -> f:(float -> float) -> vec
 
   (** Scalar-vector product (in-place). *)
   val inplace_scal_mul: float -> vec -> unit
@@ -44,6 +46,9 @@ module Vec : sig
 
   (** Access a specific element of a vector. *)
   val get : vec -> int -> float
+
+  (** Set a specific element of a vector. *)
+  val set : vec -> int -> float -> unit
 
   (** Prints a vector to the standard output. *)
   val pp : Format.formatter -> vec -> unit
@@ -88,6 +93,9 @@ module Mat : sig
 
   (** Access a specific element of a matrix. *)
   val get : mat -> int -> int -> float
+
+  (** Set a specific element of a matrix. *)
+  val set : mat -> int -> int -> float -> unit
 
   (** Copy row from a matrix *)
   val row : mat -> int -> vec

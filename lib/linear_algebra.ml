@@ -34,6 +34,7 @@ module Mat = struct
     max relative_diff <= p
 
   let get m i j = M.get m i j
+  let set m i j x = M.set m i j x
 
   let inverse m = M.inv m
 
@@ -57,6 +58,7 @@ end
 module Vec = struct
   type t = vec
   let init size ~f = M.init_2d size 1 (fun i _ -> f i)
+  let map v ~f = M.map f v
   let scal_add = M.scalar_add
   let scal_mul = M.scalar_mul
   let inplace_scal_mul x y = M.scalar_mul_ x y
@@ -67,6 +69,7 @@ module Vec = struct
   let exp v = M.exp v
   let min v = M.min' v
   let max v = M.max' v
-  let get v i = M.get v 1 i
+  let get v i = M.get v i 0
+  let set v i x = M.set v i 0 x
   let pp = Owl_pretty.pp_dsnda
 end

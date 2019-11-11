@@ -37,7 +37,7 @@ let random_param ~alpha_nucleotide ~alpha_fitness =
 
 let flat_param () =
   let pi = Nucleotide.flat_profile () in
-  let rho = Owl.Arr.init [|6|] (fun _ -> 1. /. 6.) in
+  let rho = Linear_algebra.Vec.init 6 ~f:(fun _ -> 1. /. 6.) in
   let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
   {
     nucleotide_rates ;
@@ -94,7 +94,7 @@ let stationary_distribution p =
   |> NSCodon.Vector.normalize
 
 let transition_probability_matrix p t =
-  NSCodon.Matrix.(expm (scal_mul (rate_matrix p) t))
+  NSCodon.Matrix.(expm (scal_mul t (rate_matrix p)))
 
 (* == TESTS ================================================================= *)
 
