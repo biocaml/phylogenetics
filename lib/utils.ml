@@ -74,4 +74,4 @@ let random_profile n =
     )
   in
   let s = Array.fold v ~init:0. ~f:( +. ) in
-  Array.map v ~f:(fun x -> x /. s)
+  Owl.Arr.init [| n |] (fun i -> v.(i) /. s)

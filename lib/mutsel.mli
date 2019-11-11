@@ -10,9 +10,9 @@ type rate_matrix = Codon_rate.t
 
 type param = {
   nucleotide_rates : Rate_matrix.Nucleotide.t ;
-  nucleotide_stat_dist : float Nucleotide.vector ;
+  nucleotide_stat_dist : Nucleotide.vector ;
   omega : float ; (* dN/dS *)
-  scaled_fitness : float Amino_acid.vector ;
+  scaled_fitness : Amino_acid.vector ;
   gBGC : float ;
 }
 (**
@@ -25,4 +25,4 @@ val random_param :
   param
 
 val rate_matrix : param -> rate_matrix
-val stationary_distribution : param -> float NSCodon.vector
+val stationary_distribution : param -> NSCodon.vector

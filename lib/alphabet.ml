@@ -2,36 +2,42 @@ open Base
 
 module type S = sig
   type t
-  type 'a vector
-  type 'a matrix
+  type vector
+  type matrix
+  type 'a table
   val equal : t -> t -> bool
   val all : t list
   val card : int
   val to_int : t -> int
-  module Vector : sig
-    val init : (t -> 'a) -> 'a vector
-    val map : 'a vector -> f:('a -> 'b) -> 'b vector
-    val reduce : 'a vector -> f:('a -> 'a -> 'a) -> 'a
-    val normalize : float vector -> float vector
+  module Table : sig
+    val init : (t -> 'a) -> 'a table
+    val map : 'a table -> f:('a -> 'b) -> 'b table
+    val of_array_exn : 'a array -> 'a table
   end
-  val flat_profile : unit -> float vector
-  val random_profile :
-    float ->
-    float vector
-  val matrix : (t -> t -> 'a) -> 'a matrix
-  val ( .%() ) : 'a vector -> t -> 'a
-  val ( .%()<- ) : 'a vector -> t -> 'a -> unit
-  val ( .%{} ) : 'a matrix -> t * t -> 'a
-  val ( .%{}<- ) : 'a matrix -> t * t -> 'a -> unit
+  module Vector : sig
+    val init : (t -> float) -> vector
+    val map : vector -> f:(float -> float) -> vector
+    val sum : vector -> float
+    val normalize : vector -> vector
+    val of_array_exn : float array -> vector
+  end
+  val flat_profile : unit -> vector
+  val random_profile : float -> vector
+  val matrix : (t -> t -> float) -> matrix
+  val ( .%() ) : vector -> t -> float
+  val ( .%()<- ) : vector -> t -> float -> unit
+  val ( .%{} ) : matrix -> t * t -> float
+  val ( .%{}<- ) :  matrix -> t * t -> float -> unit
 end
 
 module type S_int = sig
   include S with type t = private int
-             and type 'a vector = private 'a array
-             and type 'a matrix = private 'a array array
+             and type vector = private Owl.Arr.arr
+             and type matrix = private Owl.Mat.mat
+             and type 'a table = private 'a array
   val of_int : int -> t option
   val of_int_exn : int -> t
-  val vector_of_array_exn : 'a array -> 'a vector
+  val vector_of_arr_exn : Owl.Arr.arr -> vector
 end
 
 module Make(X : sig val card : int end) = struct
@@ -47,13 +53,24 @@ module Make(X : sig val card : int end) = struct
 
   let equal = Int.( = )
   let all = List.init card ~f:Fn.id
-  module Vector = struct
+  type 'a table = 'a array
+  module Table = struct
     let init f = Array.init card ~f
     let map = Array.map
-    let reduce xs ~f = Array.reduce_exn xs ~f
+    let of_array_exn a =
+      if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
+      else a
+  end
+  module Vector = struct
+    let init f = Owl.Arr.init [|card|] f
+    let map v ~f = Owl.Arr.map f v
+    let sum xs = Owl.Arr.sum' xs
     let normalize v =
-      let s = reduce v ~f:( +. ) in
+      let s = sum v in
       map v ~f:(fun x -> x /. s)
+    let of_array_exn a =
+      if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
+      else Owl.Arr.of_array a [| card |]
   end
 
   let flat_profile () =
@@ -61,18 +78,23 @@ module Make(X : sig val card : int end) = struct
     Vector.init (fun _ -> theta)
 
   let random_profile alpha =
-    Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha)
+    [| Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha) |]
+    |> Owl.Arr.of_arrays
 
   let matrix f =
-    Array.init card ~f:(fun i -> Array.init card ~f:(f i))
+    Owl.Mat.init_2d card card f
+
   let to_int i = i
-  type 'a vector = 'a array
-  let vector_of_array_exn a =
-    if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
-    else a
-  let ( .%() ) v i = v.(i)
-  let ( .%()<- ) v i x = v.(i) <- x
-  type 'a matrix = 'a array array
-  let ( .%{} ) m (i,j) = m.(i).(j)
-  let ( .%{}<- ) m (i, j) x = m.(i).(j) <- x
+  type vector = Owl.Arr.arr
+
+  let vector_of_arr_exn a =
+    match Owl.Arr.shape a with
+    | [| n |] when n = card -> a
+    | _ -> raise (Invalid_argument "vector_of_array_exn")
+
+  let ( .%() ) v i = Owl.Arr.get v [|i|]
+  let ( .%()<- ) v i x = Owl.Arr.set v [| i |] x
+  type matrix = Owl.Mat.mat
+  let ( .%{} ) m (i,j) = Owl.Mat.get m  i j
+  let ( .%{}<- ) m (i, j) x = Owl.Mat.set m i j x
 end

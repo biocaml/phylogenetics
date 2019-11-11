@@ -9,10 +9,10 @@
 
 
 module type S = sig
-  type 'a vector
-  type 'a matrix
+  type vector
+  type matrix
   type symbol
-  type t = private float matrix
+  type t = private matrix
 
   val make : (symbol -> symbol -> float) -> t
 
@@ -20,30 +20,30 @@ module type S = sig
   (** {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#JC69_model_(Jukes_and_Cantor_1969)}Jukes and Cantor 1969} *)
 
   val gtr :
-    equilibrium_frequencies:float vector ->
-    transition_rates:float array ->
+    equilibrium_frequencies:vector ->
+    transition_rates:Owl.Arr.arr ->
     t
   (**
      {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#GTR_model_(Tavar%C3%A9_1986)}Generalised
      Time-Reversible model} *)
 
-  val stationary_distribution : t -> float vector
+  val stationary_distribution : t -> vector
   (** [stationary_distribution r] numerically computes the asymptotic
      probability distribution [pi] of the CTMC defined by [r]. *)
 
-  val scaled_rate_matrix : float vector -> t -> t
+  val scaled_rate_matrix : vector -> t -> t
   (** [scaled_rate_matrix pi r] is a new matrix rate such that the
      corresponding CTMC has one expected transition per unit of
      time. In addition, if [r] is symetrical, the result has [pi] as
      stationary distribution. *)
 
-  val scale_matrix : float matrix -> float matrix
+  val scale : t -> t
   (** rescale matrix such that the sum of off-diagonal elements is 1. *)
 end
 
 module Make(A : Alphabet.S_int) : S with type symbol := A.t
-                                     and type 'a vector := 'a A.vector
-                                     and type 'a matrix := 'a A.matrix
+                                     and type vector := A.vector
+                                     and type matrix := A.matrix
 
 
 module Nucleotide : sig

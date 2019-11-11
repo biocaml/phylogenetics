@@ -10,9 +10,9 @@ type rate_matrix = Codon_rate.t
 
 type param = {
   nucleotide_rates : Rate_matrix.Nucleotide.t ;
-  nucleotide_stat_dist : float Nucleotide.vector ;
+  nucleotide_stat_dist : Nucleotide.vector ;
   omega : float ; (* dN/dS *)
-  scaled_fitness : float Amino_acid.vector ;
+  scaled_fitness : Amino_acid.vector ;
   gBGC : float ;
 }
 
@@ -39,7 +39,7 @@ let random_param ~alpha_nucleotide ~alpha_fitness =
 
 let flat_param () =
   let pi = Nucleotide.flat_profile () in
-  let rho = Array.create ~len:6 (1. /. 6.) in
+  let rho = Owl.Arr.init [|6|] (fun _ -> 1. /. 6.) in
   let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
   {
     nucleotide_rates ;
@@ -58,7 +58,7 @@ let fixation_probability delta =
   else delta / (1. - exp (- delta))
 
 let rate_matrix { nucleotide_rates ; omega ; scaled_fitness = _F_ ; gBGC ; _ } =
-  let nuc_rates = (nucleotide_rates :> float Nucleotide.matrix) in
+  let nuc_rates = (nucleotide_rates :> Nucleotide.matrix) in
   Codon_rate.make (fun p q ->
       match NSCodon.neighbours p q with
       | Some (_, x_a, x_b) ->
@@ -100,8 +100,8 @@ let stationary_distribution p =
 
 let test_stationary_distribution_sums_to_one stationary_distribution =
   let p = random_param ~alpha_nucleotide:10. ~alpha_fitness:10. in
-  let pi = (stationary_distribution p : float NSCodon.vector :> float array) in
-  Utils.robust_equal 1. (Array.sum (module Float) ~f:Fn.id pi)
+  let pi = (stationary_distribution p : NSCodon.vector) in
+  Utils.robust_equal 1. (NSCodon.Vector.sum pi)
 
 let stationary_distribution_by_linear_resolution p =
   Codon_rate.stationary_distribution (rate_matrix p)
@@ -114,10 +114,10 @@ let%test "Codon model stationary distribution sums to one (linear resolution)" =
 
 let test_stationary_distribution_for_flat_parameters_is_uniform stationary_distribution =
   let p = flat_param () in
-  let pi = (stationary_distribution p : float NSCodon.vector :> float array) in
-  let res = Array.for_all pi ~f:(fun x -> Float.robustly_compare x (1. /. 61.) = 0) in
+  let pi = (stationary_distribution p : NSCodon.vector :> Owl.Arr.arr) in
+  let res = Owl.Arr.for_all (fun x -> Float.robustly_compare x (1. /. 61.) = 0) pi in
   if not res then
-    fprintf stderr "stationary distribution = %s\n" (Utils.show_float_array pi) ;
+    fprintf stderr "stationary distribution = %s\n" (Utils.show_float_array (Owl.Arr.to_array pi)) ;
   res
 
 let%test "Codon model stationary distribution for flat parameters is uniform" =
@@ -145,10 +145,12 @@ let%test "Codon model stationary distribution with flat nucleotidic parameters h
   test_stationary_distribution_with_flat_nucleotidic_parameters_has_equal_frequency_for_synonyms stationary_distribution_by_linear_resolution
 
 let test_both_stationary_distribution_calculation p =
-  let pi = (stationary_distribution p :> float array) in
-  let pi' = (Codon_rate.stationary_distribution (rate_matrix p) :> float array) in
-  let res = Array.for_alli pi ~f:(fun i _ -> Utils.robust_equal pi.(i) pi'.(i)) in
+  let pi = (stationary_distribution p :> Owl.Arr.arr) in
+  let pi' = (Codon_rate.stationary_distribution (rate_matrix p) :> Owl.Arr.arr) in
+  let res = Owl.Arr.approx_equal pi pi' in
   if not res then (
+    let pi = Owl.Arr.to_array pi in
+    let pi' = Owl.Arr.to_array pi' in
     fprintf stderr "found: %s\nwanted: %s\n" (Utils.show_float_array pi) (Utils.show_float_array pi')
   );
   res
