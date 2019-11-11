@@ -93,6 +93,8 @@ let stationary_distribution p =
     )
   |> NSCodon.Vector.normalize
 
+let transition_probability_matrix p t =
+  NSCodon.Matrix.(expm (scal_mul (rate_matrix p) t))
 
 (* == TESTS ================================================================= *)
 

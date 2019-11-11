@@ -24,3 +24,4 @@ val random_param :
 
 val rate_matrix : param -> NSCodon_rate_matrix.t
 val stationary_distribution : param -> NSCodon.vector
+val transition_probability_matrix : param -> float -> NSCodon.matrix
