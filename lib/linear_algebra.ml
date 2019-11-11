@@ -11,7 +11,7 @@ module Mat = struct
   let diagm v = M.diagm v
   let dot a b = M.dot a b
 
-  let row mat r = M.row mat r
+  let row mat r = M.transpose (M.row mat r)
 
   let inplace_scal_mul f a = M.scalar_mul_ f a
 
