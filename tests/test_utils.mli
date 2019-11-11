@@ -14,8 +14,8 @@ val check_likelihood: float -> float -> unit
 
 val compare_matrices:
   string ->
-  Linear_algebra_tools.Lacaml.mat ->
-  Linear_algebra_tools.Lacaml.mat ->
+  Linear_algebra.mat ->
+  Linear_algebra.mat ->
   unit
 
 

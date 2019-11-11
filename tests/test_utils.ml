@@ -1,6 +1,6 @@
 open Core_kernel
 open Alcotest
-open Phylogenetics.Linear_algebra_tools.Lacaml
+open Phylogenetics.Linear_algebra
 open Phylogenetics.Stat_tools
 
 let eps = 0.1

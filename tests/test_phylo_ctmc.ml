@@ -6,7 +6,7 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   let module Align = Alignment.Make(Seq.DNA) in
   let module F = Felsenstein.Make(Nucleotide)(Align)(M) in
   let module SG = Sequence_generation.Make(Nucleotide)(Seq.DNA)(Align)(M) in
-  let module CTMC = Phylo_ctmc.Make(Nucleotide)(Linear_algebra_tools.Lacaml) in
+  let module CTMC = Phylo_ctmc.Make(Nucleotide) in
   let tree = Phylogenetic_tree.make_random tree_size in
   let align =
     SG.seqgen_string_list () tree seq_size

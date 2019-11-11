@@ -19,7 +19,7 @@ module Make
     (Align : ALIGNMENT with type sequence = Seq.t)
     (E : EVOL_MODEL with type base := Base.t) =
 struct
-  open Linear_algebra_tools.Lacaml
+  open Linear_algebra
 
   let proba param =
     let my_eMt = E.eMt_mat param in

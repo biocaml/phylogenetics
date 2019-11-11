@@ -6,28 +6,8 @@ module type Alphabet = sig
   val to_int : t -> int
 end
 
-module type Linalg = sig
-  type vec
-  type mat
-  module Vec : sig
-    type t = vec
-    val get : t -> int -> float
-    val init : int -> f:(int -> float) -> vec
-    val mul : t -> t -> t
-    val min : t -> float
-    val max : t -> float
-    val sum : t -> float
-  end
-  module Mat : sig
-    type t = mat
-    val row : t -> int -> vec
-  end
-  val scal_vec_mul : float -> vec -> vec
-  val mat_vec_mul : mat -> vec -> vec
-end
-
-module Make(A : Alphabet)(L : Linalg) = struct
-  open L
+module Make(A : Alphabet) = struct
+  open Linear_algebra
 
   type shifted_vector = SV of vec * float
   module SV = struct
@@ -38,7 +18,7 @@ module Make(A : Alphabet)(L : Linalg) = struct
       else
         let mv = Vec.max v in
         SV (
-          scal_vec_mul (1. /. mv) v,
+          Vec.scal_mul (1. /. mv) v,
           carry +. log mv
         )
 
@@ -50,7 +30,7 @@ module Make(A : Alphabet)(L : Linalg) = struct
       |> shift ~carry:(carry1 +. carry2)
   end
 
-  let indicator ~i ~n = L.Vec.init n ~f:(fun j -> if i = j then 1. else 0.)
+  let indicator ~i ~n = Vec.init n ~f:(fun j -> if i = j then 1. else 0.)
 
   let pruning t ~transition_matrix ~leaf_state ~root_frequencies =
     let rec tree (t : _ Tree.t) =

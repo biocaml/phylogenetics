@@ -1,6 +1,6 @@
 (** Compilation of module signatures used elsewhere. *)
 
-open Linear_algebra_tools.Lacaml (* to get the vec and mat types *)
+open Linear_algebra (* to get the vec and mat types *)
 
 (** Index type for tree leaves and sequences in alignments *)
 type index = string
