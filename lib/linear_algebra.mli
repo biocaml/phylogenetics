@@ -96,8 +96,14 @@ module Mat : sig
       v is the diagonal vector of D.*)
   val diagonalize : mat -> vec * mat
 
+  val transpose : mat -> mat
+
   (** Computes the inverse of a matrix. *)
   val inverse: mat -> mat
+
+  (** [zero_eigen_vector m] is a vector [v] such that [Vec.sum v = 1]
+     and [mat_vec_mul m v = zero] *)
+  val zero_eigen_vector : mat -> vec
 
   (** Prints a matrix to the standard output (display may be messy). *)
   val pp : Format.formatter -> mat -> unit

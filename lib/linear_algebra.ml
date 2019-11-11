@@ -40,6 +40,17 @@ module Mat = struct
   let diagonalize m =
     Owl_lapacke.syevr ~a:m ~jobz:'V' ~range:'A' ~vl:0. ~vu:0. ~il:0 ~iu:0 ~abstol:1e-6 ~uplo:'U'
 
+  let transpose = M.transpose
+
+  let zero_eigen_vector m =
+    let n =
+      let (m, n) = M.shape m in
+      if m <> n then invalid_arg "Expected square matrix" else n
+    in
+    let a = M.(transpose (m :> mat) @= ones 1 n)
+    and b = M.init_2d (n + 1) 1 (fun i _ -> if i < n then 0. else 1.) in
+    Owl.Linalg.D.linsolve a b
+
   let pp = Owl_pretty.pp_dsnda
 end
 
