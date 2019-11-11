@@ -46,16 +46,16 @@ let owl_stat_dist_test =
     ~name:"Owl_stat_dist_test"
     (fun () -> Linear_algebra.Mat.zero_eigen_vector b')
 
-let tests = [
-  lacaml_mat_mat_mul_test ;
-  owl_mat_mat_mul_test ;
-  lacaml_stat_dist_test ;
-  owl_stat_dist_test ;
-]
+let lacaml_expm_test =
+  Bench.Test.create ~name:"Lacaml_expm" (fun () -> Linear_algebra_tools.Lacaml.Mat.expm a)
+
+let owl_expm_test =
+  Bench.Test.create ~name:"Owl_expm" (fun () -> Owl.Linalg.D.expm a')
 
 let command = Command.group ~summary:"Performance benches" [
     "mat-mul", Bench.make_command [ lacaml_mat_mat_mul_test ; owl_mat_mat_mul_test ] ;
     "stat-dist", Bench.make_command [ lacaml_stat_dist_test ; owl_stat_dist_test ] ;
+    "expm", Bench.make_command [lacaml_expm_test ; owl_expm_test] ;
   ]
 
 let () = Command.run command
