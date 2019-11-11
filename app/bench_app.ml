@@ -63,11 +63,22 @@ let lacaml_mat_vec_mul =
 let owl_mat_vec_mul =
   Bench.Test.create ~name:"Owl_mat_vec_mul" (fun () -> Owl.Mat.dot a' v')
 
+let lacaml_vec_init =
+  Bench.Test.create ~name:"Lacaml_vec_init" (fun () ->
+      Linear_algebra_tools.Lacaml.Vec.init 100 ~f:(fun i -> if i = 42 then 1. else 0.)
+    )
+
+let owl_vec_init =
+  Bench.Test.create ~name:"Owl_vec_init" (fun () ->
+      Linear_algebra.Vec.init 100 ~f:(fun i -> if i = 42 then 1. else 0.)
+    )
+
 let command = Command.group ~summary:"Performance benches" [
     "mat-mul", Bench.make_command [ lacaml_mat_mat_mul ; owl_mat_mat_mul ] ;
     "stat-dist", Bench.make_command [ lacaml_stat_dist ; owl_stat_dist ] ;
     "expm", Bench.make_command [lacaml_expm ; owl_expm] ;
     "mat-vec-mul", Bench.make_command [lacaml_mat_vec_mul ; owl_mat_vec_mul] ;
+    "vec-init", Bench.make_command [lacaml_vec_init ; owl_vec_init] ;
   ]
 
 let () = Command.run command
