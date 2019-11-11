@@ -50,6 +50,9 @@ module Vec : sig
   (** Set a specific element of a vector. *)
   val set : vec -> int -> float -> unit
 
+  val of_array : float array -> vec
+  val to_array : vec -> float array
+
   (** Prints a vector to the standard output. *)
   val pp : Format.formatter -> vec -> unit
 end

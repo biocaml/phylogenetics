@@ -72,4 +72,10 @@ module Vec = struct
   let get v i = M.get v i 0
   let set v i x = M.set v i 0 x
   let pp = Owl_pretty.pp_dsnda
+  let of_array xs = init (Array.length xs) ~f:(fun i -> xs.(i))
+  let to_array v = M.to_array v
+
+  let%test "Linear_algebra.Vec.{to,of}_array" =
+    let xs = [| 1. ; 2. ; 3. |] in
+    to_array (of_array xs) = xs
 end
