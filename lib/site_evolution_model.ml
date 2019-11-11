@@ -56,9 +56,8 @@ struct
   let eMt_mat e =
     let diag_p, diag, diag_p_inv = E.diag_mats e in
     fun t -> Mat.dot (Mat.dot diag_p (diag t)) diag_p_inv
-  let known_vector b = Vec.init Base.card ~f:(fun x ->
-      if x = Base.to_int b then 1. else 0.
-    )
+  let known_vector b =
+    (Base.Vector.init (fun x -> if x = b then 1. else 0.) :> vec)
 end
 
 module Make(Base : Base)(M : TRANSITION_MATRIX with type base := Base.t) = struct
