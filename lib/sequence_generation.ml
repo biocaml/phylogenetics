@@ -30,10 +30,10 @@ struct
        if yes return base else decrement x *)
     let rec aux i x =
       let proba = Vec.get vec i in
-      if x < proba then Base.of_int_exn (i-1)
+      if x < proba then Base.of_int_exn i
       else aux (i+1) (x-.proba)
     in
-    Random.float 1.0 |> aux 1
+    Random.float 1.0 |> aux 0
 
   let seqgen_raw param =
     let my_proba = proba param in
