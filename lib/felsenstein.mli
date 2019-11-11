@@ -1,7 +1,7 @@
 (** Functions that implement Felsenstein's "pruning" algorithm to compute
     likelihood of phylogenetic trees with known sequences at leaves.*)
 
-open Linear_algebra_tools.Lacaml
+open Linear_algebra
 
 module type Base = sig
   type t

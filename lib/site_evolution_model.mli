@@ -2,7 +2,7 @@
     providing relevant mathematical procedure (eg, exponential of transition matrix);
     also includes functors to build models from transition matrices.*)
 
-open Linear_algebra_tools.Lacaml
+open Linear_algebra
 
 (** Evolution model with linear algebra functions to compute static distribution and
     transition matrix diagonalization.*)
