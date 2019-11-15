@@ -13,9 +13,10 @@ val check_distrib: Stat_tools.sample_list -> Stat_tools.sample_list -> unit
 val check_likelihood: float -> float -> unit
 
 val compare_matrices:
+  (module Alphabet.S with type matrix = 'mat) ->
   string ->
-  Linear_algebra.mat ->
-  Linear_algebra.mat ->
+  'mat ->
+  'mat ->
   unit
 
 

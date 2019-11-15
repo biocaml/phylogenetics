@@ -14,23 +14,23 @@ module Make(A : Alphabet) = struct
     let of_vec v = SV (v, 0.)
 
     let shift ?(threshold = 1e-6) v ~carry =
-      if Vec.min v > threshold then (SV (v, carry))
+      if Vector.min v > threshold then (SV (v, carry))
       else
-        let mv = Vec.max v in
+        let mv = Vector.max v in
         SV (
-          Vec.scal_mul (1. /. mv) v,
+          Vector.scal_mul (1. /. mv) v,
           carry +. log mv
         )
 
     let mat_vec_mul mat (SV (v, carry)) =
-      SV (mat_vec_mul mat v, carry)
+      SV (Matrix.apply mat v, carry)
 
     let mul (SV (v1, carry1)) (SV (v2, carry2)) =
-      Vec.mul v1 v2
+      Vector.mul v1 v2
       |> shift ~carry:(carry1 +. carry2)
   end
 
-  let indicator ~i ~n = Vec.init n ~f:(fun j -> if i = j then 1. else 0.)
+  let indicator ~i ~n = Vector.init n ~f:(fun j -> if i = j then 1. else 0.)
 
   let pruning t ~transition_matrix ~leaf_state ~root_frequencies =
     let rec tree (t : _ Tree.t) =
@@ -47,7 +47,7 @@ module Make(A : Alphabet) = struct
         |> List.reduce_exn ~f:SV.mul
     in
     let SV (v, carry) = SV.mul (tree t) (SV.of_vec root_frequencies) in
-    Float.log (Vec.sum v) +. carry
+    Float.log (Vector.sum v) +. carry
 
   let conditionial_likelihoods t ~transition_matrix ~leaf_state =
     let rec tree (t : _ Tree.t) =
@@ -77,7 +77,7 @@ module Make(A : Alphabet) = struct
     let rec tree (t : _ Tree.t) prior =
       let SV (conditional_likelihood, _) = Tree.data t in
       let state =
-        Vec.mul prior conditional_likelihood
+        Vector.mul prior conditional_likelihood
         |> choose
       in
       match t with
@@ -87,7 +87,7 @@ module Make(A : Alphabet) = struct
         Tree.node state branches
 
     and branch (Branch br) parent_state =
-      let prior = Mat.row br.data parent_state in
+      let prior = Matrix.row br.data parent_state in
       (* FIXME: lacaml is not good at getting a row (while it is for
          columns). Maybe change operations so that this operation is
          avoided? *)

@@ -34,7 +34,7 @@ module Make(A : Alphabet.S_int) = struct
 
   let stationary_distribution (m : A.matrix) =
     let open Linear_algebra in
-    Mat.zero_eigen_vector (m :> mat)
+    Matrix.zero_eigen_vector (m :> mat)
     |> A.Vector.upcast_exn
 
   let jc69 () =
@@ -97,7 +97,7 @@ module Make(A : Alphabet.S_int) = struct
         let jj = j in
         let i = (i :> int) in
         let j = (j :> int) in
-        Vec.get rates (ut_index (min i j) (max i j)) *. stationary_distribution.A.%(jj)
+        Vector.get rates (ut_index (min i j) (max i j)) *. stationary_distribution.A.%(jj)
       ) in
     scaled_rate_matrix stationary_distribution m
 
@@ -123,7 +123,7 @@ module Nucleotide = struct
   let k80 kappa =
     Nucleotide.Matrix.init (fun i j ->
         if i = j then -1.
-        else if Nucleotide.transversion i j then kappa /. (kappa +. 2.)
-        else 1. /. (kappa +. 2.)
+        else if Nucleotide.transversion i j then 1. /. (kappa +. 2.)
+        else kappa /. (kappa +. 2.)
       )
 end

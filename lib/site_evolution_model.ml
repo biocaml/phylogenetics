@@ -1,184 +1,140 @@
-open Linear_algebra
-
-(* =================================== *)
-(*  SIGNATURES FOR FUNCTOR PARAMETERS  *)
-(* =================================== *)
-
-(** Module type for transition matrix dependent on a parameter type. *)
-module type TRANSITION_MATRIX = sig
-  type t
-  type base
-  val transition: t -> base -> base -> float
-  val of_string: string -> t
-  val to_string: t -> string
-end
-
-module type MODEL_WITH_DIAG = sig
-  type t
-  val transition_mat: t -> mat
-  val stat_dist_vec: t -> vec
-  val diag_mats: t -> mat * (float -> mat) * mat
-end
-
-(** Evolution model with linear algebra functions to compute static distribution and
-    transition matrix diagonalization.*)
 module type S = sig
-  type t
-  val transition: t -> Nucleotide.t -> Nucleotide.t -> float
-  val of_string: string -> t
-  val to_string: t -> string
-  val eMt_mat: t -> float -> mat
-  val eMt_series: t -> float -> mat
-  val stat_dist_vec: t -> vec
-  val known_vector: Nucleotide.t -> vec
+  type param
+  type vec
+  type mat
+  val rate_matrix : param -> mat
+  val transition_probability_matrix : param -> float -> mat
+  val stationary_distribution : param -> vec
 end
 
-(** A record containing a model and a parameter *)
-type t = {
-  model : (module S) ;
-  param : string
-}
-
-(* ========== *)
-(*  FUNCTORS  *)
-(* ========== *)
-
-module type Base = sig
-  include Alphabet.S_int
-  include Seq.Base with type t := t
+module type S_with_reduction = sig
+  include S
+  val rate_matrix_reduction : param -> mat * vec * mat
 end
 
-(** If possible, creates a model module from a transition matrix *)
-module Make_exp(Base : Base)(E : MODEL_WITH_DIAG) =
+module type Rate_matrix = sig
+  type param
+  type mat
+  val rate_matrix : param -> mat
+end
+
+module type Diagonalizable_rate_matrix = sig
+  include Rate_matrix
+  type vec
+  val rate_matrix_reduction : param -> mat * vec * mat
+end
+
+module Make
+    (A : Alphabet.S)
+    (M : Rate_matrix with type mat := A.matrix) =
 struct
-  include E
-  let eMt_series e t = Mat.expm (Mat.scal_mul t (E.transition_mat e))
-  let eMt_mat e =
-    let diag_p, diag, diag_p_inv = E.diag_mats e in
-    fun t -> Mat.dot (Mat.dot diag_p (diag t)) diag_p_inv
-  let known_vector b =
-    (Base.Vector.init (fun x -> if x = b then 1. else 0.) :> vec)
+  let transition_probability_matrix param t =
+    A.Matrix.(expm (scal_mul t (M.rate_matrix param)))
+  let stationary_distribution param =
+    A.Matrix.zero_eigen_vector (M.rate_matrix param)
 end
 
-module Make(Base : Base)(M : TRANSITION_MATRIX with type base := Base.t) = struct
-  module Diag = struct
-    include M
-    (* LATools versions of things for convenience *)
-    let transition_mat p =
-      Mat.init Base.card ~f:(fun i j ->
-          transition p (Base.of_int_exn i) (Base.of_int_exn j)
-        )
-    let stat_dist_vec p = Mat.zero_eigen_vector (transition_mat p)
-    let diag_mats p =
-      match Mat.diagonalize (transition_mat p) with
-        d, p -> p, (fun t -> Mat.diagm (Vec.scal_mul t d |> Vec.exp)), Mat.transpose p
-  end
-  include M
-  include Make_exp(Base)(Diag)
+
+module Make_diag
+    (A : Alphabet.S)
+    (M : Diagonalizable_rate_matrix with type vec := A.vector
+                                     and type mat := A.matrix)
+= struct
+  let transition_probability_matrix param =
+    let diag_p, diag, diag_p_inv = M.rate_matrix_reduction param in
+    fun t ->
+      let d = A.Matrix.diagm A.Vector.(exp (scal_mul t diag)) in
+      A.Matrix.(dot (dot diag_p d) diag_p_inv)
+
+  let stationary_distribution param =
+    A.Matrix.zero_eigen_vector (M.rate_matrix param)
 end
-
-(* ================= *)
-(*  SPECIFIC MODELS  *)
-(* ================= *)
-
-module JC69_mat = struct
-  type t = unit
-  let transition () a b = if a=b then -1.0 else 1./.3.
-  let of_string _ = ()
-  let to_string _ = "JC69"
-end
-
-(* module Nucleotide_JC69 = struct
- *   let rate_matrix () = Rate_matrix.Nucleotide.jc69 ()
- *   let transition_probability_matrix () =
- *     rate_matrix ()
- * end *)
 
 module JC69 = struct
-  include JC69_mat
-  module Diagonalization = struct
-    type nonrec t = t
-    let transition_mat () = Mat.init 4 ~f:(fun i j ->
-        transition () (Nucleotide.of_int_exn i) (Nucleotide.of_int_exn j) )
-    let stat_dist_vec () = Vec.init 4 ~f:(fun _ -> 0.25)
-    let diag_mats () =
-      Mat.init 4 ~f:(fun i j ->
-          if j=0 then 1.0
-          else if i=0 then -1.0
-          else if i=j then 1.0
-          else 0.0),
-      (fun t -> Mat.init 4 ~f:(fun i j ->
-           if i = j then match i with 0 -> 1.0 | _ -> Stdlib.exp (t *. -4./.3.)
-           else 0.0)),
-      Mat.init 4 ~f:(fun i j ->
-          if i=0
-          then 0.25
-          else if i=j then 0.75
-          else -0.25)
+  module Base = struct
+    type param = unit
+    let rate_matrix () = Rate_matrix.Nucleotide.jc69 ()
+    let rate_matrix_reduction () =
+      let p = Nucleotide.Matrix.of_arrays_exn [|
+          [| 1. ; -1. ; -1. ; -1. |] ;
+          [| 1. ;  1. ;  0. ;  0. |] ;
+          [| 1. ;  0. ;  1. ;  0. |] ;
+          [| 1. ;  0. ;  0. ;  1. |] ;
+        |]
+      in
+      let diag = Nucleotide.Vector.of_array_exn [| 0. ; -4./.3. ; -4./.3. ; -4./.3. |] in
+      let p_inv = Nucleotide.Matrix.of_arrays_exn [|
+          [|  0.25 ;  0.25 ;  0.25 ;  0.25 |] ;
+          [| -0.25 ;  0.75 ; -0.25 ; -0.25 |] ;
+          [| -0.25 ; -0.25 ;  0.75 ; -0.25 |] ;
+          [| -0.25 ; -0.25 ; -0.25 ;  0.75 |] ;
+        |]
+      in
+      p, diag, p_inv
+
+    let%test "JC69_reduction 1" =
+      let p, _, p_inv = rate_matrix_reduction () in
+      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p p_inv) (init (fun i j -> if i = j then 1. else 0.)))
+
+    let%test "JC69_reduction 2" =
+      let p, d, p_inv = rate_matrix_reduction () in
+      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p (dot (diagm d) p_inv)) (rate_matrix ()))
   end
-  include Make_exp(Nucleotide)(Diagonalization)
+  include Base
+  include Make_diag(Nucleotide)(Base)
+  let stationary_distribution () = Nucleotide.Vector.init (fun _ -> 0.25)
 end
 
-module JC69_generated = Make(Nucleotide)(JC69_mat)
-
-module K80_mat = struct
-  let transversion x y =
-    match Nucleotide.(inspect x, inspect y) with
-    | (A,G) | (G,A) | (T,C) | (C,T) -> false
-    | _ -> true
-  type t = float (* transition/transversion rate *)
-  let transition k a b =
-    if a=b then -1.0 (* diagonal *)
-    else if transversion a b then (1./.(k+.2.))
-    else k/.(k+.2.)
-  let of_string = float_of_string
-  let to_string k = Printf.sprintf "K80(kappa=%f)" k
+module JC69_numerical = struct
+  include JC69.Base
+  include Make(Nucleotide)(JC69.Base)
 end
-
 
 module K80 = struct
-  include K80_mat
-  module Diagonalization = struct
-    type nonrec t = t
-    let transition_mat k = Mat.init 4 ~f:(fun i j ->
-        transition k (Nucleotide.of_int_exn i) (Nucleotide.of_int_exn j) )
-    let stat_dist_vec _ = Vec.init 4 ~f:(fun _->0.25)
-    let diag_mats k =
-      Mat.init 4 ~f:(fun i j -> match (i,j) with
-          | (_,0) | (1,1) | (2,3) | (3,1) | (3,2) -> 1.0
-          | (0,1) | (1,2) | (0,3) | (2,1) -> -1.0
-          | _ -> 0.0),
-      (fun t -> Mat.init 4 ~f:(fun i j ->
-           if i=j then match i with
-             | 0 -> 1.0
-             | 1 -> Stdlib.exp (t *. (-4.) /. (k +. 2.))
-             | _ -> Stdlib.exp (t *. (-2. *. k -. 2.) /. (k +. 2.))
-           else 0.0)),
-      Mat.init 4 ~f:(fun i j -> match (i,j) with
-          | (0,_) | (1,1) | (1,3) -> 0.25
-          | (1,_) -> -0.25
-          | (2,3) | (3,2) -> 0.5
-          | (2,1) | (3,0) -> -0.5
-          | _ -> 0.0)
+  module Base = struct
+    type param = float
+    let rate_matrix kappa = Rate_matrix.Nucleotide.k80 kappa
+    let rate_matrix_reduction k =
+      let p = Nucleotide.Matrix.of_arrays_exn [|
+          [| 1. ; -1. ;  0. ; -1. |] ;
+          [| 1. ;  1. ; -1. ;  0. |] ;
+          [| 1. ; -1. ;  0. ;  1. |] ;
+          [| 1. ;  1. ;  1. ;  0. |] ;
+        |]
+      in
+      let diag =
+        let lambda_3 =  (-2. *. k -. 2.) /. (k +. 2.) in
+        [| 0. ; -4. /. (k +. 2.) ; lambda_3 ; lambda_3 |]
+        |> Nucleotide.Vector.of_array_exn
+      in
+      let p_inv = Nucleotide.Matrix.of_arrays_exn [|
+          [|  0.25 ;  0.25 ;  0.25 ; 0.25 |] ;
+          [| -0.25 ;  0.25 ; -0.25 ; 0.25 |] ;
+          [|  0.   ; -0.5  ;  0.   ; 0.5  |] ;
+          [| -0.5  ;  0.   ;  0.5  ; 0.   |]
+        |]
+      in
+      p, diag, p_inv
+
+    let%test "K80_reduction 1" =
+      let p, _, p_inv = rate_matrix_reduction 2. in
+      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p p_inv) (init (fun i j -> if i = j then 1. else 0.)))
+
+    let%test "K80_reduction 2" =
+      let p, d, p_inv = rate_matrix_reduction 2. in
+      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p (dot (diagm d) p_inv)) (rate_matrix 2.))
   end
-  include Make_exp(Nucleotide)(Diagonalization)
+  include Base
+  include Make_diag(Nucleotide)(Base)
+  let stationary_distribution _ = Nucleotide.Vector.init (fun _ -> 0.25)
 end
 
-module K80_generated = Make(Nucleotide)(K80_mat)
+module K80_numerical = struct
+  include K80.Base
+  include Make(Nucleotide)(K80.Base)
+end
 
-(** Returns the module+parameters specified in a string using bpp format *)
-let models = [
-  ("JC69_generated", (module JC69_generated : S), (fun _ -> ""));
-  ("JC69", (module JC69 : S), (fun _ -> ""));
-  ("K80(", (module K80 : S),
-   fun x -> Scanf.sscanf x "K80(kappa=%f)" (fun x -> string_of_float x));
-  ("K80_generated(", (module K80_generated : S),
-   fun x -> Scanf.sscanf x "K80_generated(kappa=%f)" (fun x -> string_of_float x))
-]
-
-let of_string str =
-  Base.List.find_map models ~f:(fun (name, model, param) ->
-      if try String.sub str 0 (String.length name) = name with _ -> false
-      then Some { model ; param = param str }
-      else None
-    )
+module type Nucleotide_S_with_reduction =
+  S_with_reduction
+  with type vec := Nucleotide.vector
+   and type mat := Nucleotide.matrix

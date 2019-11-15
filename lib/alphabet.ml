@@ -15,19 +15,23 @@ module type S = sig
     val of_array_exn : 'a array -> 'a table
   end
   module Vector : sig
+    include Linear_algebra.Vector with type t := vector
     val init : (t -> float) -> vector
     val map : vector -> f:(float -> float) -> vector
     val sum : vector -> float
     val normalize : vector -> vector
+    val of_array : float array -> vector option
     val of_array_exn : float array -> vector
     val upcast_exn : Linear_algebra.vec -> vector
   end
   val flat_profile : unit -> vector
   val random_profile : float -> vector
   module Matrix : sig
+    include Linear_algebra.Matrix with type t := matrix
+                                   and type vec := vector
     val init : (t -> t -> float) -> matrix
-    val scal_mul : float -> matrix -> matrix
-    val expm : matrix -> matrix
+    val of_arrays : float array array -> matrix option
+    val of_arrays_exn : float array array -> matrix
   end
   val ( .%() ) : vector -> t -> float
   val ( .%()<- ) : vector -> t -> float -> unit
@@ -66,15 +70,17 @@ module Make(X : sig val card : int end) = struct
       else a
   end
   module Vector = struct
-    let init f = Linear_algebra.Vec.init card ~f
-    let map v ~f = Linear_algebra.Vec.map v ~f
-    let sum xs = Linear_algebra.Vec.sum xs
+    include Linear_algebra.Vector
+    let init f = init card ~f
     let normalize v =
       let s = sum v in
       map v ~f:(fun x -> x /. s)
     let of_array_exn a =
       if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
-      else Linear_algebra.Vec.init card ~f:(fun i -> a.(i))
+      else init (fun i -> a.(i))
+    let of_array a =
+      try Some (of_array_exn a)
+      with _ -> None
     let upcast_exn (a : Linear_algebra.vec) =
       match Owl.Arr.shape (a :> Owl.Mat.mat) with
       | [| n ; 1 |] when n = card -> a
@@ -92,20 +98,25 @@ module Make(X : sig val card : int end) = struct
     Vector.init (fun i -> v.(i))
 
   module Matrix = struct
-    let init f =
-      Linear_algebra.Mat.init card ~f
-
-    let expm = Linear_algebra.Mat.expm
-
-    let scal_mul = Linear_algebra.Mat.scal_mul
+    include Linear_algebra.Matrix
+            
+    let init f = init card ~f
+    let of_arrays_exn xs =
+      let m = Array.length xs in
+      if m = card then of_arrays_exn xs
+      else failwith "Incorrect dimension"
+    let of_array xs =
+      let m = Array.length xs in
+      if m = card then of_arrays xs
+      else None
   end
 
   let to_int i = i
   type vector = Linear_algebra.vec
 
-  let ( .%() ) v i = Linear_algebra.Vec.get v i
-  let ( .%()<- ) v i x = Linear_algebra.Vec.set v i x
+  let ( .%() ) v i = Vector.get v i
+  let ( .%()<- ) v i x = Vector.set v i x
   type matrix = Linear_algebra.mat
-  let ( .%{} ) m (i,j) = Linear_algebra.Mat.get m i j
-  let ( .%{}<- ) m (i, j) x = Linear_algebra.Mat.set m i j x
+  let ( .%{} ) m (i,j) = Matrix.get m i j
+  let ( .%{}<- ) m (i, j) x = Matrix.set m i j x
 end

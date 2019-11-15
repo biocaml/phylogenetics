@@ -2,50 +2,67 @@
     providing relevant mathematical procedure (eg, exponential of transition matrix);
     also includes functors to build models from transition matrices.*)
 
-open Linear_algebra
-
-(** Evolution model with linear algebra functions to compute static distribution and
-    transition matrix diagonalization.*)
+(** Evolution model with linear algebra functions to compute
+   stationary distribution and transition matrix diagonalization.*)
 module type S = sig
-  type t
-  val transition: t -> Nucleotide.t -> Nucleotide.t -> float
-  val of_string: string -> t
-  val to_string: t -> string
-  val eMt_mat: t -> float -> mat
-  val eMt_series: t -> float -> mat
-  val stat_dist_vec: t -> vec
-  val known_vector: Nucleotide.t -> vec
+  type param
+  type vec
+  type mat
+  val rate_matrix : param -> mat
+  val transition_probability_matrix : param -> float -> mat
+  val stationary_distribution : param -> vec
 end
 
-module type MODEL_WITH_DIAG = sig
-  type t
-  val transition_mat: t -> mat
-  val stat_dist_vec: t -> vec
-  val diag_mats: t -> mat * (float -> mat) * mat
+module type S_with_reduction = sig
+  include S
+  val rate_matrix_reduction : param -> mat * vec * mat
 end
 
-(** Jukes-Cantor model with analytical diagonalization of transition matrix. *)
-module JC69 : S with type t = unit
+module type Rate_matrix = sig
+  type param
+  type mat
+  val rate_matrix : param -> mat
+end
 
-(** Jukes-Cantor with numerical diagonalization of transition matrix *)
-module JC69_generated : S with type t = unit
+module type Diagonalizable_rate_matrix = sig
+  include Rate_matrix
+  type vec
+  val rate_matrix_reduction : param -> mat * vec * mat
+end
+
+module Make
+    (A : Alphabet.S)
+    (M : Rate_matrix with type mat := A.matrix) :
+sig
+  val transition_probability_matrix : M.param -> float -> A.matrix
+  val stationary_distribution : M.param -> A.vector
+end
+
+module Make_diag
+    (A : Alphabet.S)
+    (M : Diagonalizable_rate_matrix with type vec := A.vector
+                                     and type mat := A.matrix) :
+sig
+  val transition_probability_matrix : M.param -> float -> A.matrix
+  val stationary_distribution : M.param -> A.vector
+end
+
+module type Nucleotide_S_with_reduction =
+  S_with_reduction
+  with type vec := Nucleotide.vector
+   and type mat := Nucleotide.matrix
+
+(** Jukes-Cantor model with analytical diagonalization of transition
+   matrix. *)
+module JC69 : Nucleotide_S_with_reduction with type param = unit
+
+(** Jukes-Cantor model with numerical calculation of probability
+   transition matrix *)
+module JC69_numerical : Nucleotide_S_with_reduction with type param = unit
 
 (** K80 model with analytical diagonalization of transition matrix (parametrized by kappa) *)
-module K80 : sig
-  include S with type t = float
-  include MODEL_WITH_DIAG with type t := t
-end
+module K80 : Nucleotide_S_with_reduction with type param = float
 
-(** K80 model with numerical diagonalization of transition matrix
-    (needs to recompute for every value of kappa) *)
-module K80_generated : S with type t = float
-
-(** Model + parameter bundle *)
-type t = {
-  model : (module S) ;
-  param : string
-}
-
-(** Returns a model + parameter from a string specifying the model (bpp format).
-    Eg, "K80(kappa=2.0)" returns module K80 and parameter 2.0.*)
-val of_string: string -> t option
+(** K80 model with numerical calculation of probability
+   transition matrix *)
+module K80_numerical : Nucleotide_S_with_reduction with type param = float

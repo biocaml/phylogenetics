@@ -15,30 +15,29 @@ module type Sequence = sig
 end
 
 module Make
-    (Base : Base)
-    (Seq : Sequence with type base = Base.t)
+    (A : Alphabet.S_int)
+    (Seq : Sequence with type base = A.t)
     (Align : ALIGNMENT with type sequence = Seq.t)
-    (E : EVOL_MODEL with type base := Base.t) =
+    (E : Site_evolution_model.S with type mat := A.matrix
+                                 and type vec := A.vector) =
 struct
-  open Linear_algebra
-
   let proba param =
-    let my_eMt = E.eMt_mat param in
-    fun base t -> Mat.row (my_eMt t) (Base.to_int base)
+    let my_eMt = E.transition_probability_matrix param in
+    fun base t -> A.Matrix.row (my_eMt t) (A.to_int base)
 
   let draw_base vec =
     (* for all base check if x is smaller than transition proba,
        if yes return base else decrement x *)
     let rec aux i x =
-      let proba = Vec.get vec i in
-      if x < proba then Base.of_int_exn i
+      let proba = A.Vector.get vec i in
+      if x < proba then A.of_int_exn i
       else aux (i+1) (x-.proba)
     in
     Random.float 1.0 |> aux 0
 
   let seqgen_raw param =
     let my_proba = proba param in
-    let stat_dist = E.stat_dist_vec param in
+    let stat_dist = E.stationary_distribution param in
     fun tree size ->
       let rec aux tree bl = match tree with
         | Phylogenetic_tree.Leaf {index=i; _} -> [(i,bl)]
