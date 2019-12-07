@@ -92,7 +92,7 @@ module type Matrix = sig
   (** Compares two matrices and tolerates a certain relative difference.
       Let f be the float parameter, it returns true iff the elements of the second matrix
       are between 1-f and 1+f times the corresponding elements of the first *)
-  val compare: tol:float -> t -> t -> bool
+  val robust_equal : tol:float -> t -> t -> bool
 
   (** Access a specific element of a matrix. *)
   val get : t -> int -> int -> float

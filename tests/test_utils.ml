@@ -25,7 +25,7 @@ let check_distrib ref_estim d =
     ref_estim [sample_list_mean d]
 
 let compare_matrices (type s) (module A : Phylogenetics.Alphabet.S with type matrix = s) =
-  check @@ testable A.Matrix.pp (A.Matrix.compare ~tol:0.0001)
+  check @@ testable A.Matrix.pp (A.Matrix.robust_equal ~tol:0.0001)
 
 
 (* ================ *)

@@ -74,11 +74,11 @@ module JC69 = struct
 
     let%test "JC69_reduction 1" =
       let p, _, p_inv = rate_matrix_reduction () in
-      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p p_inv) (init (fun i j -> if i = j then 1. else 0.)))
+      Nucleotide.Matrix.(robust_equal ~tol:1e-6 (dot p p_inv) (init (fun i j -> if i = j then 1. else 0.)))
 
     let%test "JC69_reduction 2" =
       let p, d, p_inv = rate_matrix_reduction () in
-      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p (dot (diagm d) p_inv)) (rate_matrix ()))
+      Nucleotide.Matrix.(robust_equal ~tol:1e-6 (dot p (dot (diagm d) p_inv)) (rate_matrix ()))
   end
   include Base
   include Make_diag(Nucleotide)(Base)
@@ -118,11 +118,11 @@ module K80 = struct
 
     let%test "K80_reduction 1" =
       let p, _, p_inv = rate_matrix_reduction 2. in
-      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p p_inv) (init (fun i j -> if i = j then 1. else 0.)))
+      Nucleotide.Matrix.(robust_equal ~tol:1e-6 (dot p p_inv) (init (fun i j -> if i = j then 1. else 0.)))
 
     let%test "K80_reduction 2" =
       let p, d, p_inv = rate_matrix_reduction 2. in
-      Nucleotide.Matrix.(compare ~tol:1e-6 (dot p (dot (diagm d) p_inv)) (rate_matrix 2.))
+      Nucleotide.Matrix.(robust_equal ~tol:1e-6 (dot p (dot (diagm d) p_inv)) (rate_matrix 2.))
   end
   include Base
   include Make_diag(Nucleotide)(Base)

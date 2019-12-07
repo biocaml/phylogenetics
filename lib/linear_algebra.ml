@@ -90,7 +90,7 @@ module type Matrix = sig
   (** Compares two matrices and tolerates a certain relative difference.
       Let f be the float parameter, it returns true iff the elements of the second matrix
       are between 1-f and 1+f times the corresponding elements of the first *)
-  val compare: tol:float -> t -> t -> bool
+  val robust_equal : tol:float -> t -> t -> bool
 
   (** Access a specific element of a matrix. *)
   val get : t -> int -> int -> float
@@ -154,7 +154,7 @@ module Matrix = struct
 
   let max = M.max'
 
-  let compare ~tol:p m1 m2 =
+  let robust_equal ~tol:p m1 m2 =
     let diff = add m1 (scal_mul (-1.) m2) in (* substract two matrices *)
     let relative_diff = (* element-wise diff/m1 *)
       mul diff (M.map (fun x -> 1./.x) m1)
@@ -288,7 +288,6 @@ module Lacaml = struct
       in
       lange ~norm:`M relative_diff <= p
 
-    let compare = robust_equal
     let get m i j = m.{i + 1, j + 1}
     let set m i j x = m.{i + 1, j + 1} <- x
     let row mat r = Mat.copy_row mat r (* FIXME: costly operation! *)
