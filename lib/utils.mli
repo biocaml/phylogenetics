@@ -17,4 +17,4 @@ type float_array_array = float array array
 val robust_equal : float -> float -> bool
 val float_array_robust_equal : float array -> float array -> bool
 
-val random_profile : int -> Linear_algebra.vec
+val random_profile : int -> Linear_algebra.Owl.vec

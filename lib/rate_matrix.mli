@@ -21,7 +21,7 @@ module type S = sig
 
   val gtr :
     equilibrium_frequencies:vector ->
-    transition_rates:Linear_algebra.vec ->
+    transition_rates:Linear_algebra.Owl.vec ->
     t
   (**
      {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#GTR_model_(Tavar%C3%A9_1986)}Generalised

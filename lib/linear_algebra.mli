@@ -134,8 +134,8 @@ module type S = sig
   module Matrix : Matrix with type t = mat and type vec := vec
 end
 
-include S with type vec = private Owl.Mat.mat
-           and type mat = private Owl.Mat.mat
+module Owl : S with type vec = private Owl.Mat.mat
+                and type mat = private Owl.Mat.mat
 
-module Lacaml : S with type mat = Lacaml__Float64.mat
-                   and type vec = Lacaml__Float64.vec
+module Lacaml : S with type mat = private Lacaml.D.mat
+                   and type vec = private Lacaml.D.vec

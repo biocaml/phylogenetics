@@ -7,7 +7,7 @@ module type Alphabet = sig
 end
 
 module Make(A : Alphabet) = struct
-  open Linear_algebra
+  open Linear_algebra.Owl
 
   type shifted_vector = SV of vec * float
   module SV = struct

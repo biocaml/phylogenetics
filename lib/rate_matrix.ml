@@ -1,5 +1,5 @@
 open Core_kernel
-open Linear_algebra
+open Linear_algebra.Owl
 
 module type S = sig
   type vector
@@ -33,7 +33,6 @@ module Make(A : Alphabet.S_int) = struct
     |> A.Vector.of_array_exn
 
   let stationary_distribution (m : A.matrix) =
-    let open Linear_algebra in
     Matrix.zero_eigen_vector (m :> mat)
     |> A.Vector.upcast_exn
 
