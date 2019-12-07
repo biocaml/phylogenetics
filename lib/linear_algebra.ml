@@ -45,6 +45,8 @@ module type Vector = sig
   (** Set a specific element of a vector. *)
   val set : t -> int -> float -> unit
 
+  val robust_equal : tol:float -> t -> t -> bool
+
   val of_array : float array -> t
   val to_array : t -> float array
 
@@ -245,6 +247,14 @@ module Owl_implementation = struct
     let of_array xs = init (Array.length xs) ~f:(fun i -> xs.(i))
     let to_array v = M.to_array v
 
+    let robust_equal ~tol:p m1 m2 =
+      let diff = add m1 (scal_mul (-1.) m2) in (* substract two matrices *)
+      let relative_diff = (* element-wise diff/m1 *)
+        mul diff (M.map (fun x -> 1./.x) m1)
+        |> M.abs
+      in
+      max relative_diff <= p
+
     let%test "Linear_algebra.Vec.{to,of}_array" =
       let xs = [| 1. ; 2. ; 3. |] in
       to_array (of_array xs) = xs
@@ -286,6 +296,13 @@ module Lacaml = struct
       scal s r ; r
     let inplace_scal_mul s v = scal s v
     let map v ~f = Vec.map f v
+    let robust_equal ~tol:p v1 v2 =
+      if length v1 <> length v2 then invalid_arg "incompatible dimensions" ;
+      let diff = Vec.(abs (sub v1 v2)) in
+      let relative_diff = (* element-wise diff/m1 *)
+        mul diff (Vec.map (fun x -> 1./.x) v1)
+      in
+      Vec.max relative_diff <= p
   end
 
   module Matrix = struct

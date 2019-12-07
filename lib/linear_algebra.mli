@@ -47,6 +47,8 @@ module type Vector = sig
   (** Set a specific element of a vector. *)
   val set : t -> int -> float -> unit
 
+  val robust_equal : tol:float -> t -> t -> bool
+
   val of_array : float array -> t
   val to_array : t -> float array
 
