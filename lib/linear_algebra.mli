@@ -4,6 +4,8 @@
 module type Vector = sig
   type t
 
+  val length : t -> int
+
   (** Initialises a vector from a int->float function. *)
   val init : int -> f:(int -> float) -> t
 
@@ -56,6 +58,8 @@ end
 module type Matrix = sig
   type vec
   type t
+
+  val dim : t -> int * int
 
   (** {5 Matrix and vector creation} *)
 

@@ -2,6 +2,8 @@
 module type Vector = sig
   type t
 
+  val length : t -> int
+
   (** Initialises a vector from a int->float function. *)
   val init : int -> f:(int -> float) -> t
 
@@ -54,6 +56,8 @@ end
 module type Matrix = sig
   type vec
   type t
+
+  val dim : t -> int * int
 
   (** {5 Matrix and vector creation} *)
 
@@ -140,6 +144,7 @@ module Owl_implementation = struct
 
   module Matrix = struct
     type t = mat
+    let dim = M.shape
     let init size ~f = M.init_2d size size f
     let diagm v = M.diagm v
     let dot a b = M.dot a b
@@ -218,6 +223,10 @@ module Owl_implementation = struct
 
   module Vector = struct
     type t = vec
+    let length x =
+      match Owl.Arr.shape x with
+      | [| n ; 1 |] -> n
+      | _ -> assert false
     let init size ~f = M.init_2d size 1 (fun i _ -> f i)
     let map v ~f = M.map f v
     let scal_add = M.scalar_add
@@ -257,6 +266,7 @@ module Lacaml = struct
 
   module Vector = struct
     type t = vec
+    let length x = Vec.dim x
     let init size ~f = Vec.init size (fun i -> f (i - 1))
     let add v1 v2 = Vec.add v1 v2
     let mul v1 v2 = Vec.mul v1 v2
@@ -280,6 +290,7 @@ module Lacaml = struct
 
   module Matrix = struct
     type t = mat
+    let dim m = Mat.dim1 m, Mat.dim2 m
     let init size ~f = Mat.init_rows size size f
     let diagm v = Mat.of_diag v
     let add a b = Mat.add a b
