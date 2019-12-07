@@ -166,12 +166,8 @@ module Owl_implementation = struct
     let max = M.max'
 
     let robust_equal ~tol:p m1 m2 =
-      let diff = add m1 (scal_mul (-1.) m2) in (* substract two matrices *)
-      let relative_diff = (* element-wise diff/m1 *)
-        mul diff (M.map (fun x -> 1./.x) m1)
-        |> M.abs
-      in
-      max relative_diff <= p
+      let diff = M.abs (add m1 (scal_mul (-1.) m2)) in (* substract two matrices *)
+      max diff <= p
 
     let get m i j = M.get m i j
     let set m i j x = M.set m i j x
@@ -248,12 +244,8 @@ module Owl_implementation = struct
     let to_array v = M.to_array v
 
     let robust_equal ~tol:p m1 m2 =
-      let diff = add m1 (scal_mul (-1.) m2) in (* substract two matrices *)
-      let relative_diff = (* element-wise diff/m1 *)
-        mul diff (M.map (fun x -> 1./.x) m1)
-        |> M.abs
-      in
-      max relative_diff <= p
+      let diff = M.abs (M.sub m1 m2) in (* substract two matrices *)
+      max diff <= p
 
     let%test "Linear_algebra.Vec.{to,of}_array" =
       let xs = [| 1. ; 2. ; 3. |] in
@@ -330,10 +322,7 @@ module Lacaml = struct
       if Mat.dim1 m1 <> Mat.dim1 m2 || Mat.dim2 m1 <> Mat.dim2 m2
       then invalid_arg "incompatible dimensions" ;
       let diff = Mat.sub m1 m2 in
-      let relative_diff = (* element-wise diff/m1 *)
-        mul diff (Mat.map (fun x -> 1./.x) m1)
-      in
-      lange ~norm:`M relative_diff <= p
+      lange ~norm:`M diff <= p
 
     let get m i j = m.{i + 1, j + 1}
     let set m i j x = m.{i + 1, j + 1} <- x
@@ -513,7 +502,7 @@ module Lacaml = struct
       robust_equal ~tol:1e-6 (expm m) owl_expm
 
     let%test "lacaml expm large norm" =
-      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j)) in
+      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j) /. 2.) in
       let owl_expm = use_owl_matrix_fun m Owl.Linalg.D.expm in
       robust_equal ~tol:1e-6 (expm m) owl_expm
   end
