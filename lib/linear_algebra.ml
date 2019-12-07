@@ -362,12 +362,12 @@ module Lacaml = struct
       let n = Mat.dim2 mat in
       if n <> Mat.dim1 mat then invalid_arg "Expected square matrix" ;
       let a = Mat.init_rows (n + 1) n (fun i j ->
-          if i = n + 1 then 1. else mat.{i, j}
+          if i = n + 1 then 1. else mat.{j, i}
         )
       in
       let b = Mat.init_rows (n + 1) 1 (fun i _ -> if i <= n then 0. else 1.) in
-      gesv a b ;
-      Mat.col b 1
+      gels a b ;
+      Vec.init n (fun i -> b.{i, 1})
 
     let pow x k =
       let m = Mat.dim1 x in
