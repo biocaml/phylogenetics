@@ -236,9 +236,48 @@ module Lacaml = struct
     inplace_scal_mat_mul f r ;
     r
 
+  module Vector = struct
+    type t = vec
+    let init size ~f = Vec.init size (fun i -> f (i - 1))
+    let add v1 v2 = Vec.add v1 v2
+    let mul v1 v2 = Vec.mul v1 v2
+    let sum v = Vec.sum v
+    let log v = Vec.log v
+    let exp v = Vec.exp v
+    let min v = Vec.min v
+    let max v = Vec.max v
+    let get v i = v.{i + 1}
+    let set v i x = v.{i + 1} <- x
+    let pp = pp_vec
+    let to_array = Vec.to_array
+    let of_array = Vec.of_array
+    let scal_add s v = Lacaml.D.Vec.add_const s v
+    let scal_mul s v =
+      let r = copy v in
+      scal s r ; r
+    let inplace_scal_mul s v = scal s v
+    let map v ~f = Vec.map f v
+  end
+
   module Matrix = struct
+    type t = mat
+    let init size ~f = Mat.init_rows size size f
+    let diagm v = Mat.of_diag v
+    let add a b = Mat.add a b
     let norm1 x = lange ~norm:`O x
-    let mul = Mat.mul
+    let mul a b = Mat.mul a b
+    let inplace_scal_mul f a = Mat.scal f a
+
+    let scal_mul f a =
+      let r = lacpy a in
+      inplace_scal_mat_mul f r ;
+      r
+
+    let dot a b = gemm a b
+
+    let apply m x = gemv m x
+
+    let log m = Mat.log m
 
     let robust_equal ~tol:p m1 m2 =
       if Mat.dim1 m1 <> Mat.dim1 m2 || Mat.dim2 m1 <> Mat.dim2 m2
@@ -248,6 +287,41 @@ module Lacaml = struct
         mul diff (Mat.map (fun x -> 1./.x) m1)
       in
       lange ~norm:`M relative_diff <= p
+
+    let compare = robust_equal
+    let get m i j = m.{i + 1, j + 1}
+    let set m i j x = m.{i + 1, j + 1} <- x
+    let row mat r = Mat.copy_row mat r (* FIXME: costly operation! *)
+
+    let diagonalize m =
+      let tmp = lacpy m in (* copy matrix to avoid erasing original *)
+      let _, v, c, _ = syevr ~vectors:true tmp in (* syevr = find eigenvalues and eigenvectors *)
+      v, c
+
+    let transpose m = Mat.transpose_copy m
+
+    let pp = pp_mat
+
+    let of_arrays_exn xs = Mat.of_array xs
+    let of_arrays xs =
+      try Some (of_arrays_exn xs)
+      with _ -> None
+    let inverse m =
+      let tmp = lacpy m in (* copy matrix to avoid erasing original *)
+      let tmp_vec = getrf tmp in (* getri requires a previous call to getrf (LU factorization) *)
+      getri ~ipiv:tmp_vec tmp ; (* inversion *)
+      tmp
+
+    let zero_eigen_vector mat =
+      let n = Mat.dim2 mat in
+      if n <> Mat.dim1 mat then invalid_arg "Expected square matrix" ;
+      let a = Mat.init_rows (n + 1) n (fun i j ->
+          if i = n + 1 then 1. else mat.{i, j}
+        )
+      in
+      let b = Mat.init_rows (n + 1) 1 (fun i _ -> if i <= n then 0. else 1.) in
+      gesv a b ;
+      Mat.col b 1
 
     let pow x k =
       let m = Mat.dim1 x in
