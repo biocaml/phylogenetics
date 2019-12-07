@@ -83,7 +83,10 @@ module type Matrix = sig
   (** Matrix-vector product *)
   val apply : t -> vec -> vec
 
-  (** Matrix exponentiation. *)
+  (** Matrix exponentiation *)
+  val pow : t -> int -> t
+
+  (** Matrix exponential *)
   val expm : t -> t
 
   (** Element-wise logarithm of matrix *)

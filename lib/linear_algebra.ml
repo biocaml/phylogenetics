@@ -81,7 +81,10 @@ module type Matrix = sig
   (** Matrix-vector product *)
   val apply : t -> vec -> vec
 
-  (** Matrix exponentiation. *)
+  (** Matrix exponentiation *)
+  val pow : t -> int -> t
+
+  (** Matrix exponential *)
   val expm : t -> t
 
   (** Element-wise logarithm of matrix *)
@@ -168,6 +171,21 @@ module Matrix = struct
   let inverse m = M.inv m
 
   let apply m v = M.dot m v
+
+  let pow x k =
+    let m, n = M.shape x in
+    if m <> n then invalid_arg "non-square matrix" ;
+    if k < 0 then invalid_arg "negative power" ;
+    let rec loop k =
+      if k = 0 then M.eye m
+      else if k mod 2 = 0 then
+        let r = loop (k / 2) in
+        M.dot r r
+      else
+        let r = loop ((k - 1) / 2) in
+        M.dot x (M.dot r r)
+    in
+    loop k
 
   let diagonalize m =
     Owl_lapacke.syevr ~a:m ~jobz:'V' ~range:'A' ~vl:0. ~vu:0. ~il:0 ~iu:0 ~abstol:1e-6 ~uplo:'U'
