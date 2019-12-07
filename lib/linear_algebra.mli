@@ -133,3 +133,13 @@ end
 
 include S with type vec = private Owl.Mat.mat
            and type mat = private Owl.Mat.mat
+
+module Lacaml : sig
+  type mat = Lacaml__Float64.mat
+  type vec = Lacaml__Float64.vec
+
+  module Matrix : sig
+    val pow : mat -> int -> mat
+    val expm : mat -> mat
+  end
+end

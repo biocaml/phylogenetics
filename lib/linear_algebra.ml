@@ -221,3 +221,180 @@ module Vector = struct
     let xs = [| 1. ; 2. ; 3. |] in
     to_array (of_array xs) = xs
 end
+
+module Lacaml = struct
+  module M = Owl.Dense.Matrix.D
+  open Lacaml.D
+
+  type mat = Lacaml__Float64.mat
+  type vec = Lacaml__Float64.vec
+
+  let inplace_scal_mat_mul f a = Mat.scal f a
+
+  let scal_mat_mul f a =
+    let r = lacpy a in
+    inplace_scal_mat_mul f r ;
+    r
+
+  module Matrix = struct
+    let norm1 x = lange ~norm:`O x
+    let mul = Mat.mul
+
+    let robust_equal ~tol:p m1 m2 =
+      if Mat.dim1 m1 <> Mat.dim1 m2 || Mat.dim2 m1 <> Mat.dim2 m2
+      then invalid_arg "incompatible dimensions" ;
+      let diff = Mat.sub m1 m2 in
+      let relative_diff = (* element-wise diff/m1 *)
+        mul diff (Mat.map (fun x -> 1./.x) m1)
+      in
+      lange ~norm:`M relative_diff <= p
+
+    let pow x k =
+      let m = Mat.dim1 x in
+      let n = Mat.dim2 x in
+      if m <> n then invalid_arg "non-square matrix" ;
+      if k < 0 then invalid_arg "negative power" ;
+      let rec loop k =
+        if k = 0 then Mat.identity m
+        else if k mod 2 = 0 then
+          let r = loop (k / 2) in
+          gemm r r
+        else
+          let r = loop ((k - 1) / 2) in
+          gemm x (gemm r r)
+      in
+      loop k
+
+    let rec naive_pow x k =
+      let m = Mat.dim1 x in
+      let n = Mat.dim2 x in
+      if m <> n then invalid_arg "non-square matrix" ;
+      if k < 0 then invalid_arg "negative power" ;
+      if k = 0 then Mat.identity m
+      else gemm x (naive_pow x (k - 1))
+
+    let%test "lacaml matrix pow" =
+      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j)) in
+      robust_equal ~tol:1e-6 (pow m 13) (naive_pow m 13)
+
+    let expm x =
+      let m = Mat.dim1 x in
+      let n = Mat.dim2 x in
+      if m <> n then invalid_arg "matrix not square" ;
+      (* trivial case *)
+      if m = 1 && n = 1 then
+        Mat.make 1 1 (Float.exp x.{1, 1})
+      else (
+        (* TODO: use gebal to balance to improve accuracy, refer to Julia's impl *)
+        let xe = Mat.identity m in
+        let norm_x = norm1 x in
+        (* for small norm, use lower order Padé-approximation *)
+        if norm_x <= 2.097847961257068 then (
+          let c = (
+            if norm_x > 0.9504178996162932 then
+              [|17643225600.; 8821612800.; 2075673600.; 302702400.; 30270240.; 2162160.; 110880.; 3960.; 90.; 1.|]
+            else if norm_x > 0.2539398330063230 then
+              [|17297280.; 8648640.; 1995840.; 277200.; 25200.; 1512.; 56.; 1.|]
+            else if norm_x > 0.01495585217958292 then
+              [|30240.; 15120.; 3360.; 420.; 30.; 1.|]
+            else
+              [|120.; 60.; 12.; 1.|]
+          ) in
+
+          let x2 = gemm x x in
+          let p = ref (lacpy xe) in
+          let u = scal_mat_mul c.(1) !p in
+          let v = scal_mat_mul c.(0) !p in
+
+          for i = 1 to Array.(length c / 2 - 1) do
+            let j = 2 * i in
+            let k = j + 1 in
+            p := gemm !p x2 ;
+            Mat.axpy ~alpha:c.(k) !p u ;
+            Mat.axpy ~alpha:c.(j) !p v ;
+          done;
+
+          let u = gemm x u in
+          let a = Mat.sub v u in
+          let b = Mat.add v u in
+          gesv a b ;
+          b
+        )
+        (* for larger norm, Padé-13 approximation *)
+        else (
+          let s = Owl_maths.log2 (norm_x /. 5.4) in
+          let t = ceil s in
+          if s > 0. then inplace_scal_mat_mul (2. ** (-. t)) x ;
+
+          let c =
+            [|64764752532480000.; 32382376266240000.; 7771770303897600.;
+              1187353796428800.;  129060195264000.;   10559470521600.;
+              670442572800.;      33522128640.;       1323241920.;
+              40840800.;          960960.;            16380.;
+              182.;               1.|]
+          in
+
+          let x2 = gemm x x in
+          let x4 = gemm x2 x2 in
+          let x6 = gemm x2 x4 in
+          let u =
+            let m = lacpy x2 in
+            inplace_scal_mat_mul c.(9) m ;
+            Mat.axpy ~alpha:c.(11) x4 m ;
+            Mat.axpy ~alpha:c.(13) x6 m ;
+            let m = gemm x6 m in
+            Mat.axpy ~alpha:c.(1) xe m ;
+            Mat.axpy ~alpha:c.(3) x2 m ;
+            Mat.axpy ~alpha:c.(5) x4 m ;
+            Mat.axpy ~alpha:c.(7) x6 m ;
+            gemm x m
+          in
+          let v =
+            let m = lacpy x2 in
+            inplace_scal_mat_mul c.(8) m ;
+            Mat.axpy ~alpha:c.(10) x4 m ;
+            Mat.axpy ~alpha:c.(12) x6 m ;
+            let m = gemm x6 m in
+            Mat.axpy ~alpha:c.(0) xe m ;
+            Mat.axpy ~alpha:c.(2) x2 m ;
+            Mat.axpy ~alpha:c.(4) x4 m ;
+            Mat.axpy ~alpha:c.(6) x6 m ;
+            m
+          in
+          let a = Mat.sub v u in
+          let b = Mat.add v u in
+          gesv a b ;
+
+          let x = ref (lacpy b) in
+          if s > 0. then (
+            for _i = 1 to int_of_float t do
+              x := gemm !x !x
+            done;
+          );
+          !x
+        )
+      )
+
+    let%test "lacaml expm 1d" =
+      let c = 0.4 in
+      let m = Mat.make 1 1 c in
+      robust_equal ~tol:1e-6 (expm m) (Mat.make 1 1 (Float.exp c))
+
+    let use_owl_matrix_fun m f =
+        Mat.to_array m
+        |> M.of_arrays
+        |> f
+        |> M.to_arrays
+        |> Mat.of_array
+
+    let%test "lacaml expm small norm" =
+      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j) /. 10.) in
+      let owl_expm = use_owl_matrix_fun m Owl.Linalg.D.expm in
+      robust_equal ~tol:1e-6 (expm m) owl_expm
+
+    let%test "lacaml expm large norm" =
+      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j)) in
+      let owl_expm = use_owl_matrix_fun m Owl.Linalg.D.expm in
+      robust_equal ~tol:1e-6 (expm m) owl_expm
+  end
+end
