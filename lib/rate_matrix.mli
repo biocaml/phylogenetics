@@ -51,6 +51,10 @@ module Nucleotide : sig
   val k80 : float -> t
 end
 
+module Amino_acid : sig
+  include module type of Make(Amino_acid)
+end
+
 val transition_probability_matrix :
   tau:float ->
   rates:float array array ->

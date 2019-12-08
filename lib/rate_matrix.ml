@@ -126,3 +126,7 @@ module Nucleotide = struct
         else kappa /. (kappa +. 2.)
       )
 end
+
+module Amino_acid = struct
+  include Make(Amino_acid)
+end
