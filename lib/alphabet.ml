@@ -13,6 +13,7 @@ module type S = sig
     val init : (t -> 'a) -> 'a table
     val map : 'a table -> f:('a -> 'b) -> 'b table
     val of_array_exn : 'a array -> 'a table
+    val of_vector : vector -> float table
   end
   module Vector : sig
     include Linear_algebra.Vector with type t := vector
@@ -68,6 +69,9 @@ module Make(X : sig val card : int end) = struct
     let of_array_exn a =
       if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
       else a
+    let of_vector v =
+      let open Linear_algebra.Lacaml.Vector in
+      Array.init (length v) ~f:(get v)
   end
   module Vector = struct
     include Linear_algebra.Lacaml.Vector
