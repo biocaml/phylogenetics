@@ -326,7 +326,7 @@ module Lacaml = struct
 
     let get m i j = m.{i + 1, j + 1}
     let set m i j x = m.{i + 1, j + 1} <- x
-    let row mat r = Mat.copy_row mat r (* FIXME: costly operation! *)
+    let row mat r = Mat.copy_row mat (r + 1) (* FIXME: costly operation! *)
 
     let diagonalize m =
       let tmp = lacpy m in (* copy matrix to avoid erasing original *)
