@@ -21,7 +21,7 @@ let owl_mat_mat_mul =
 let b, b' =
   let n = 100 in
   Lacaml.D.Mat.init_rows n n (fun i j -> if i = j then -1. else 1. /. (float n -. 1.)),
-  Linear_algebra.Mat.init n ~f:(fun i j -> if i = j then -1. else 1. /. (float n -. 1.))
+  Linear_algebra.Owl.Matrix.init n ~f:(fun i j -> if i = j then -1. else 1. /. (float n -. 1.))
 
 let lacaml_stat_dist =
   Bench.Test.create
@@ -44,10 +44,14 @@ let lacaml_stat_dist =
 let owl_stat_dist =
   Bench.Test.create
     ~name:"Owl_stat_dist"
-    (fun () -> Linear_algebra.Mat.zero_eigen_vector b')
+    (fun () -> Linear_algebra.Owl.Matrix.zero_eigen_vector b')
 
 let lacaml_expm =
-  Bench.Test.create ~name:"Lacaml_expm" (fun () -> Linear_algebra_tools.Lacaml.Mat.expm a)
+  let a =
+    Lacaml.D.Mat.to_array a
+    |> Linear_algebra.Lacaml.Matrix.of_arrays_exn
+  in
+  Bench.Test.create ~name:"Lacaml_expm" (fun () -> Linear_algebra.Lacaml.Matrix.expm a)
 
 let owl_expm =
   Bench.Test.create ~name:"Owl_expm" (fun () -> Owl.Linalg.D.expm a')
@@ -55,12 +59,12 @@ let owl_expm =
 let c, c' =
   let n = 4 in
   Lacaml.D.Mat.init_rows n n (fun i j -> if i = j then -1. else 1. /. (float n -. 1.)),
-  (Linear_algebra.Mat.init n ~f:(fun i j -> if i = j then -1. else 1. /. (float n -. 1.)) :> Owl.Mat.mat)
+  (Linear_algebra.Owl.Matrix.init n ~f:(fun i j -> if i = j then -1. else 1. /. (float n -. 1.)) :> Owl.Mat.mat)
 
 let v, v' =
   let n = Lacaml.D.Mat.dim1 c in
   Lacaml.D.Vec.init n float,
-  (Linear_algebra.Vec.init n ~f:float :> Owl.Mat.mat)
+  (Linear_algebra.Owl.Vector.init n ~f:float :> Owl.Mat.mat)
     
 let lacaml_mat_vec_mul =
   Bench.Test.create ~name:"Lacaml_mat_vec_mul" (fun () -> Linear_algebra_tools.Lacaml.mat_vec_mul c v)
