@@ -2,5 +2,5 @@
  (name phylogenetics_convergence)
  (public_name phylogenetics.convergence)
  (inline_tests)
- (libraries phylogenetics)
+ (libraries ocaml-r.graphics phylogenetics)
  (preprocess (pps ppx_deriving.show ppx_inline_test ppx_jane)))
