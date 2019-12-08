@@ -11,6 +11,7 @@ module type S = sig
   val to_int : t -> int
   module Table : sig
     val init : (t -> 'a) -> 'a table
+    val get : 'a table -> t -> 'a
     val map : 'a table -> f:('a -> 'b) -> 'b table
     val of_array_exn : 'a array -> 'a table
     val of_vector : vector -> float table
@@ -65,6 +66,7 @@ module Make(X : sig val card : int end) = struct
   type 'a table = 'a array
   module Table = struct
     let init f = Array.init card ~f
+    let get xs a = xs.(a)
     let map = Array.map
     let of_array_exn a =
       if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
