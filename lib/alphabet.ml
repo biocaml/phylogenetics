@@ -15,6 +15,7 @@ module type S = sig
     val map : 'a table -> f:('a -> 'b) -> 'b table
     val of_array_exn : 'a array -> 'a table
     val of_vector : vector -> float table
+    val choose : float table -> t
   end
   module Vector : sig
     include Linear_algebra.Vector with type t := vector
@@ -74,6 +75,8 @@ module Make(X : sig val card : int end) = struct
     let of_vector v =
       let open Linear_algebra.Lacaml.Vector in
       Array.init (length v) ~f:(get v)
+    let choose xs =
+      Owl.Stats.categorical_rvs xs
   end
   module Vector = struct
     include Linear_algebra.Lacaml.Vector
