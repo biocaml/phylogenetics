@@ -5,7 +5,7 @@ module type Alphabet = sig
 end
 
 module Make(A : Alphabet) : sig
-  open Linear_algebra.Owl
+  open Linear_algebra.Lacaml
 
   type shifted_vector = SV of vec * float
 

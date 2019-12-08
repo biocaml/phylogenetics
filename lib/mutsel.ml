@@ -37,7 +37,7 @@ let random_param ~alpha_nucleotide ~alpha_fitness =
 
 let flat_param () =
   let pi = Nucleotide.flat_profile () in
-  let rho = Linear_algebra.Owl.Vector.init 6 ~f:(fun _ -> 1. /. 6.) in
+  let rho = Linear_algebra.Lacaml.Vector.init 6 ~f:(fun _ -> 1. /. 6.) in
   let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
   {
     nucleotide_rates ;
@@ -114,10 +114,10 @@ let%test "Codon model stationary distribution sums to one (linear resolution)" =
 
 let test_stationary_distribution_for_flat_parameters_is_uniform stationary_distribution =
   let p = flat_param () in
-  let pi = (stationary_distribution p : NSCodon.vector :> Owl.Arr.arr) in
-  let res = Owl.Arr.for_all (fun x -> Float.robustly_compare x (1. /. 61.) = 0) pi in
+  let pi = stationary_distribution p |> NSCodon.Vector.to_array in
+  let res = Array.for_all ~f:(fun x -> Float.robustly_compare x (1. /. 61.) = 0) pi in
   if not res then
-    fprintf stderr "stationary distribution = %s\n" (Utils.show_float_array (Owl.Arr.to_array pi)) ;
+    fprintf stderr "stationary distribution = %s\n" (Utils.show_float_array pi) ;
   res
 
 let%test "Codon model stationary distribution for flat parameters is uniform" =
@@ -145,12 +145,13 @@ let%test "Codon model stationary distribution with flat nucleotidic parameters h
   test_stationary_distribution_with_flat_nucleotidic_parameters_has_equal_frequency_for_synonyms stationary_distribution_by_linear_resolution
 
 let test_both_stationary_distribution_calculation p =
-  let pi = (stationary_distribution p :> Owl.Arr.arr) in
-  let pi' = (NSCodon_rate_matrix.stationary_distribution (rate_matrix p) :> Owl.Arr.arr) in
-  let res = Owl.Arr.approx_equal pi pi' in
+  let open Linear_algebra.Lacaml in
+  let pi = (stationary_distribution p :> vec) in
+  let pi' = (NSCodon_rate_matrix.stationary_distribution (rate_matrix p) :> vec) in
+  let res = Linear_algebra.Lacaml.Vector.robust_equal ~tol:1e-6 pi pi' in
   if not res then (
-    let pi = Owl.Arr.to_array pi in
-    let pi' = Owl.Arr.to_array pi' in
+    let pi = Vector.to_array pi in
+    let pi' = Vector.to_array pi' in
     fprintf stderr "found: %s\nwanted: %s\n" (Utils.show_float_array pi) (Utils.show_float_array pi')
   );
   res

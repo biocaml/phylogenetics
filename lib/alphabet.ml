@@ -22,7 +22,7 @@ module type S = sig
     val normalize : vector -> vector
     val of_array : float array -> vector option
     val of_array_exn : float array -> vector
-    val upcast_exn : Linear_algebra.Owl.vec -> vector
+    val upcast_exn : Linear_algebra.Lacaml.vec -> vector
   end
   val flat_profile : unit -> vector
   val random_profile : float -> vector
@@ -41,8 +41,8 @@ end
 
 module type S_int = sig
   include S with type t = private int
-             and type vector = private Linear_algebra.Owl.vec
-             and type matrix = private Linear_algebra.Owl.mat
+             and type vector = private Linear_algebra.Lacaml.vec
+             and type matrix = private Linear_algebra.Lacaml.mat
              and type 'a table = private 'a array
   val of_int : int -> t option
   val of_int_exn : int -> t
@@ -70,7 +70,7 @@ module Make(X : sig val card : int end) = struct
       else a
   end
   module Vector = struct
-    include Linear_algebra.Owl.Vector
+    include Linear_algebra.Lacaml.Vector
     let init f = init card ~f
     let normalize v =
       let s = sum v in
@@ -81,12 +81,12 @@ module Make(X : sig val card : int end) = struct
     let of_array a =
       try Some (of_array_exn a)
       with _ -> None
-    let upcast_exn (a : Linear_algebra.Owl.vec) =
-      match Owl.Arr.shape (a :> Owl.Mat.mat) with
-      | [| n ; 1 |] when n = card -> a
-      | a ->
-        let shape = Sexp.to_string_hum ([%sexp_of: int array] a) in
-        invalid_argf "vector_of_arr_exn: argument has shape %s" shape ()
+    let upcast_exn a =
+      let n = Linear_algebra.Lacaml.Vector.length a in
+      if n = card
+      then a
+      else
+        invalid_argf "vector_of_arr_exn: argument has shape %d" n ()
   end
 
   let flat_profile () =
@@ -98,7 +98,7 @@ module Make(X : sig val card : int end) = struct
     Vector.init (fun i -> v.(i))
 
   module Matrix = struct
-    include Linear_algebra.Owl.Matrix
+    include Linear_algebra.Lacaml.Matrix
             
     let init f = init card ~f
     let of_arrays_exn xs =
@@ -112,11 +112,11 @@ module Make(X : sig val card : int end) = struct
   end
 
   let to_int i = i
-  type vector = Linear_algebra.Owl.vec
+  type vector = Linear_algebra.Lacaml.vec
 
   let ( .%() ) v i = Vector.get v i
   let ( .%()<- ) v i x = Vector.set v i x
-  type matrix = Linear_algebra.Owl.mat
+  type matrix = Linear_algebra.Lacaml.mat
   let ( .%{} ) m (i,j) = Matrix.get m i j
   let ( .%{}<- ) m (i, j) x = Matrix.set m i j x
 end

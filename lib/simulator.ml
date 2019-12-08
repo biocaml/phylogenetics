@@ -37,8 +37,8 @@ struct
     let rate_matrix = memo (fun condition -> M.rate_matrix (param condition)) in
     let transition_matrix (branch_length, condition) =
       let rates =
-        (rate_matrix condition :> Owl.Mat.mat)
-        |> Owl.Mat.to_arrays
+        (rate_matrix condition :> Lacaml.D.mat)
+        |> Lacaml.D.Mat.to_array
       in
       Rate_matrix.transition_probability_matrix ~tau:branch_length ~rates
     in

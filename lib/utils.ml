@@ -74,4 +74,4 @@ let random_profile n =
     )
   in
   let s = Array.fold v ~init:0. ~f:( +. ) in
-  Linear_algebra.Owl.Vector.init n ~f:(fun i -> v.(i) /. s)
+  Linear_algebra.Lacaml.Vector.init n ~f:(fun i -> v.(i) /. s)

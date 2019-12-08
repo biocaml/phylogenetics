@@ -1,5 +1,5 @@
 open Core_kernel
-open Linear_algebra.Owl
+open Linear_algebra.Lacaml
 
 module type S = sig
   type vector
@@ -105,7 +105,7 @@ module Make(A : Alphabet.S_int) = struct
     let gtr_params = Utils.random_profile (A.card * (A.card - 1) / 2) in
     let gtr_rates = gtr ~equilibrium_frequencies:pi ~transition_rates:gtr_params in
     let pi' = stationary_distribution gtr_rates in
-    Owl.Mat.approx_equal (pi :> Owl.Arr.arr) (pi' :> Owl.Arr.arr)
+    Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
 end
 
 
