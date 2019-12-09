@@ -20,4 +20,4 @@
 (alias
  (name   runtest)
  (action (run ./test_app.exe))
- (deps ../tests/data/tiny1.fasta))
+ (deps ../tests/data/tiny1.fasta ../tests/data/wag.dat))

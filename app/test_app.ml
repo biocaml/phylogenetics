@@ -12,4 +12,5 @@ let () =
     "MCMC", Test_MCMC.tests ;
     "Newick", Test_newick.tests ;
     "PhyloCTMC", Test_phylo_ctmc.tests ;
+    "Simulator", Test_simulator.tests ;
   ]
