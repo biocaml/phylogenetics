@@ -17,7 +17,10 @@ module Evolution_model = struct
   }
   let stationary_distribution p = p.stationary_distribution
   let rate_matrix p =
-    Amino_acid.Matrix.(scal_mul p.scale (dot p.exchangeability_matrix (diagm p.stationary_distribution)))
+    Rate_matrix.Amino_acid.make (fun i j ->
+        p.exchangeability_matrix.Amino_acid.%{i, j} *.
+        p.stationary_distribution.Amino_acid.%(j)
+      )
   let transition_probability_matrix p t =
     Amino_acid.Matrix.(expm (scal_mul t (rate_matrix p)))
 end
