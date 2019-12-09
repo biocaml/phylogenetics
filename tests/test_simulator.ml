@@ -1,0 +1,45 @@
+open Core_kernel
+open Phylogenetics
+
+module Tamuri = Phylogenetics_convergence.Tamuri
+module Simulator = Simulator.Make(Amino_acid)(Tamuri.Evolution_model)
+
+let counts xs =
+  Amino_acid.Table.init (fun aa -> List.count xs ~f:(( = ) aa))
+
+let multinomial_test freqs counts =
+  let _N_ = Array.length freqs in
+  let n = Array.fold counts ~init:0 ~f:( + ) in
+  let _T_ =
+    Array.map2_exn freqs counts ~f:(fun f_i k_i ->
+        (float k_i -. float n *. f_i) ** 2. /. (float n *. f_i)
+      )
+    |> Owl.Stats.sum
+  in
+  _T_, 1. -. Owl.Stats.chi2_cdf ~df:(float _N_ -. 1.) _T_
+
+let test_stationary_distribution (wag : Wag.t) =
+  let p = Tamuri.Evolution_model.param_of_wag wag 1. in
+  Amino_acid.Vector.robust_equal ~tol:1e-6
+    Amino_acid.Matrix.(zero_eigen_vector (Tamuri.Evolution_model.rate_matrix p))
+    p.stationary_distribution
+
+let test_limiting_distribution (wag : Wag.t) ~scale ~nb_leaves ~bl =
+  let tree =
+    Non_empty_list.init nb_leaves ~f:(fun _ -> Tree.(branch (bl, ()) (leaf ())))
+    |> Tree.node () 
+  in
+  let root =
+    wag.freqs
+    |> Amino_acid.Table.of_vector
+    |> Amino_acid.Table.choose
+  in
+  let p = Tamuri.Evolution_model.param_of_wag wag scale in
+  let site = Simulator.site_gillespie_first_reaction tree ~root ~param:(Fn.const p) in
+  let leaves = Tree.leaves site in
+  let counts = (counts leaves :> int array) in
+  let freqs = Amino_acid.Vector.to_array wag.freqs in
+  let n = Array.fold counts ~init:0 ~f:( + ) in
+  print_endline (Sexp.to_string ([%sexp_of: float array] freqs)) ;
+  print_endline (Sexp.to_string ([%sexp_of: float array] (Array.map counts ~f:(fun k_i -> float k_i /. float n)))) ;
+  multinomial_test freqs (counts :> int array)

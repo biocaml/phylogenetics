@@ -1,3 +1,4 @@
 (library
  (name phylogenetics_test)
- (libraries alcotest phylogenetics))
+ (libraries alcotest phylogenetics phylogenetics.convergence)
+ (preprocess (pps ppx_jane)))
