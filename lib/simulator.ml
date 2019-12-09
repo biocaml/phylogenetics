@@ -36,14 +36,11 @@ struct
   let site_exponential_method tree ~(root : A.t) ~param =
     let rate_matrix = memo (fun condition -> M.rate_matrix (param condition)) in
     let transition_matrix (branch_length, condition) =
-      let rates =
-        (rate_matrix condition :> Lacaml.D.mat)
-        |> Lacaml.D.Mat.to_array
-      in
-      Rate_matrix.transition_probability_matrix ~tau:branch_length ~rates
+      A.Matrix.(expm (scal_mul branch_length (rate_matrix condition)))
     in
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
-        (transition_matrix b).((n :> int))
+        A.Matrix.row (transition_matrix b) (n :> int)
+        |> A.Vector.to_array
         |> symbol_sample
       )
 
@@ -56,11 +53,10 @@ struct
             A.Table.init (fun m ->
                 if m = state then (Float.infinity, m)
                 else
-                  let rate = (rate_matrix condition :> A.matrix).A.%{state, m} in
+                  let rate = (rate_matrix condition).A.%{state, m} in
                   if rate < 1e-30 then (Float.infinity, m)
                   else
-                    let lambda = 1. /. rate in
-                    let tau = Owl.Stats.exponential_rvs ~lambda in
+                    let tau = Owl.Stats.exponential_rvs ~lambda:rate in
                     tau, m
               )
           in
@@ -80,9 +76,9 @@ struct
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n (branch_length, condition) ->
         let rec loop state remaining_time =
           let rate_matrix = codon_rates condition in
-          let rates = A.Table.init (fun m -> if m = state then 0. else (rate_matrix :> A.matrix).A.%{state, m}) in
+          let rates = A.Table.init (fun m -> if m = state then 0. else rate_matrix.A.%{state, m}) in
           let total_rate = Owl.Stats.sum (rates :> float array) in
-          let tau = Owl.Stats.exponential_rvs ~lambda:(1. /. total_rate) in
+          let tau = Owl.Stats.exponential_rvs ~lambda:total_rate in
           if Float.(tau > remaining_time) then state
           else
             let next_state = symbol_sample (rates :> float array) in
