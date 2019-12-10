@@ -18,6 +18,7 @@ module Evolution_model = struct
   let stationary_distribution p = p.stationary_distribution
   let rate_matrix p =
     Rate_matrix.Amino_acid.make (fun i j ->
+        p.scale *.
         p.exchangeability_matrix.Amino_acid.%{i, j} *.
         p.stationary_distribution.Amino_acid.%(j)
       )
