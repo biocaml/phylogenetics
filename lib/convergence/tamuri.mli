@@ -20,4 +20,4 @@ val model1_maximum_likelihood :
   (_, Amino_acid.t, float * int) Tree.t ->
   float * float
 
-val model1_demo : Wag.t -> float * float * float
+val model1_demo : Wag.t -> unit

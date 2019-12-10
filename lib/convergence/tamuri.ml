@@ -32,18 +32,33 @@ let model1_maximum_likelihood ~exchangeability_matrix ~stationary_distribution s
   let module CTMC = Phylo_ctmc.Make(Amino_acid) in
   let pi = (stationary_distribution : Amino_acid.vector :> vec) in
   let f param =
-    let p = { Evolution_model.scale = param.(0) ;
+    let p = { Evolution_model.scale = 10. ** param.(0) ;
               exchangeability_matrix ;
               stationary_distribution } in
     let transition_matrix =
       let f = Evolution_model.transition_probability_matrix p in
       fun (bl, _) -> (f bl :> mat)
     in
-    CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
+    -. CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
   in
-  let sample () = [| Owl.Stats.uniform_rvs ~a:0. ~b:10. |] in
-  let ll, p_star = Nelder_mead.minimize ~debug:true ~maxit:10 ~f ~sample () in
+  let sample () = [| Owl.Stats.uniform_rvs ~a:(-4.) ~b:1. |] in
+  let ll, p_star = Nelder_mead.minimize ~debug:true ~maxit:100 ~f ~sample () in
   ll, p_star.(0)
+
+let model1_likelihood ~exchangeability_matrix ~stationary_distribution site value =
+  let module CTMC = Phylo_ctmc.Make(Amino_acid) in
+  let pi = (stationary_distribution : Amino_acid.vector :> vec) in
+  let f param =
+    let p = { Evolution_model.scale = 10. ** param.(0) ;
+              exchangeability_matrix ;
+              stationary_distribution } in
+    let transition_matrix =
+      let f = Evolution_model.transition_probability_matrix p in
+      fun (bl, _) -> (f bl :> mat)
+    in
+    -. CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
+  in
+  f value
 
 let model1_demo (wag : Wag.t) =
   let tree =
@@ -60,11 +75,26 @@ let model1_demo (wag : Wag.t) =
   in
   let true_scale = 1. in
   let p = Evolution_model.param_of_wag wag true_scale in
-  let site = Simulator.site_gillespie_direct tree ~root ~param:(Fn.const p) in
-  let ll, scale_star =
+  let site = Simulator.site_gillespie_first_reaction tree ~root ~param:(Fn.const p) in
+  let ll, scale_hat =
     model1_maximum_likelihood
       ~exchangeability_matrix:wag.rate_matrix
       ~stationary_distribution:wag.freqs
       site
   in
-  true_scale, scale_star, ll
+  let f x =
+    model1_likelihood
+      ~exchangeability_matrix:wag.rate_matrix
+      ~stationary_distribution:wag.freqs
+      site
+      [|x|]
+  in
+  let x = Array.init 100 ~f:(fun i ->
+      let i = float i in
+      let a = -1. and b = 2. in
+      a +. (b -. a) *. i /. 100.
+    )
+  in
+  let y = Array.map x ~f in
+  printf "LL = %g, scale_hat = %g" ll scale_hat ;
+  OCamlR_graphics.plot ~x ~y ()
