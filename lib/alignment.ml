@@ -1,4 +1,76 @@
 open Core_kernel
+
+type t = {
+  descriptions : string array ;
+  sequences : string array ;
+}
+
+let nrows a = Array.length a.sequences
+let ncols a = String.length a.sequences.(0)
+
+type parsing_error = [
+  | `Fasta_parser_error of int * string
+  | `Msg of string
+]
+[@@deriving show]
+
+let from_fasta fn =
+  let parsing =
+    Biocaml_unix.Fasta.with_file fn ~f:(fun header stream ->
+        CFStream.Stream.Result.all' stream ~f:(fun items -> header, CFStream.Stream.to_list items)
+      )
+  in
+  match parsing with
+  | Ok (_, items) -> (
+      match Array.of_list items with
+      | [||] -> Error (`Msg "Empty FASTA file")
+      | res ->
+        let sequences = Array.map res ~f:(fun x -> x.sequence) in
+        let n = String.length sequences.(0) in
+        if not (Array.for_all sequences ~f:(fun s -> String.length s = n)) then
+          Error (`Msg "Not an alignment: sequences with different lengths")
+        else
+          Ok {
+            descriptions = Array.map res ~f:(fun x -> x.description) ;
+            sequences  ;
+          }
+    )
+  | Error msg -> Error (`Msg (Error.to_string_hum msg))
+
+let find_sequence t id =
+  Array.findi t.descriptions ~f:(fun _ x -> String.equal x id)
+  |> Option.map ~f:(fun (i, _) -> t.sequences.(i))
+
+let indel_free_columns ali =
+  Array.init (nrows ali) ~f:(fun j ->
+      Array.for_all ali.sequences ~f:(fun s -> s.[j] <> '-')
+    )
+
+let residues al ~column:j =
+  if j < 0 || j > ncols al then raise (Invalid_argument "Alignment.residues") ;
+  Array.fold al.sequences ~init:Char.Set.empty ~f:(fun acc s -> Char.Set.add acc s.[j])
+
+let number_of_residues_per_column_stats al =
+  let x =
+    Array.init (ncols al) ~f:(fun column ->
+        residues al ~column
+        |> Char.Set.length
+      )
+  in
+  Biocaml_unix.Accu.counts (CFStream.Stream.of_array x)
+  |> CFStream.Stream.to_list
+
+let composition al =
+  let module C = Biocaml_unix.Accu.Counter in
+  let acc = C.create () in
+  let n = float (nrows al * ncols al) in
+  Array.iter al.sequences ~f:(fun s ->
+      String.iter s ~f:(fun c -> C.add acc c 1)
+    ) ;
+  List.map (C.to_alist acc) ~f:(fun (c, k) -> (c, float k /. n))
+
+
+open Core_kernel
 open Biocaml_ez (* for fasta parsing *)
 
 module Make(S : Seq.S) = struct
