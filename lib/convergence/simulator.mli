@@ -11,7 +11,7 @@ val pair_tree :
   Newick.tree
 
 module Mutsel : sig
-  include module type of Phylogenetics.Simulator.Make(Mutsel.NSCodon)(Mutsel)
+  include module type of Phylogenetics.Simulator.Mutsel
 
   val condition_dependent_alignment :
     fitness_profiles:float array array ->
