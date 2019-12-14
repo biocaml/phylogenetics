@@ -145,3 +145,51 @@ let%test "leafset_generated_subtree" =
   in
   leafset_generated_subtree t Fn.id [] = None
   && leafset_generated_subtree t Fn.id ["A";"B";"C";"D";"E"] = Some t
+
+let rec simplify_node_with_single_child t f =
+  match t with
+  | Leaf _ -> t
+  | Node n -> simplify_node_with_single_child_node f n.data n.branches
+
+and simplify_node_with_single_child_branch t f b_parent =
+  match t with
+  | Leaf _ -> branch b_parent t
+  | Node n ->
+    let k () = branch b_parent (simplify_node_with_single_child_node f n.data n.branches) in
+    match n.branches with
+    | Cons (Branch b, []) -> (
+        match f b_parent b.data with
+        | None -> k ()
+        | Some merged_b ->
+          simplify_node_with_single_child_branch b.tip f merged_b
+      )
+    | _ -> k ()
+
+and simplify_node_with_single_child_node f data branches =
+  let branches = Non_empty_list.map branches ~f:(fun (Branch b) ->
+      simplify_node_with_single_child_branch b.tip f b.data
+    )
+  in
+  node data branches
+
+let%expect_test "simplify_node_with_single_child" =
+  let node x y = node () Non_empty_list.(cons (branch () x) (List.map ~f:(branch ()) y)) in
+  let leaf x = leaf x in
+  let t =
+    node
+      (node
+         (node (leaf "A") [])
+         [node (leaf "C") [leaf "D"]])
+      [ leaf "E" ]
+  in
+  simplify_node_with_single_child t (fun () () -> Some ())
+  |> to_printbox ~leaf:Fn.id
+  |> PrintBox_text.output stdout ;
+  [%expect {|
+    ·
+    `+- ·
+     |  `+- A
+     |   +- ·
+     |      `+- C
+     |       +- D
+     +- E |}]

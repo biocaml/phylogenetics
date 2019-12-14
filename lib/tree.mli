@@ -83,3 +83,8 @@ val leafset_generated_subtree :
 (** [leafset_generated_subtree t f xs] returns the maximal subtree of
    [t] whose leaves all return a string in [xs] when applied to [f] if
    it exists (and [None] otherwise) *)
+
+val simplify_node_with_single_child :
+  ('n, 'l, 'b) t ->
+  ('b -> 'b -> 'b option) ->
+  ('n, 'l, 'b) t
