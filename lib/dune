@@ -2,7 +2,7 @@
  (name phylogenetics)
  (public_name phylogenetics)
  (inline_tests)
- (libraries biocaml.ez core_kernel gnuplot lacaml owl)
+ (libraries biocaml.ez core_kernel gnuplot lacaml owl printbox)
  (preprocess (pps ppx_deriving.show ppx_inline_test ppx_jane)))
 
 (menhir

@@ -22,10 +22,27 @@ let binary_node data left right =
 
 let branch data tip = Branch { data ; tip }
 
-
 let data = function
   | Node n -> n.data
   | Leaf l -> l
+
+module B = PrintBox
+
+let rec to_printbox_aux t ?parent_branch ~node ~leaf ~branch = match t with
+  | Leaf l -> B.text (leaf l)
+  | Node n ->
+    let node_text = match Option.bind parent_branch ~f:branch with
+      | None -> node n.data
+      | Some b_label -> sprintf "%s - %s" b_label (node n.data)
+    in
+    Non_empty_list.map n.branches ~f:(fun (Branch b) ->
+        to_printbox_aux ~parent_branch:b.data ~node ~leaf ~branch b.tip
+      )
+    |> Non_empty_list.to_list
+    |> B.tree (B.text node_text)
+
+let to_printbox ?(node = fun _ -> "·") ?(leaf = fun _ -> "·") ?(branch = fun _ -> None) t =
+  to_printbox_aux t ?parent_branch:None ~node ~leaf ~branch
 
 let rec pre t ~init ~node ~leaf ~branch =
   match t with

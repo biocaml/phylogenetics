@@ -30,6 +30,14 @@ val branch :
 
 val data : ('a, 'a, _) t -> 'a
 
+
+val to_printbox :
+  ?node:('n -> string) ->
+  ?leaf:('l -> string) ->
+  ?branch:('b -> string option) ->
+  ('n, 'l, 'b) t ->
+  PrintBox.t
+
 val map :
   ('a, 'b, 'c) t ->
   node:('a -> 'd) ->
