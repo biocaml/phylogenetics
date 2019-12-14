@@ -19,3 +19,9 @@ let iter (Cons (h, t)) ~f =
 
 let to_list (Cons (h, t)) =
   h :: t
+
+let filter_map (Cons (h, t)) ~f =
+  match f h, List.filter_map t ~f with
+  | None, [] -> None
+  | None, h :: t -> Some (Cons (h, t))
+  | Some h, l -> Some (Cons (h, l))
