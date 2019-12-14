@@ -100,3 +100,31 @@ let propagate t ~init ~node ~leaf ~branch =
  *     new_state, { node_data ; branches }
  *   in
  *   snd (loop tree ~init) *)
+
+
+let rec leafset_generated_subtree t f leaves =
+  match t with
+  | Leaf l ->
+    Option.bind (f l) ~f:(fun id ->
+        if List.mem leaves id ~equal:String.equal then Some t
+        else None
+      )
+  | Node n ->
+    Non_empty_list.filter_map n.branches ~f:(fun (Branch b) ->
+        leafset_generated_subtree b.tip f leaves
+        |> Option.map ~f:(branch b.data)
+      )
+    |> Option.map ~f:(node n.data)
+
+let%test "leafset_generated_subtree" =
+  let node x y = binary_node () (branch () x) (branch () y) in
+  let leaf x = leaf (Some x) in
+  let t =
+    node
+      (node
+         (node (leaf "A") (leaf "B"))
+         (node (leaf "C") (leaf "D")))
+      (leaf "E")
+  in
+  leafset_generated_subtree t Fn.id [] = None
+  && leafset_generated_subtree t Fn.id ["A";"B";"C";"D";"E"] = Some t

@@ -66,3 +66,12 @@ val map_leaves :
  *   init:'c ->
  *   f:('c -> 'a -> 'd list -> 'c * 'd) ->
  *   ('d, 'b) t *)
+
+val leafset_generated_subtree :
+  ('n, 'l, 'b) t ->
+  ('l -> string option) ->
+  string list ->
+  ('n, 'l, 'b) t option
+(** [leafset_generated_subtree t f xs] returns the maximal subtree of
+   [t] whose leaves all return a string in [xs] when applied to [f] if
+   it exists (and [None] otherwise) *)
