@@ -21,3 +21,5 @@ val model1_maximum_likelihood :
   float * float
 
 val model1_demo : Wag.t -> unit
+
+val model2_demo : Wag.t -> unit
