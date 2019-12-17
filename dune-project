@@ -23,4 +23,5 @@
     (lacaml (>= 10.0.2))
     menhir
     owl
-    ppx_deriving))
+    ppx_deriving
+    printbox))
