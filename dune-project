@@ -19,9 +19,10 @@
   (depends
     (biocaml (>= 0.8.0))
     (dune (>= 1.11))
-    gnuplot
+    (gnuplot (>= 0.2.0))
     (lacaml (>= 10.0.2))
     menhir
+    (ocaml-r (>= 0.2.0))
     owl
     ppx_deriving
     printbox))
