@@ -1,5 +1,4 @@
 open Core_kernel
-open Gnuplot
 
 type sample_list = float list
 
@@ -41,17 +40,17 @@ let bins ?(nb=20) d =
   )
 
 let plot_sample_list ?(nb=20) d =
-  let gp = Gp.create () in
-  Series.lines_xy ~title:"Plot a line" ~color:`Blue (bins ~nb d)
-  |> Gp.plot gp
+  let gp = Gnuplot.create () in
+  Gnuplot.Series.lines_xy ~title:"Plot a line" ~color:`Blue (bins ~nb d)
+  |> Gnuplot.plot gp
 
 let plot_sample_lists ?(nb=20) l =
-  let gp = Gp.create () in
+  let gp = Gnuplot.create () in
   List.mapi l ~f:(
-    fun i x -> Series.lines_xy
+    fun i x -> Gnuplot.Series.lines_xy
         ~title:(Printf.sprintf "distrib %d" i)
         (bins ~nb x)
-  ) |> Gp.plot_many gp
+  ) |> Gnuplot.plot_many gp
 
 let pause () =
   In_channel.input_line In_channel.stdin |> ignore
