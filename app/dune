@@ -2,7 +2,7 @@
  (name phylosim)
  (public_name phylosim)
  (modules phylosim)
- (libraries phylogenetics)
+ (libraries core phylogenetics)
  (preprocess (pps ppx_jane)))
 
 (executable
