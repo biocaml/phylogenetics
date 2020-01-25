@@ -18,7 +18,7 @@
   (tags (bioinformatics evolution phylogeny))
   (depends
     (biocaml (>= 0.8.0))
-    (core (>= 0.13.0))
+    (core (>= v0.13.0))
     (dune (>= 1.11))
     (gnuplot (>= 0.2.0))
     (lacaml (>= 10.0.2))
