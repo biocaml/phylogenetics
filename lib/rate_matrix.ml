@@ -45,9 +45,9 @@ module Make(A : Alphabet.S_int) = struct
     List.iter A.all ~f:(fun i->
       let total = ref 0. in
       List.iter A.all ~f:(fun j ->
-          if i <> j then (
+          if not (A.equal i j) then (
             let r_ij = f i j in
-            if r_ij < 0. then (failwith "Rates should be positive") ;
+            if Float.(r_ij < 0.) then (failwith "Rates should be positive") ;
             total := r_ij +. !total ;
             A.(r.%{i, j} <- r_ij)
           )
@@ -121,7 +121,7 @@ module Nucleotide = struct
 
   let k80 kappa =
     Nucleotide.Matrix.init (fun i j ->
-        if i = j then -1.
+        if Nucleotide.equal i j then -1.
         else if Nucleotide.transversion i j then 1. /. (kappa +. 2.)
         else kappa /. (kappa +. 2.)
       )

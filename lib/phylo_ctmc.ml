@@ -14,7 +14,7 @@ module Make(A : Alphabet) = struct
     let of_vec v = SV (v, 0.)
 
     let shift ?(threshold = 1e-6) v ~carry =
-      if Vector.min v > threshold then (SV (v, carry))
+      if Float.(Vector.min v > threshold) then (SV (v, carry))
       else
         let mv = Vector.max v in
         SV (

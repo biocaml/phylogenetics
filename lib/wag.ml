@@ -16,7 +16,7 @@ let parse_aa_order l =
 
 let parse_floats l =
   String.split ~on:' ' l
-  |> List.filter ~f:(( <> ) "")
+  |> List.filter ~f:(String.( <> ) "")
   |> List.map ~f:Float.of_string
   |> Array.of_list
   

@@ -14,7 +14,7 @@ module Make
     (E : Site_evolution_model.S with type mat := A.matrix
                                  and type vec := A.vector) =
 struct
-  let known_vector x = A.Vector.init (fun y -> if x = y then 1. else 0.)
+  let known_vector x = A.Vector.init (fun y -> if A.equal x y then 1. else 0.)
 
   (* ======================= *)
   (* | Generic Felsenstein | *)
@@ -56,7 +56,7 @@ struct
   (* ============================ *)
   let shift_normal thre acc1 acc2 v =
     (* if the min value of the vector is below a certain threshold... *)
-    if A.Vector.min v > thre then (v, acc1 +. acc2)
+    if Float.(A.Vector.min v > thre) then (v, acc1 +. acc2)
     else
       let mv = A.Vector.max v in (* then divide by its max and add the log of the max to *)
       (A.Vector.scal_mul (1.0 /. mv) v, acc1 +. acc2 +. (log mv)) (* an accumulator *)

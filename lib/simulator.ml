@@ -51,10 +51,10 @@ struct
         let rec loop state remaining_time =
           let waiting_times =
             A.Table.init (fun m ->
-                if m = state then (Float.infinity, m)
+                if A.equal m state then (Float.infinity, m)
                 else
                   let rate = (rate_matrix condition).A.%{state, m} in
-                  if rate < 1e-30 then (Float.infinity, m)
+                  if Float.(rate < 1e-30) then (Float.infinity, m)
                   else
                     let tau = Owl.Stats.exponential_rvs ~lambda:rate in
                     tau, m
@@ -76,7 +76,7 @@ struct
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n (branch_length, condition) ->
         let rec loop state remaining_time =
           let rate_matrix = codon_rates condition in
-          let rates = A.Table.init (fun m -> if m = state then 0. else rate_matrix.A.%{state, m}) in
+          let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
           let total_rate = Owl.Stats.sum (rates :> float array) in
           let tau = Owl.Stats.exponential_rvs ~lambda:total_rate in
           if Float.(tau > remaining_time) then state
@@ -96,7 +96,7 @@ struct
           let rates =
             Array.mapi rate_matrices ~f:(fun i mat ->
                 A.Table.init (fun m ->
-                    if m = state.(i) then 0. else (mat :> A.matrix).A.%{state.(i), m}
+                    if A.equal m state.(i) then 0. else (mat :> A.matrix).A.%{state.(i), m}
                   )
               ) in
           let pos_rates = Array.map rates ~f:(fun r -> Owl.Stats.sum (r :> float array)) in

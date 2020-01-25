@@ -112,7 +112,7 @@ let model2_log_likelihood ~exchangeability_matrix ~stationary_distribution ~scal
   CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:(stationary_distribution :> Vector.t)
 
 let counts xs =
-  Amino_acid.Table.init (fun aa -> List.count xs ~f:(( = ) aa))
+  Amino_acid.Table.init (fun aa -> List.count xs ~f:(Amino_acid.equal aa))
 
 let leaves_freqs site =
   let counts = (counts (Tree.leaves site) : int Amino_acid.table :> _ array) in

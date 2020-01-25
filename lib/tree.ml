@@ -143,8 +143,8 @@ let%test "leafset_generated_subtree" =
          (node (leaf "C") (leaf "D")))
       (leaf "E")
   in
-  leafset_generated_subtree t Fn.id [] = None
-  && leafset_generated_subtree t Fn.id ["A";"B";"C";"D";"E"] = Some t
+  Poly.(leafset_generated_subtree t Fn.id [] = None)
+  && Poly.(leafset_generated_subtree t Fn.id ["A";"B";"C";"D";"E"] = Some t)
 
 let rec simplify_node_with_single_child t f =
   match t with

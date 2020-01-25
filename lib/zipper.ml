@@ -83,15 +83,15 @@ let get_meta = function
 (*  MOVEMENT  *)
 (* ========== *)
 let slide z d l = match d, z with
-  | Dir0, ZipLeaf {index=i; b0=l2, t; meta={routing; me}} when l<l2
+  | Dir0, ZipLeaf {index=i; b0=l2, t; meta={routing; me}} when Float.(l<l2)
     -> build_branch ~old_routing:routing (l2-.l, t) (l, Phylogenetic_tree.build_leaf ~routing_no:me i)
-  | Dir0, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l1
+  | Dir0, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when Float.(l<l1)
     -> build_branch ~old_routing:routing (l1-.l,t1) (l2+.l,t2)
-  | Dir1, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when l<l2
+  | Dir1, ZipBranch {b0=l1,t1; b1=l2,t2; meta={routing; _}} when Float.(l<l2)
     -> build_branch ~old_routing:routing (l1+.l,t1) (l2-.l,t2)
   | (Dir0, ZipNode {b0=lf,tf; b1=bb1; b2=bb2; meta={routing; me}} |
      Dir1, ZipNode {b1=lf,tf; b0=bb1; b2=bb2; meta={routing; me}} |
-     Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; meta={routing; me}}) when l<lf
+     Dir2, ZipNode {b2=lf,tf; b0=bb1; b1=bb2; meta={routing; me}}) when Float.(l<lf)
     -> build_branch ~old_routing:routing (lf-.l,tf) (l,Phylogenetic_tree.build_node ~routing_no:me bb1 bb2)
   | Dir1, ZipLeaf _ | Dir2, ZipLeaf _ | Dir2, ZipBranch _
     -> failwith "Incorrect direction/zipper type combination (eg, move Dir1 on a leaf)."
@@ -262,17 +262,17 @@ let get_tree z d = match get_branch z d with _, t -> t
 (* ============ *)
 let equal z1 z2 = match z1, z2 with
   | ZipLeaf {index=i; b0=b,t; _}, ZipLeaf {index=i2; b0=b2,t2; _} ->
-    Phylogenetic_tree.equal t t2 && b = b2 && i = i2
+    Phylogenetic_tree.equal t t2 && Float.(b = b2) && String.(i = i2)
   | ZipBranch {b0=b00,t00; b1=b01,t01; _}, ZipBranch {b0=b10,t10; b1=b11,t11; _} ->
     Phylogenetic_tree.(
-      equal t00 t10 && b00 = b10 &&
-      equal t01 t11 && b01 = b11
+      equal t00 t10 && Float.(b00 = b10) &&
+      equal t01 t11 && Float.(b01 = b11)
     )
   | ZipNode {b0=b00,t00; b1=b01,t01; b2=b02,t02; _}, ZipNode {b0=b10,t10; b1=b11,t11; b2=b12,t12; _} ->
     Phylogenetic_tree.(
-      equal t00 t10 && b00 = b10 &&
-      equal t01 t11 && b01 = b11 &&
-      equal t02 t12 && b02 = b12
+      equal t00 t10 && Float.(b00 = b10) &&
+      equal t01 t11 && Float.(b01 = b11) &&
+      equal t02 t12 && Float.(b02 = b12)
     )
   | ZipLeaf _, ZipBranch _ | ZipLeaf _, ZipNode _ |
     ZipBranch _, ZipLeaf _ | ZipBranch _, ZipNode _ |
@@ -285,7 +285,7 @@ let equal z1 z2 = match z1, z2 with
 let to_pretty_string =
   let indent sep str =
     String.rstrip str |>
-    String.concat_map ~f:(fun x -> if x='\n' then sprintf "\n%s" sep else String.init 1 ~f:(fun _ ->x))
+    String.concat_map ~f:(fun x -> if Char.equal x '\n' then sprintf "\n%s" sep else String.init 1 ~f:(fun _ ->x))
     |> sprintf "%s%s\n" sep in
 
   let string_of_branch z d =

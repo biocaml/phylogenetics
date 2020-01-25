@@ -51,7 +51,7 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
       printf "Candidate: %f %s\n" f_r (Phylogenetics.Utils.show_float_array x_r)
     ) ;
     (
-      match f_r < obj.(ranks.(0)), f_r < obj.(ranks.(n - 1)) with
+      match Float.(f_r < obj.(ranks.(0)), f_r < obj.(ranks.(Int.(n - 1)))) with
       | false, true ->
         if debug then printf "Reflection\n" ;
         points.(ranks.(n)) <- x_r ;
@@ -60,13 +60,13 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
         if debug then printf "Expansion\n" ;
         let x_e = update ~from:c gamma ~towards:x_r in
         let f_e = f x_e in
-        points.(ranks.(n)) <- if f_e < f_r then x_e else x_r ;
+        points.(ranks.(n)) <- if Float.(f_e < f_r) then x_e else x_r ;
         obj.(ranks.(n)) <- Float.min f_r f_e ;
       | false, false ->
         if debug then printf "Contraction\n" ;
         let x_c = update ~from:c rho ~towards:points.(ranks.(n)) in
         let f_c = f x_c in
-        if f_c < f_r then (
+        if Float.(f_c < f_r) then (
           points.(ranks.(n)) <- x_c ;
           obj.(ranks.(n)) <- f_c ;
         )
@@ -91,14 +91,14 @@ let%test "Parabola" =
   let f x = x.(0) ** 2. in
   let sample () = [| Random.float 200. -. 100. |] in
   let obj, _ = minimize ~f ~tol:1e-3 ~sample () in
-  Float.abs obj < 1e-3
+  Float.(abs obj < 1e-3)
 
 let%test "Rosenbrock" =
   let f x = 100. *. (x.(1) -. x.(0) ** 2.) ** 2. +. (1. -. x.(0)) ** 2. in
   let rfloat _ = Random.float 200. -. 100. in
   let sample () = Array.init 2 ~f:rfloat in
   let obj, _ = minimize ~f ~sample () in
-  Float.abs obj < 1e-3
+  Float.(abs obj < 1e-3)
 
 let%test "Powell quartic" =
   let f x =
@@ -109,5 +109,5 @@ let%test "Powell quartic" =
   let rfloat _ = Random.float 200. -. 100. in
   let sample () = Array.init 4 ~f:rfloat in
   let obj, _ = minimize ~f ~sample () in
-  Float.abs obj < 1e-3
+  Float.(abs obj < 1e-3)
 

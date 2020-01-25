@@ -14,7 +14,7 @@ type t = {
 let parse_header l =
   match
     String.split l ~on:' '
-    |> List.filter ~f:(( <> ) "")
+    |> List.filter ~f:(String.( <> ) "")
   with
   | [ m ; n ] -> (
       try Ok (Int.of_string m, Int.of_string n)

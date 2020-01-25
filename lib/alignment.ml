@@ -43,7 +43,7 @@ let find_sequence t id =
 
 let indel_free_columns ali =
   Array.init (nrows ali) ~f:(fun j ->
-      Array.for_all ali.sequences ~f:(fun s -> s.[j] <> '-')
+      Array.for_all ali.sequences ~f:(fun s -> Char.(s.[j] <> '-'))
     )
 
 let residues al ~column:j =
@@ -126,5 +126,5 @@ module Make(S : Seq.S) = struct
     |> List.map ~f:(fun (i,s) -> Printf.sprintf ">%s\n%s" i (S.to_string s))
     |> Out_channel.write_lines filename
 
-  let equal x y = Hashtbl.equal x y (=)
+  let equal (x : t) y = Hashtbl.equal x y Poly.equal
 end

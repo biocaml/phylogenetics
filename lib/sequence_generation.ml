@@ -30,7 +30,7 @@ struct
        if yes return base else decrement x *)
     let rec aux i x =
       let proba = A.Vector.get vec i in
-      if x < proba then A.of_int_exn i
+      if Float.(x < proba) then A.of_int_exn i
       else aux (i+1) (x-.proba)
     in
     Random.float 1.0 |> aux 0

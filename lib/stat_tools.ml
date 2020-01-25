@@ -30,8 +30,8 @@ let bins ?(nb=20) d =
   let bin_size = (dmax -. dmin)/.(float_of_int nb) in
   let count i = List.count d ~f:(
       fun x ->
-        (x > (float_of_int i)*.bin_size) &&
-        (x < ((float_of_int i)+.1.)*.bin_size)
+        Float.(x > (float_of_int i)*.bin_size) &&
+        Float.(x < ((float_of_int i)+.1.)*.bin_size)
     ) in
   List.init nb ~f:(
     fun x -> (float_of_int x +. 0.5) *. bin_size,
@@ -53,4 +53,4 @@ let plot_sample_lists ?(nb=20) l =
   ) |> Gnuplot.plot_many gp
 
 let pause () =
-  In_channel.input_line In_channel.stdin |> ignore
+  ignore (In_channel.input_line In_channel.stdin : string option)

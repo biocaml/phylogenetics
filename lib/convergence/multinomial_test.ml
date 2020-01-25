@@ -27,7 +27,7 @@ let sum a b f =
   loop 0. a b
 
 let%test _ =
-  sum 0 4 (fun i -> [| 1. ; 2. ; 3. ; 4. |].(i)) = 10.
+  Float.(sum 0 4 (fun i -> [| 1. ; 2. ; 3. ; 4. |].(i)) = 10.)
 
 let frequencies c =
   let n = float @@ Array.reduce_exn ~f:( + ) c in
@@ -132,8 +132,7 @@ let uniformity_test ~k ~n1 ~n2 test =
         (test { k ; x1 ; x2 }).pvalue
       )
   in
-  OCamlR_graphics.hist ~breaks:(`n 20) p_values
-  |> ignore
+  ignore (OCamlR_graphics.hist ~breaks:(`n 20) p_values : OCamlR_graphics.hist)
 
 let example = {
   k = 20 ;
