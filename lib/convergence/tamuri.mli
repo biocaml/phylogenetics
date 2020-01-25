@@ -23,3 +23,8 @@ val model1_maximum_likelihood :
 val model1_demo : Wag.t -> unit
 
 val model2_demo : Wag.t -> unit
+
+val model3_maximum_likelihood :
+  exchangeability_matrix:Rate_matrix.Amino_acid.t ->
+  (_, Amino_acid.t, float * int) Tree.t ->
+  float * float array

@@ -114,13 +114,13 @@ let model2_log_likelihood ~exchangeability_matrix ~stationary_distribution ~scal
 let counts xs =
   Amino_acid.Table.init (fun aa -> List.count xs ~f:(( = ) aa))
 
-let leave_freqs site =
+let leaves_freqs site =
   let counts = (counts (Tree.leaves site) : int Amino_acid.table :> _ array) in
   let n = float @@ Array.fold counts ~init:0 ~f:( + ) in
   Array.map counts ~f:(fun k -> logit (float k /. n))
 
 let model2_maximum_likelihood ~exchangeability_matrix site =
-  let pi_0 = leave_freqs site in
+  let pi_0 = leaves_freqs site in
   let f param =
     let pi =
       let v = Amino_acid.Vector.init (fun aa -> sigmoid param.((aa :> int) + 1)) in
@@ -189,3 +189,34 @@ let model2_demo (wag : Wag.t) =
   Array.iteri (Amino_acid.Vector.to_array true_pi) ~f:(fun i x ->
       printf "%g\t%g\n" x pi.(i)
     )
+
+let leaves_freqs site =
+  let counts = (counts (Tree.leaves site) : int Amino_acid.table :> _ array) in
+  let n = float @@ Array.fold counts ~init:0 ~f:( + ) in
+  Array.map counts ~f:(fun k -> logit (float k /. n))
+
+let model3_maximum_likelihood ~exchangeability_matrix site =
+  let pi_0 = leaves_freqs site in
+  let f param =
+    let pi =
+      let v = Amino_acid.Vector.init (fun aa -> sigmoid param.((aa :> int) + 1)) in
+      let s = Amino_acid.Vector.sum v in
+      Amino_acid.Vector.map v ~f:(fun x -> x /. s)
+    in
+    -. model2_log_likelihood ~exchangeability_matrix ~stationary_distribution:pi ~scale:(10. ** param.(0)) site
+  in
+  let sample =
+    let c = ref (-1) in
+    fun _ ->
+      incr c ;
+      if !c = 0 then
+        Array.append
+          [| Owl.Stats.uniform_rvs ~a:(-4.) ~b:1. |]
+          pi_0
+      else
+        Array.append
+          [| Owl.Stats.uniform_rvs ~a:(-4.) ~b:1. |]
+          (Array.init Amino_acid.card ~f:(fun i -> if i = !c - 1 then 3. else -3.))
+  in
+  let ll, p_star = Nelder_mead.minimize ~debug:true ~maxit:10_000 ~f ~sample () in
+  ll, p_star
