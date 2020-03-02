@@ -17,6 +17,7 @@
   (synopsis "Algorithms and datastructures for phylogenetics")
   (tags (bioinformatics evolution phylogeny))
   (depends
+    angstrom
     (biocaml (>= 0.8.0))
     (core (>= v0.13.0))
     (dune (>= 1.11))

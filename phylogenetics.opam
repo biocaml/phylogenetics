@@ -7,6 +7,7 @@ license: "CeCILL-B"
 homepage: "https://github.com/biocaml/phylogenetics/"
 bug-reports: "https://github.com/biocaml/phylogenetics/issues"
 depends: [
+  "angstrom"
   "biocaml" {>= "0.8.0"}
   "core" {>= "v0.13.0"}
   "dune" {>= "1.11"}

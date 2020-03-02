@@ -1,12 +1,13 @@
 (** The original format is described
    {{:http://evolution.genetics.washington.edu/phylip.html}there}. This
-   implementation assumes a somewhat more relaxed syntax:
-    {v
+   implementation also allows a somewhat more relaxed syntax:
+{v
 <nb sequences> <nb cols>
 <id> TAB <sequence>
 <id> TAB <sequence>
 ...
 v}
+    which is specified with the option [~strict:false].
 *)
 
 type item = {
@@ -15,9 +16,17 @@ type item = {
 }
 
 type t = private {
-  nb_sequences : int ;
-  nb_cols : int ;
-  items : item array ;
+  number_of_sequences : int ;
+  sequence_length : int ;
+  items : item list ;
 }
 
-val of_file : string -> (t, [> `Msg of string]) result
+val read :
+  ?strict:bool ->
+  string ->
+  (t, [> `Msg of string]) result
+
+val read_exn :
+  ?strict:bool ->
+  string ->
+  t
