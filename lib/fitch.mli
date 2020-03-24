@@ -8,11 +8,11 @@ end
 val forward :
   n:int ->
   (_, int, 'b) Tree.t ->
-  Cost.t array * (int Non_empty_list.t array, int, 'b) Tree.t
+  Cost.t array * (int List1.t array, int, 'b) Tree.t
 
 val backward :
   Cost.t array ->
-  (int Non_empty_list.t array, int, 'b) Tree.t ->
+  (int List1.t array, int, 'b) Tree.t ->
   (int, int, 'b) Tree.t
 
 val fitch :

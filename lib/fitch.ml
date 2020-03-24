@@ -27,23 +27,23 @@ module Cost = struct
     | Int i, Int j -> Int (i + j)
 end
 
-let rec forward ~n (t : _ Tree.t) : Cost.t array * (int Non_empty_list.t array, int, 'b) Tree.t =
+let rec forward ~n (t : _ Tree.t) : Cost.t array * (int List1.t array, int, 'b) Tree.t =
   match t with
   | Leaf l ->
     let costs = Array.init n ~f:(fun i -> if i = l then Cost.zero else Cost.Infinity) in
     costs, Leaf l
   | Node node ->
     let children_costs, children =
-      Non_empty_list.map node.branches ~f:(fun (Branch b) ->
+      List1.map node.branches ~f:(fun (Branch b) ->
           let cost, child = forward ~n b.tip in
           cost, Tree.branch b.data child
         )
-      |> Non_empty_list.unzip
+      |> List1.unzip
     in
     let costs, choices =
       Array.init n ~f:(fun i ->
           let costs_for_root_i =
-            Non_empty_list.map children_costs ~f:(fun costs ->
+            List1.map children_costs ~f:(fun costs ->
                 let cost j =
                   if i = j then costs.(j) else Cost.succ costs.(j)
                 in
@@ -59,8 +59,8 @@ let rec forward ~n (t : _ Tree.t) : Cost.t array * (int Non_empty_list.t array, 
                 loop 1 (cost 0) 0
               )
           in
-          let costs, choices = Non_empty_list.unzip costs_for_root_i in
-          let total_cost = Non_empty_list.fold costs ~init:Cost.zero ~f:(Cost.( + )) in
+          let costs, choices = List1.unzip costs_for_root_i in
+          let total_cost = List1.fold costs ~init:Cost.zero ~f:(Cost.( + )) in
           total_cost, choices
         )
       |> Array.unzip
@@ -71,7 +71,7 @@ let rec backward_aux t i = match t with
   | Tree.Leaf j -> assert (i = j) ; Tree.leaf i
   | Node n ->
     Tree.node i (
-      Non_empty_list.map2_exn n.branches n.data.(i) ~f:(fun (Branch b) choice ->
+      List1.map2_exn n.branches n.data.(i) ~f:(fun (Branch b) choice ->
           Tree.branch b.data (backward_aux b.tip choice)
         )
     )
@@ -85,7 +85,7 @@ let fitch ~n t =
   backward costs routing
 
 let%expect_test "fitch" =
-  let node x y = Tree.node () Non_empty_list.(cons (Tree.branch () x) [ Tree.branch () y ]) in
+  let node x y = Tree.node () List1.(cons (Tree.branch () x) [ Tree.branch () y ]) in
   let leaf x = Tree.leaf x in
   let t = node (node (leaf 0) (leaf 1)) (leaf 0) in
   fitch ~n:2 t
@@ -99,7 +99,7 @@ let%expect_test "fitch" =
      +- 0 |}]
 
 let%expect_test "fitch_2" =
-  let node x y = Tree.node () Non_empty_list.(cons (Tree.branch () x) [ Tree.branch () y ]) in
+  let node x y = Tree.node () List1.(cons (Tree.branch () x) [ Tree.branch () y ]) in
   let leaf x = Tree.leaf x in
   let t = node (node (leaf 0) (leaf 1)) (node (leaf 1) (leaf 2)) in
   fitch ~n:3 t

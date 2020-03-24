@@ -3,7 +3,7 @@ open Core_kernel
 type ('n, 'l, 'b) t =
   | Node of {
       data : 'n ;
-      branches : ('n, 'l, 'b) branch Non_empty_list.t ;
+      branches : ('n, 'l, 'b) branch List1.t ;
     }
   | Leaf of 'l
 
@@ -18,7 +18,7 @@ let node data branches =
   Node { data ; branches }
 
 let binary_node data left right =
-  Node { data ; branches = Non_empty_list.cons left [ right ] }
+  Node { data ; branches = List1.cons left [ right ] }
 
 let branch data tip = Branch { data ; tip }
 
@@ -35,10 +35,10 @@ let rec to_printbox_aux t ?parent_branch ~node ~leaf ~branch = match t with
       | None -> node n.data
       | Some b_label -> sprintf "%s - %s" b_label (node n.data)
     in
-    Non_empty_list.map n.branches ~f:(fun (Branch b) ->
+    List1.map n.branches ~f:(fun (Branch b) ->
         to_printbox_aux ~parent_branch:b.data ~node ~leaf ~branch b.tip
       )
-    |> Non_empty_list.to_list
+    |> List1.to_list
     |> B.tree (B.text node_text)
 
 let to_printbox ?(node = fun _ -> "·") ?(leaf = fun _ -> "·") ?(branch = fun _ -> None) t =
@@ -48,7 +48,7 @@ let rec pre t ~init ~node ~leaf ~branch =
   match t with
   | Leaf l -> leaf init l
   | Node n ->
-    Non_empty_list.fold
+    List1.fold
       n.branches
       ~init:(node init n.data)
       ~f:(fun init -> pre_branch ~init ~leaf ~node ~branch)
@@ -76,7 +76,7 @@ let rec map t ~node ~leaf ~branch =
   | Node n ->
     Node {
       data = node n.data ;
-      branches = Non_empty_list.map n.branches ~f:(map_branch ~node ~leaf ~branch) ;
+      branches = List1.map n.branches ~f:(map_branch ~node ~leaf ~branch) ;
     }
   | Leaf l -> Leaf (leaf l)
 
@@ -91,7 +91,7 @@ let propagate t ~init ~node ~leaf ~branch =
     match t with
     | Node n ->
       let acc = node acc n.data in
-      let branches = Non_empty_list.map n.branches ~f:(inner_branch acc) in
+      let branches = List1.map n.branches ~f:(inner_branch acc) in
       Node { data = acc ; branches }
     | Leaf l -> Leaf (leaf acc l)
 
@@ -127,7 +127,7 @@ let rec leafset_generated_subtree t f leaves =
         else None
       )
   | Node n ->
-    Non_empty_list.filter_map n.branches ~f:(fun (Branch b) ->
+    List1.filter_map n.branches ~f:(fun (Branch b) ->
         leafset_generated_subtree b.tip f leaves
         |> Option.map ~f:(branch b.data)
       )
@@ -166,14 +166,14 @@ and simplify_node_with_single_child_branch t f b_parent =
     | _ -> k ()
 
 and simplify_node_with_single_child_node f data branches =
-  let branches = Non_empty_list.map branches ~f:(fun (Branch b) ->
+  let branches = List1.map branches ~f:(fun (Branch b) ->
       simplify_node_with_single_child_branch b.tip f b.data
     )
   in
   node data branches
 
 let%expect_test "simplify_node_with_single_child" =
-  let node x y = node () Non_empty_list.(cons (branch () x) (List.map ~f:(branch ()) y)) in
+  let node x y = node () List1.(cons (branch () x) (List.map ~f:(branch ()) y)) in
   let leaf x = leaf x in
   let t =
     node

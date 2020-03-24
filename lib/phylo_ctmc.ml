@@ -40,10 +40,10 @@ module Make(A : Alphabet) = struct
         indicator ~i:(A.to_int state) ~n:A.card
         |> SV.of_vec
       | Node n ->
-        Non_empty_list.map n.branches ~f:(fun (Branch b) ->
+        List1.map n.branches ~f:(fun (Branch b) ->
             SV.mat_vec_mul (transition_matrix b.data) (tree b.tip)
           )
-        |> Non_empty_list.to_list
+        |> List1.to_list
         |> List.reduce_exn ~f:SV.mul
     in
     let SV (v, carry) = SV.mul (tree t) (SV.of_vec root_frequencies) in
@@ -58,12 +58,12 @@ module Make(A : Alphabet) = struct
         Tree.leaf (SV.of_vec cl)
 
       | Node n ->
-        let children = Non_empty_list.map n.branches ~f:branch in
+        let children = List1.map n.branches ~f:branch in
         let cl =
-          Non_empty_list.map children ~f:Tree.(fun (Branch b) ->
+          List1.map children ~f:Tree.(fun (Branch b) ->
             SV.mat_vec_mul b.data (Tree.data b.tip)
             )
-          |> Non_empty_list.to_list
+          |> List1.to_list
           |> List.reduce_exn ~f:SV.mul
         in
         Tree.Node { data = cl ; branches = children }
@@ -83,7 +83,7 @@ module Make(A : Alphabet) = struct
       match t with
       | Leaf _ -> Tree.leaf state
       | Node n ->
-        let branches = Non_empty_list.map n.branches ~f:(fun br -> branch br state) in
+        let branches = List1.map n.branches ~f:(fun br -> branch br state) in
         Tree.node state branches
 
     and branch (Branch br) parent_state =

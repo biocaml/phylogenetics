@@ -1,7 +1,7 @@
 type ('n, 'l, 'b) t =
   | Node of {
       data : 'n ;
-      branches : ('n, 'l, 'b) branch Non_empty_list.t ;
+      branches : ('n, 'l, 'b) branch List1.t ;
     }
   | Leaf of 'l
 
@@ -14,7 +14,7 @@ val leaf : 'l -> (_, 'l, 'b) t
 
 val node :
   'a ->
-  ('a, 'b, 'c) branch Non_empty_list.t ->
+  ('a, 'b, 'c) branch List1.t ->
   ('a, 'b, 'c) t
 
 val binary_node :

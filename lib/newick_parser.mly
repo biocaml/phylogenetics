@@ -24,7 +24,7 @@ tree:
   | LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN name = option(STRING)
     { match branches with
       | [] -> assert false
-      | h :: t -> Tree.node { name } (Non_empty_list.cons h t) }
+      | h :: t -> Tree.node { name } (List1.cons h t) }
 
 branch:
   | tip = tree length = option(length) tags = option(tags)

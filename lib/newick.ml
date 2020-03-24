@@ -21,8 +21,8 @@ let rec unparse_tree (tree : _ Tree.t) =
     match tree with
     | Leaf _ -> ""
     | Node n ->
-      Non_empty_list.map n.branches ~f:unparse_branch
-      |> Non_empty_list.to_list
+      List1.map n.branches ~f:unparse_branch
+      |> List1.to_list
       |> String.concat ~sep:","
       |> sprintf "(%s)"
   in

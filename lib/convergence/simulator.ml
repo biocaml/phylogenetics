@@ -10,7 +10,7 @@ let root_condition (tree : (_, _, (_ * 'c)) Tree.t) =
     match tree with
     | Leaf _ -> ()
     | Node n ->
-      Non_empty_list.iter n.branches ~f:(fun (Branch b) -> C.tick acc (snd b.data))
+      List1.iter n.branches ~f:(fun (Branch b) -> C.tick acc (snd b.data))
   ) ;
   match
     C.to_alist acc
@@ -95,4 +95,4 @@ let pair_tree ~branch_length1 ~branch_length2 ~npairs : _ Tree.t =
       (branch ~length:branch_length2 ~condition:`Convergent (leaf ~name:(sprintf "C%d" i) ()))
     |> branch ~length:branch_length1 ~condition:`Ancestral
   in
-  Tree.node { Newick_ast.name = None }  (Non_empty_list.init npairs ~f:make_pair)
+  Tree.node { Newick_ast.name = None }  (List1.init npairs ~f:make_pair)
