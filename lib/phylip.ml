@@ -15,7 +15,7 @@ type t = {
 module Relaxed_parser = struct
   let parse_header l =
     match
-      String.split l ~on:' '
+      String.split l ~on:'\t'
       |> List.filter ~f:(String.( <> ) "")
     with
     | [ m ; n ] -> (
