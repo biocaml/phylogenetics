@@ -34,7 +34,7 @@ and unparse_branch (Branch b) =
     Option.value_map
       b.data.length
       ~default:""
-      ~f:(sprintf ":%g")
+      ~f:(sprintf ":%f")
   in
   let tags =
     match b.data.tags with
