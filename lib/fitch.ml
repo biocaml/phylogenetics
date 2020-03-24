@@ -27,15 +27,21 @@ module Cost = struct
     | Int i, Int j -> Int (i + j)
 end
 
-let rec forward ~n (t : _ Tree.t) : Cost.t array * (int List1.t array, int, 'b) Tree.t =
+let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
   match t with
   | Leaf l ->
-    let costs = Array.init n ~f:(fun i -> if i = l then Cost.zero else Cost.Infinity) in
-    costs, Leaf l
+    let costs =
+      match category l with
+      | Some cat ->
+        if cat < 0 || cat >= n then invalid_arg "category returned integer not in [0;n[" ;
+        Array.init n ~f:(fun i -> if i = cat then Cost.zero else Cost.Infinity)
+      | None -> Array.create ~len:n Cost.zero
+    in
+    costs, Tree.leaf l
   | Node node ->
     let children_costs, children =
       List1.map node.branches ~f:(fun (Branch b) ->
-          let cost, child = forward ~n b.tip in
+          let cost, child = forward ~n ~category b.tip in
           cost, Tree.branch b.data child
         )
       |> List1.unzip
@@ -65,13 +71,13 @@ let rec forward ~n (t : _ Tree.t) : Cost.t array * (int List1.t array, int, 'b) 
         )
       |> Array.unzip
     in
-    costs, Tree.node choices children
+    costs, Tree.node (node.data, choices) children
 
 let rec backward_aux t i = match t with
-  | Tree.Leaf j -> assert (i = j) ; Tree.leaf i
+  | Tree.Leaf l -> Tree.leaf (l, i)
   | Node n ->
-    Tree.node i (
-      List1.map2_exn n.branches n.data.(i) ~f:(fun (Branch b) choice ->
+    Tree.node (fst n.data, i) (
+      List1.map2_exn n.branches (snd n.data).(i) ~f:(fun (Branch b) choice ->
           Tree.branch b.data (backward_aux b.tip choice)
         )
     )
@@ -80,16 +86,17 @@ let backward costs t =
   let root = Owl.Utils.Array.min_i ~cmp:Cost.compare costs in
   backward_aux t root
 
-let fitch ~n t =
-  let costs, routing = forward ~n t in
+let fitch ~n ~category t =
+  let costs, routing = forward ~n ~category t in
   backward costs routing
 
 let%expect_test "fitch" =
   let node x y = Tree.node () List1.(cons (Tree.branch () x) [ Tree.branch () y ]) in
   let leaf x = Tree.leaf x in
   let t = node (node (leaf 0) (leaf 1)) (leaf 0) in
-  fitch ~n:2 t
-  |> Tree.to_printbox ~leaf:Int.to_string ~node:Int.to_string
+  let p (_, i) = Int.to_string i in
+  fitch ~category:Option.return ~n:2 t
+  |> Tree.to_printbox ~leaf:p ~node:p
   |> PrintBox_text.output stdout ;
   [%expect {|
     0
@@ -101,9 +108,10 @@ let%expect_test "fitch" =
 let%expect_test "fitch_2" =
   let node x y = Tree.node () List1.(cons (Tree.branch () x) [ Tree.branch () y ]) in
   let leaf x = Tree.leaf x in
+  let p (_, i) = Int.to_string i in
   let t = node (node (leaf 0) (leaf 1)) (node (leaf 1) (leaf 2)) in
-  fitch ~n:3 t
-  |> Tree.to_printbox ~leaf:Int.to_string ~node:Int.to_string
+  fitch ~n:3 ~category:Option.return t
+  |> Tree.to_printbox ~leaf:p ~node:p
   |> PrintBox_text.output stdout ;
   [%expect {|
     1
