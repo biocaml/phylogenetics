@@ -21,6 +21,8 @@ type t = private {
   items : item list ;
 }
 
+val make_exn : item list -> t
+
 val read :
   ?strict:bool ->
   string ->

@@ -1,3 +1,7 @@
+(*
+http://evolution.genetics.washington.edu/phylip/doc/sequence.html
+http://scikit-bio.org/docs/0.2.3/generated/skbio.io.phylip.html
+*)
 open Core_kernel
 open Rresult
 
@@ -11,6 +15,17 @@ type t = {
   sequence_length : int ;
   items : item list ;
 }
+
+let make_exn = function
+  | [] -> invalid_arg "empty list of items"
+  | h :: t as items ->
+    let n = String.length h.sequence in
+    (
+      match List.findi t ~f:(fun _ it -> String.length it.sequence <> n) with
+      | Some (i, it) -> invalid_argf "Sequence %d has length %d while it is expected to have length %d" i (String.length it.sequence) n ()
+      | None -> ()
+    ) ;
+    { number_of_sequences = List.length items ; sequence_length = n ; items }
 
 module Relaxed_parser = struct
   let parse_header l =
