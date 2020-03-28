@@ -139,3 +139,28 @@ let read_exn ?strict fn =
   match read ?strict fn with
   | Ok r -> r
   | Error (`Msg msg) -> failwith msg
+
+let write_strict data fn =
+  Out_channel.with_file fn ~f:(fun oc ->
+      fprintf oc "%d %d\n" data.number_of_sequences data.sequence_length ;
+      List.iter data.items ~f:(fun it ->
+          let id =
+            let n = String.length it.name in
+            if n <= 10 then (it.name ^ String.make (10 - n) ' ')
+            else String.prefix it.name 10
+          in
+          fprintf oc "%s%s\n" id it.sequence
+        )
+    )
+
+let write_relaxed data fn =
+  Out_channel.with_file fn ~f:(fun oc ->
+      fprintf oc "%d\t%d\n" data.number_of_sequences data.sequence_length ;
+      List.iter data.items ~f:(fun it ->
+          fprintf oc "%s\t%s\n" it.name it.sequence
+        )
+    )
+
+let write ?(strict = true) t fn =
+  if strict then write_strict t fn
+  else write_relaxed t fn

@@ -32,3 +32,9 @@ val read_exn :
   ?strict:bool ->
   string ->
   t
+
+val write :
+  ?strict:bool ->
+  t ->
+  string ->
+  unit
