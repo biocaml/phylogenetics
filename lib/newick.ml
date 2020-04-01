@@ -79,3 +79,9 @@ let map_inner_tree tree ~f =
     Branch (
       Tree.branch data (f tip)
     )
+
+let with_inner_tree tree ~f =
+  match tree with
+  | Tree t
+  | Branch (Branch { tip = t ; data = _ }) ->
+    f t
