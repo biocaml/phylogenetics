@@ -32,3 +32,22 @@ let filter_map (Cons (h, t)) ~f =
 let unzip (Cons ((h1, h2), t)) =
   let t1, t2 = List.unzip t in
   Cons (h1, t1), Cons (h2, t2)
+
+let for_all (Cons (h, t)) ~f =
+  f h && List.for_all t ~f
+
+let exists (Cons (h, t)) ~f =
+  f h || List.exists t ~f
+
+let hd (Cons (h, _)) = h
+
+let singleton x = Cons (x, [])
+
+let of_list_exn = function
+  | [] -> failwith "empty list"
+  | h :: t -> Cons (h, t)
+
+let sort (Cons (h, t)) ~compare =
+  match List.sort (h:: t) ~compare with
+  | h :: t -> Cons (h, t)
+  | [] -> assert false
