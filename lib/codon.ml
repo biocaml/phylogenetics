@@ -12,6 +12,7 @@ end
 module type Genetic_code = sig
   type codon
   val stop_codons : codon list
+  val is_stop_codon : codon -> bool
   val aa_of_codon : codon -> Amino_acid.t option
   val synonym : codon -> codon -> bool
 
@@ -72,6 +73,7 @@ module Universal_genetic_code = struct
   let code = Array.map ~f:Amino_acid.of_int code_array
   let aa_of_codon i = code.(i)
   let stop_codons = [ 10 ; 11 ; 14 ]
+  let is_stop_codon c = c = 10 || c = 11 || c = 14
   let synonym p q = Poly.(code.(p) = code.(q))
 
   module NS = struct

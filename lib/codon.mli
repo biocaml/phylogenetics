@@ -10,6 +10,7 @@ end
 module type Genetic_code = sig
   type codon
   val stop_codons : codon list
+  val is_stop_codon : codon -> bool
   val aa_of_codon : codon -> Amino_acid.t option
   val synonym : codon -> codon -> bool
 
