@@ -1,4 +1,5 @@
 val forward :
+  ?cost:(int -> int -> float) ->
   n:int ->
   category:('l -> int option) ->
   ('n, 'l, 'b) Tree.t ->
@@ -10,6 +11,7 @@ val backward :
   ('n * int, 'l * int, 'b) Tree.t
 
 val fitch :
+  ?cost:(int -> int -> float) ->
   n:int ->
   category:('l -> int option) ->
   ('n, 'l, 'b) Tree.t ->

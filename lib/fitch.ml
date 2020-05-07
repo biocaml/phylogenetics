@@ -1,6 +1,9 @@
 open Core_kernel
 
-let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
+let default_cost x y =
+  if x = y then 0. else 1.
+
+let rec forward ?(cost = default_cost) ~n ~category (t : (_,'l,_) Tree.t) =
   match t with
   | Leaf l ->
     let costs =
@@ -23,9 +26,7 @@ let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
       Array.init n ~f:(fun i ->
           let costs_for_root_i =
             List1.map children_costs ~f:(fun costs ->
-                let cost j =
-                  if i = j then costs.(j) else costs.(j) +. 1.
-                in
+                let cost j = costs.(j) +. cost i j in
                 let rec loop j best_cost best_choice =
                   if j = n then (best_cost, best_choice)
                   else
@@ -59,8 +60,8 @@ let backward costs t =
   let root = Owl.Utils.Array.min_i ~cmp:Float.compare costs in
   backward_aux t root
 
-let fitch ~n ~category t =
-  let costs, routing = forward ~n ~category t in
+let fitch ?cost ~n ~category t =
+  let costs, routing = forward ?cost ~n ~category t in
   backward costs routing
 
 let%expect_test "fitch" =
