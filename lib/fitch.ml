@@ -1,32 +1,5 @@
 open Core_kernel
 
-module Cost = struct
-  type t = Int of int | Infinity
-  let zero = Int 0
-  let succ = function
-    | Int i -> Int (succ i)
-    | Infinity -> Infinity
-
-  let compare x y =
-    match x, y with
-    | Infinity, Infinity -> 0
-    | Infinity, _ -> 1
-    | _, Infinity -> -1
-    | Int i, Int j -> Int.compare i j
-      
-    
-  let ( < ) x y = match x, y with
-    | Infinity, _ -> false
-    | _, Infinity -> true
-    | Int i, Int j -> i < j
-
-  let ( + ) x y =
-    match x, y with
-    | Infinity, _
-    | _, Infinity -> Infinity
-    | Int i, Int j -> Int (i + j)
-end
-
 let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
   match t with
   | Leaf l ->
@@ -34,8 +7,8 @@ let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
       match category l with
       | Some cat ->
         if cat < 0 || cat >= n then invalid_arg "category returned integer not in [0;n[" ;
-        Array.init n ~f:(fun i -> if i = cat then Cost.zero else Cost.Infinity)
-      | None -> Array.create ~len:n Cost.zero
+        Array.init n ~f:(fun i -> if i = cat then 0. else Float.infinity)
+      | None -> Array.create ~len:n 0.
     in
     costs, Tree.leaf l
   | Node node ->
@@ -51,13 +24,13 @@ let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
           let costs_for_root_i =
             List1.map children_costs ~f:(fun costs ->
                 let cost j =
-                  if i = j then costs.(j) else Cost.succ costs.(j)
+                  if i = j then costs.(j) else costs.(j) +. 1.
                 in
                 let rec loop j best_cost best_choice =
                   if j = n then (best_cost, best_choice)
                   else
                     let candidate_cost = cost j in
-                    if Cost.(candidate_cost < best_cost) then
+                    if Float.(candidate_cost < best_cost) then
                       loop (j + 1) candidate_cost j
                     else
                       loop (j + 1) best_cost best_choice
@@ -66,7 +39,7 @@ let rec forward ~n ~category (t : (_,'l,_) Tree.t) =
               )
           in
           let costs, choices = List1.unzip costs_for_root_i in
-          let total_cost = List1.fold costs ~init:Cost.zero ~f:(Cost.( + )) in
+          let total_cost = List1.fold costs ~init:0. ~f:( +. ) in
           total_cost, choices
         )
       |> Array.unzip
@@ -83,7 +56,7 @@ let rec backward_aux t i = match t with
     )
 
 let backward costs t =
-  let root = Owl.Utils.Array.min_i ~cmp:Cost.compare costs in
+  let root = Owl.Utils.Array.min_i ~cmp:Float.compare costs in
   backward_aux t root
 
 let fitch ~n ~category t =
