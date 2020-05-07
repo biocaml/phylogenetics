@@ -17,7 +17,7 @@ let rec forward ?(cost = default_cost) ~n ~category (t : (_,'l,_) Tree.t) =
   | Node node ->
     let children_costs, children =
       List1.map node.branches ~f:(fun (Branch b) ->
-          let cost, child = forward ~n ~category b.tip in
+          let cost, child = forward ~cost ~n ~category b.tip in
           cost, Tree.branch b.data child
         )
       |> List1.unzip
