@@ -37,7 +37,7 @@ and unparse_branch (Branch b) =
     Option.value_map
       b.data.length
       ~default:""
-      ~f:(sprintf ":%g")
+      ~f:(fun len -> ":" ^ Float.to_string_hum ~decimals:12 ~strip_zero:true len)
   in
   let tags =
     match b.data.tags with
