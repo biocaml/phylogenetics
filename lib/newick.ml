@@ -21,13 +21,10 @@ let rec unparse_tree (tree : _ Tree.t) =
     match tree with
     | Leaf _ -> ""
     | Node n ->
-      match n.branches with
-      | Cons (h, []) -> unparse_branch h
-      | xs ->
-        List1.map xs ~f:unparse_branch
-        |> List1.to_list
-        |> String.concat ~sep:","
-        |> sprintf "(%s)"
+      List1.map n.branches ~f:unparse_branch
+      |> List1.to_list
+      |> String.concat ~sep:","
+      |> sprintf "(%s)"
   in
   let tree = Option.value ~default:"" (Tree.data tree).name in
   branches ^ tree
