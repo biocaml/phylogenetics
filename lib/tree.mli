@@ -85,6 +85,6 @@ val leafset_generated_subtree :
    it exists (and [None] otherwise) *)
 
 val simplify_node_with_single_child :
+  merge_branch_data:('b list -> 'b) ->
   ('n, 'l, 'b) t ->
-  ('b -> 'b -> 'b option) ->
   ('n, 'l, 'b) t

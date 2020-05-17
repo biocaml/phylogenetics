@@ -146,46 +146,59 @@ let%test "leafset_generated_subtree" =
   Poly.(leafset_generated_subtree t Fn.id [] = None)
   && Poly.(leafset_generated_subtree t Fn.id ["A";"B";"C";"D";"E"] = Some t)
 
-let rec simplify_node_with_single_child t f =
-  match t with
-  | Leaf _ -> t
-  | Node n -> simplify_node_with_single_child_node f n.data n.branches
-
-and simplify_node_with_single_child_branch t f b_parent =
-  match t with
-  | Leaf _ -> branch b_parent t
-  | Node n ->
-    let k () = branch b_parent (simplify_node_with_single_child_node f n.data n.branches) in
-    match n.branches with
-    | Cons (Branch b, []) -> (
-        match f b_parent b.data with
-        | None -> k ()
-        | Some merged_b ->
-          simplify_node_with_single_child_branch b.tip f merged_b
-      )
-    | _ -> k ()
-
-and simplify_node_with_single_child_node f data branches =
-  let branches = List1.map branches ~f:(fun (Branch b) ->
-      simplify_node_with_single_child_branch b.tip f b.data
-    )
+let simplify_node_with_single_child ~merge_branch_data t =
+  let rec prune_linear_root = function
+    | Leaf _ as l -> l
+    | Node n ->
+      match n.branches with
+      | Cons (Branch b, []) ->
+        prune_linear_root b.tip
+      | branches ->
+        node n.data (List1.map branches ~f:traverse_branch)
+  and traverse_branch (Branch b as bb) =
+    match b.tip with
+    | Leaf _ -> bb
+    | Node n ->
+      match n.branches with
+      | Cons (Branch b', []) ->
+        collapse_linear_segment ~branch_data:[b'.data ; b.data] b'.tip
+      | branches ->
+        let branches = List1.map branches ~f:traverse_branch in
+        let tip = node n.data branches in
+        branch b.data tip
+  and collapse_linear_segment ~branch_data = function
+    | Leaf _ as l ->
+      branch (merge_branch_data branch_data) l
+    | Node n ->
+      match n.branches with
+      | Cons (Branch b, []) ->
+        collapse_linear_segment ~branch_data:(b.data :: branch_data) b.tip
+      | branches ->
+        let branches = List1.map branches ~f:traverse_branch in
+        let tip = node n.data branches in
+        branch (merge_branch_data branch_data) tip
   in
-  node data branches
+  prune_linear_root t
 
-let%expect_test "simplify_node_with_single_child" =
-  let node x y = node () List1.(cons (branch () x) (List.map ~f:(branch ()) y)) in
-  let leaf x = leaf x in
-  let t =
-    node
-      (node
-         (node (leaf "A") [])
-         [node (leaf "C") [leaf "D"]])
-      [ leaf "E" ]
-  in
-  simplify_node_with_single_child t (fun () () -> Some ())
-  |> to_printbox ~leaf:Fn.id
-  |> PrintBox_text.output stdout ;
-  [%expect {|
+module Simplify_node_with_single_child_tests = struct
+  let n1 x = node () List1.(cons (branch () x) [])
+  let n2 x y = node () List1.(cons (branch () x) [ branch () y ])
+  let leaf x = leaf x
+  let print t =
+    simplify_node_with_single_child t ~merge_branch_data:(fun _ -> ())
+    |> to_printbox ~leaf:Fn.id
+    |> PrintBox_text.output stdout
+
+  let%expect_test "simplify_node_with_single_child" =
+    let t =
+      n2
+        (n2
+           (n1 (leaf "A"))
+           (n2 (leaf "C") (leaf "D")))
+        (leaf "E")
+    in
+    print t ;
+    [%expect {|
     ·
     `+- ·
      |  `+- A
@@ -193,3 +206,23 @@ let%expect_test "simplify_node_with_single_child" =
      |      `+- C
      |       +- D
      +- E |}]
+
+  let%expect_test "simplify_node_with_single_child" =
+    let t = n1 (n1 (leaf "E")) in
+    print t ;
+    [%expect {| E |}]
+
+  let%expect_test _ =
+    let t =
+      n2
+        (n1 (leaf "A"))
+        (n1 (leaf "B"))
+      |> n1
+      |> n1
+    in
+    print t ;
+    [%expect {|
+      ·
+      `+- A
+       +- B |}]
+end
