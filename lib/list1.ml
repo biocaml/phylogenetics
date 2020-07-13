@@ -13,6 +13,9 @@ let cons h t = Cons (h, t)
 let fold (Cons (h, t)) ~init ~f =
   List.fold t ~f ~init:(f init h)
 
+let fold_right (Cons (h, t)) ~init ~f =
+  f h (List.fold_right t ~f ~init)
+
 let map (Cons (h, t)) ~f =
   cons (f h) (List.map t ~f)
 
