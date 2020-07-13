@@ -2,6 +2,8 @@ open Core_kernel
 
 type 'a t = Cons of 'a * 'a list
 
+let length (Cons (_, xs)) = 1 + List.length xs
+
 let init n ~f =
   if n < 1 then invalid_arg "Non_empty_list should be at least of length 1" ;
   Cons (f 0, List.init (n - 1) ~f:(fun i -> f (i + 1)))

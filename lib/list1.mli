@@ -1,5 +1,6 @@
 type 'a t = Cons of 'a * 'a list
 val hd : 'a t -> 'a
+val length : _ t -> int
 val singleton : 'a -> 'a t
 val cons : 'a -> 'a list -> 'a t
 val init : int -> f:(int -> 'a) -> 'a t
