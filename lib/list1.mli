@@ -4,6 +4,7 @@ val singleton : 'a -> 'a t
 val cons : 'a -> 'a list -> 'a t
 val init : int -> f:(int -> 'a) -> 'a t
 val map : 'a t -> f:('a -> 'b) -> 'b t
+val mapi : 'a t -> f:(int -> 'a -> 'b) -> 'b t
 val map2_exn : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> 'c t
 val filter_map : 'a t -> f:('a -> 'b option) -> 'b t option
 val iter : 'a t -> f:('a -> unit) -> unit

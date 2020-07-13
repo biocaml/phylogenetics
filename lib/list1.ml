@@ -14,6 +14,9 @@ let fold (Cons (h, t)) ~init ~f =
 let map (Cons (h, t)) ~f =
   cons (f h) (List.map t ~f)
 
+let mapi (Cons (h, t)) ~f =
+  cons (f 0 h) (List.mapi t ~f:(fun i -> f (i + 1)))
+
 let map2_exn (Cons (h1, t1)) (Cons (h2, t2)) ~f =
   cons (f h1 h2) (List.map2_exn t1 t2 ~f)
 
