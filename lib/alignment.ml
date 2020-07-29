@@ -126,5 +126,5 @@ module Make(S : Seq.S) = struct
     |> List.map ~f:(fun (i,s) -> Printf.sprintf ">%s\n%s" i (S.to_string s))
     |> Out_channel.write_lines filename
 
-  let equal (x : t) y = Hashtbl.equal x y Poly.equal
+  let equal (x : t) y = Hashtbl.equal Poly.equal x y
 end

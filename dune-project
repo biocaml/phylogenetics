@@ -19,7 +19,7 @@
   (depends
     angstrom-unix
     (biocaml (>= 0.8.0))
-    (core (>= v0.13.0))
+    (core (>= v0.14.0))
     (dune (>= 1.11))
     (gnuplot (>= 0.2.0))
     gsl
