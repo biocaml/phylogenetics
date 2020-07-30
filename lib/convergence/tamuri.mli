@@ -14,21 +14,20 @@ end
 
 module Simulator : module type of Simulator.Make(Amino_acid)(Evolution_model)
 
-val model1_maximum_likelihood :
-  exchangeability_matrix:Rate_matrix.Amino_acid.t ->
-  stationary_distribution:Amino_acid.vector ->
-  (_, Amino_acid.t, float * int) Tree.t ->
-  float * float
+module Model1 : sig
+  val maximum_likelihood :
+    exchangeability_matrix:Rate_matrix.Amino_acid.t ->
+    stationary_distribution:Amino_acid.vector ->
+    (_, Amino_acid.t, float * int) Tree.t ->
+    float * float
 
-val model1_demo : Wag.t -> unit
+  val demo : Wag.t -> unit
+end
 
-val model2_demo : Wag.t -> unit
+module Model2 : sig
+  val demo : Wag.t -> unit
+end
 
-val model3_maximum_likelihood :
-  exchangeability_matrix:Rate_matrix.Amino_acid.t ->
-  (_, Amino_acid.t, float * int) Tree.t ->
-  float * float array
-
-
-val demo_site : Wag.t ->
-  (Amino_acid.t, Amino_acid.t, float * string) Tree.t
+module Model3 : sig
+  val demo : Wag.t -> unit
+end
