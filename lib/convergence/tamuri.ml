@@ -157,15 +157,16 @@ module Model2 = struct
               theta0.(i) +. if i = !c - 1 then  -. 1. else 0.
             )
     in
-    let ll, p_star = Nelder_mead.minimize ~debug:true ~maxit:100 ~f ~sample () in
+    let ll, p_star = Nelder_mead.minimize ~tol:0.1 ~debug:true ~maxit:10_000 ~f ~sample () in
     ll, p_star
+
+  let simulate_profile () =
+    Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card 0.1)
+    |> Amino_acid.Vector.of_array_exn
 
   let demo (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
-    let true_pi =
-      Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card 0.1)
-      |> Amino_acid.Vector.of_array_exn
-    in
+    let true_pi = simulate_profile () in
     let root = choose_aa true_pi in
     let true_scale = 1. in
     let p = {
@@ -246,12 +247,8 @@ module Model3 = struct
               theta0.(i) +. if i = !c - 1 then  -. 1. else 0.
             )
     in
-    let ll, p_star = Nelder_mead.minimize ~debug:true ~maxit:100 ~f ~sample () in
+    let ll, p_star = Nelder_mead.minimize ~tol:0.1 ~debug:true ~maxit:10_000 ~f ~sample () in
     ll, p_star
-
-  let simulate_profile () =
-    Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card 0.1)
-    |> Amino_acid.Vector.of_array_exn
 
   let simulate_site exchangeability_matrix tree scale pi0 pi1 =
     let param = param exchangeability_matrix scale pi0 pi1 in
@@ -260,8 +257,8 @@ module Model3 = struct
 
   let demo (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
-    let true_pi0 = simulate_profile () in
-    let true_pi1 = simulate_profile () in
+    let true_pi0 = Model2.simulate_profile () in
+    let true_pi1 = Model2.simulate_profile () in
     let true_scale = 1. in
     let stationary_distribution = true_pi0, true_pi1 in
     let site = simulate_site wag.rate_matrix tree true_scale true_pi0 true_pi1 in
@@ -275,3 +272,22 @@ module Model3 = struct
     in
     printf "LL = %g, scale_hat = %g\n" ll p_hat.(0)
 end
+
+let lrt_demo (wag : Wag.t) =
+  let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
+  let true_pi0 = Model2.simulate_profile () in
+  let true_pi1 = Model2.simulate_profile () in
+  let true_scale = 1. in
+  let site = Model3.simulate_site wag.rate_matrix tree true_scale true_pi0 true_pi1 in
+  let model2_ll, _ =
+    Model2.maximum_likelihood
+      ~exchangeability_matrix:wag.rate_matrix
+      site
+  in
+  let model3_ll, _ =
+    Model3.maximum_likelihood
+      ~exchangeability_matrix:wag.rate_matrix
+      tree
+      site
+  in
+  printf "model2 LL = %g, model3 LL = %g\n" model2_ll model3_ll

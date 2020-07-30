@@ -31,3 +31,5 @@ end
 module Model3 : sig
   val demo : Wag.t -> unit
 end
+
+val lrt_demo : Wag.t -> unit
