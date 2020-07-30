@@ -28,3 +28,7 @@ val model3_maximum_likelihood :
   exchangeability_matrix:Rate_matrix.Amino_acid.t ->
   (_, Amino_acid.t, float * int) Tree.t ->
   float * float array
+
+
+val demo_site : Wag.t ->
+  (Amino_acid.t, Amino_acid.t, float * string) Tree.t
