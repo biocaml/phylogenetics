@@ -25,11 +25,11 @@ module Model1 : sig
 end
 
 module Model2 : sig
-  val demo : Wag.t -> unit
+  val demo : ?verbose:bool -> Wag.t -> unit
 end
 
 module Model3 : sig
-  val demo : Wag.t -> unit
+  val demo : ?verbose:bool -> Wag.t -> unit
 end
 
 val lrt_demo : Wag.t -> unit

@@ -138,7 +138,7 @@ module Model2 = struct
     let s = Owl.Stats.sum r in
     Amino_acid.Vector.init (fun aa -> r.((aa :> int)) /. s)
 
-  let maximum_likelihood ~exchangeability_matrix site =
+  let maximum_log_likelihood ?debug ~exchangeability_matrix site =
     let counts = counts (Tree.leaves site) in
     let schema = param_schema_of_counts counts in
     let theta0 = initial_param schema in
@@ -157,28 +157,32 @@ module Model2 = struct
               theta0.(i) +. if i = !c - 1 then  -. 1. else 0.
             )
     in
-    let ll, p_star = Nelder_mead.minimize ~tol:0.1 ~debug:true ~maxit:10_000 ~f ~sample () in
-    ll, p_star
+    let ll, p_star = Nelder_mead.minimize ~tol:0.01 ?debug ~maxit:10_000 ~f ~sample () in
+    -. ll, p_star
 
   let simulate_profile () =
     Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card 0.1)
     |> Amino_acid.Vector.of_array_exn
 
-  let demo (wag : Wag.t) =
-    let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
-    let true_pi = simulate_profile () in
-    let root = choose_aa true_pi in
-    let true_scale = 1. in
+  let simulate_site exchangeability_matrix tree scale pi =
+    let root = choose_aa pi in
     let p = {
-      Evolution_model.stationary_distribution = true_pi ; scale = true_scale ;
-      exchangeability_matrix = wag.rate_matrix
+      Evolution_model.stationary_distribution = pi ; scale ;
+      exchangeability_matrix ;
     }
     in
-    let site = Simulator.site_gillespie_first_reaction tree ~root ~param:(Fn.const p) in
+    Simulator.site_gillespie_first_reaction tree ~root ~param:(Fn.const p)
+
+  let demo ?(verbose = false) (wag : Wag.t) =
+    let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
+    let true_pi = simulate_profile () in
+    let true_scale = 1. in
+    let site = simulate_site wag.rate_matrix tree true_scale true_pi in
     let ll_star = log_likelihood ~exchangeability_matrix:wag.rate_matrix ~stationary_distribution:true_pi ~scale:true_scale site in
     printf "LL* = %g\n" ll_star ;
     let ll, p_hat =
-      maximum_likelihood
+      maximum_log_likelihood
+        ~debug:verbose
         ~exchangeability_matrix:wag.rate_matrix
         site
     in
@@ -229,7 +233,7 @@ module Model3 = struct
     Model2.extract_frequencies ~offset:1 schema0 param,
     Model2.extract_frequencies ~offset:(1 + schema0.nz) schema1 param
 
-  let maximum_likelihood ~exchangeability_matrix tree site =
+  let maximum_log_likelihood ?debug ~exchangeability_matrix tree site =
     let schema = tuple_map ~f:Model2.param_schema_of_counts (counts tree site) in
     let theta0 = initial_param schema in
     let f param =
@@ -247,15 +251,15 @@ module Model3 = struct
               theta0.(i) +. if i = !c - 1 then  -. 1. else 0.
             )
     in
-    let ll, p_star = Nelder_mead.minimize ~tol:0.1 ~debug:true ~maxit:10_000 ~f ~sample () in
-    ll, p_star
+    let ll, p_star = Nelder_mead.minimize ~tol:0.01 ?debug ~maxit:10_000 ~f ~sample () in
+    -. ll, p_star
 
   let simulate_site exchangeability_matrix tree scale pi0 pi1 =
     let param = param exchangeability_matrix scale pi0 pi1 in
     let root = choose_aa pi0 in
     Simulator.site_gillespie_first_reaction tree ~root ~param
 
-  let demo (wag : Wag.t) =
+  let demo ?(verbose = true) (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
     let true_pi0 = Model2.simulate_profile () in
     let true_pi1 = Model2.simulate_profile () in
@@ -265,7 +269,8 @@ module Model3 = struct
     let ll_star = log_likelihood ~exchangeability_matrix:wag.rate_matrix ~stationary_distribution ~scale:true_scale site in
     printf "LL* = %g\n" ll_star ;
     let ll, p_hat =
-      maximum_likelihood
+      maximum_log_likelihood
+        ~debug:verbose
         ~exchangeability_matrix:wag.rate_matrix
         tree
         site
@@ -280,12 +285,12 @@ let lrt_demo (wag : Wag.t) =
   let true_scale = 1. in
   let site = Model3.simulate_site wag.rate_matrix tree true_scale true_pi0 true_pi1 in
   let model2_ll, _ =
-    Model2.maximum_likelihood
+    Model2.maximum_log_likelihood
       ~exchangeability_matrix:wag.rate_matrix
       site
   in
   let model3_ll, _ =
-    Model3.maximum_likelihood
+    Model3.maximum_log_likelihood
       ~exchangeability_matrix:wag.rate_matrix
       tree
       site
