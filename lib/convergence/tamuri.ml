@@ -278,6 +278,31 @@ module Model3 = struct
     printf "LL = %g, scale_hat = %g\n" ll p_hat.(0)
 end
 
+let lrt_2_3 exchangeability_matrix tree site =
+  let model2_ll, p2 =
+    Model2.maximum_log_likelihood ~exchangeability_matrix site
+  in
+  let model3_ll, p3 =
+    Model3.maximum_log_likelihood ~exchangeability_matrix tree site
+  in
+  let _D_ = 2. *. (model3_ll -. model2_ll) in
+  let df = float (Array.length p3 - Array.length p2) in
+  let pvalue = 1. -. Owl.Stats.chi2_cdf ~df _D_ in
+  _D_, df, pvalue
+
+let lrt_null_demo (wag : Wag.t) =
+  let sample _ =
+    let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
+    let true_pi = Model2.simulate_profile () in
+    let true_scale = 1. in
+    let site = Model2.simulate_site wag.rate_matrix tree true_scale true_pi in
+    let _D_, df, pval = lrt_2_3 wag.rate_matrix tree site in
+    printf "D = %f, df = %f, p = %f" _D_ df pval ;
+    pval
+  in
+  let pvals = Array.init 100 ~f:sample in
+  ignore (OCamlR_graphics.hist ~breaks:(`n 20) pvals :> OCamlR_graphics.hist)
+
 let lrt_demo (wag : Wag.t) =
   let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
   let true_pi0 = Model2.simulate_profile () in
