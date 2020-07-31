@@ -38,7 +38,8 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
   let rec loop i =
     let ranks = Owl_utils.Array.argsort ~cmp:Float.compare obj in
     if debug then (
-      printf "\n\nIteration %d: %f %s\n%!" i obj.(ranks.(0)) (Phylogenetics.Utils.show_float_array points.(ranks.(0)))
+      printf "\n\nIteration %d: %f %s\n%!" i obj.(ranks.(0)) (Phylogenetics.Utils.show_float_array points.(ranks.(0))) ;
+      printf "Delta: %g\n%!" (obj.(ranks.(n)) -. obj.(ranks.(0)))
     ) ;
     let c =
       Array.slice ranks 0 (-1)
