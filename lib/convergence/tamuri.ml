@@ -397,7 +397,7 @@ let lrt_2_vs_3_null_demo ~sample_size (wag : Wag.t) =
     let model3_ll, _ = Model3.Sample.maximum_likelihood ~debug:true ~mode:`dense ~exchangeability_matrix:wag.rate_matrix tree sample in
     2. *. (model3_ll -. model2_ll)
   in
-  let stat_values = Array.init 10 ~f in
+  let stat_values = Array.init 1_000 ~f in
   ignore (
     OCamlR_graphics.hist
       ~main:(sprintf "sample_size = %d" sample_size)
