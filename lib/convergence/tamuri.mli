@@ -25,12 +25,12 @@ module Model1 : sig
 end
 
 module Model2 : sig
-  val demo : ?verbose:bool -> Wag.t -> unit
+  val demo : ?debug:bool -> Wag.t -> unit
 end
 
 module Model3 : sig
-  val demo : ?verbose:bool -> Wag.t -> unit
+  val demo : ?debug:bool -> Wag.t -> unit
 end
 
 val lrt_demo : Wag.t -> unit
-val lrt_null_demo : Wag.t -> unit
+val lrt_null_demo : ?sample_size:int -> Wag.t -> unit
