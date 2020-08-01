@@ -33,5 +33,7 @@ module Model3 : sig
   val demo : ?debug:bool -> Wag.t -> unit
 end
 
+val lrt_1_vs_2_null_demo : sample_size:int -> Wag.t -> unit
+val lrt_2_vs_3_null_demo : sample_size:int -> Wag.t -> unit
 val lrt_demo : Wag.t -> unit
 val lrt_null_demo : ?sample_size:int -> Wag.t -> unit

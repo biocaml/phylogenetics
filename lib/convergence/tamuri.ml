@@ -36,9 +36,9 @@ module CTMC = Phylo_ctmc.Make(Amino_acid)
 
 module Model1 = struct
 
-  let log_likelihood ~exchangeability_matrix ~stationary_distribution site param =
+  let log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale site =
     let pi = (stationary_distribution : Amino_acid.vector :> vec) in
-    let p = { Evolution_model.scale = 10. ** param.(0) ;
+    let p = { Evolution_model.scale = 10. ** scale ;
               exchangeability_matrix ;
               stationary_distribution } in
     let transition_matrix =
@@ -48,7 +48,7 @@ module Model1 = struct
     CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
 
   let maximum_likelihood ?debug ~exchangeability_matrix ~stationary_distribution site =
-    let f param = -. log_likelihood ~exchangeability_matrix ~stationary_distribution site param in
+    let f param = -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale:param.(0) site in
     let sample () = [| Owl.Stats.uniform_rvs ~a:(-4.) ~b:1. |] in
     let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.01 ~maxit:10_000 ~f ~sample () in
     ll, p_star.(0)
@@ -74,12 +74,12 @@ module Model1 = struct
         ~stationary_distribution:wag.freqs
         site
     in
-    let f x =
+    let f scale =
       log_likelihood
         ~exchangeability_matrix:wag.rate_matrix
         ~stationary_distribution:wag.freqs
+        ~scale
         site
-        [|x|]
     in
     let x = Array.init 100 ~f:(fun i ->
         let i = float i in
@@ -90,6 +90,25 @@ module Model1 = struct
     let y = Array.map x ~f in
     printf "LL = %g, scale_hat = %g" ll scale_hat ;
     OCamlR_graphics.plot ~x ~y ()
+
+  module Sample = struct
+    let draw ~exchangeability_matrix ~stationary_distribution ~scale tree n =
+      List.init n ~f:(fun _ ->
+          simulate_site exchangeability_matrix stationary_distribution tree scale
+        )
+
+    let log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample =
+      List.fold sample ~init:0. ~f:(fun acc site ->
+          acc +. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale site
+        )
+
+    let maximum_likelihood ?debug ~exchangeability_matrix ~stationary_distribution sample =
+      let f param = -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale:param.(0) sample in
+      let sample () = [| Owl.Stats.uniform_rvs ~a:(-4.) ~b:1. |] in
+      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.01 ~maxit:10_000 ~f ~sample () in
+      -. ll, p_star.(0)
+  end
+
 end
 
 module Model2 = struct
@@ -139,29 +158,30 @@ module Model2 = struct
     let s = Owl.Stats.sum r in
     Amino_acid.Vector.init (fun aa -> r.((aa :> int)) /. s)
 
-  let param_schema mode counts =
+  let param_schema ?(mode = `sparse) counts =
     match mode with
     | `sparse -> sparse_param_schema counts
     | `dense  -> dense_param_schema counts
 
-  let maximum_log_likelihood ?debug ?(mode = `sparse) ~exchangeability_matrix site =
+  let nelder_mead_init theta0 =
+    let c = ref (-1) in
+    fun _ ->
+      incr c ;
+      if !c = 0 then theta0
+      else
+        Array.init (Array.length theta0) ~f:(fun i ->
+            theta0.(i) +. if i = !c - 1 then  -. 1. else 0.
+          )
+
+  let maximum_log_likelihood ?debug ?mode ~exchangeability_matrix site =
     let counts = counts (Tree.leaves site) in
-    let schema = param_schema mode counts in
+    let schema = param_schema ?mode counts in
     let theta0 = initial_param schema counts in
+    let sample = nelder_mead_init theta0 in
     let f param =
       let stationary_distribution = extract_frequencies ~offset:1 schema param in
       let scale = 10. ** param.(0) in
       -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale site
-    in
-    let sample =
-      let c = ref (-1) in
-      fun _ ->
-        incr c ;
-        if !c = 0 then theta0
-        else
-          Array.init (Array.length theta0) ~f:(fun i ->
-              theta0.(i) +. if i = !c - 1 then  -. 1. else 0.
-            )
     in
     let ll, p_star = Nelder_mead.minimize ~tol:0.01 ?debug ~maxit:10_000 ~f ~sample () in
     -. ll, p_star
@@ -181,6 +201,31 @@ module Model2 = struct
       maximum_log_likelihood ?debug ~exchangeability_matrix:wag.rate_matrix site
     in
     printf "LL = %g, scale_hat = %g\n" ll p_hat.(0)
+
+  module Sample = struct
+    let log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample =
+      List.fold sample ~init:0. ~f:(fun acc site ->
+          acc +. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale site
+        )
+
+    let maximum_likelihood ?debug ?mode ~exchangeability_matrix sample =
+      let counts =
+        List.map sample ~f:(fun site -> counts (Tree.leaves site))
+        |> List.reduce_exn ~f:(fun k1 k2 ->
+            Amino_acid.Table.(init (fun aa -> get k1 aa + get k2 aa))
+          )
+      in
+      let schema = param_schema ?mode counts in
+      let theta0 = initial_param schema counts in
+      let f param =
+        let stationary_distribution = extract_frequencies ~offset:1 schema param in
+        let scale = 10. ** param.(0) in
+        -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample
+      in
+      let sample = nelder_mead_init theta0 in
+      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.1 ~maxit:10_000 ~f ~sample () in
+      -. ll, p_star.(0)
+  end
 end
 
 module Model3 = struct
@@ -230,8 +275,8 @@ module Model3 = struct
     Model2.extract_frequencies ~offset:1 schema param,
     Model2.extract_frequencies ~offset:(1 + schema.nz) schema param
 
-  let maximum_log_likelihood ?debug ?(mode = `sparse) ~exchangeability_matrix tree site =
-    let schema = Model2.param_schema mode (Model2.counts (Tree.leaves site)) in
+  let maximum_log_likelihood ?debug ?mode ~exchangeability_matrix tree site =
+    let schema = Model2.param_schema ?mode (Model2.counts (Tree.leaves site)) in
     let theta0 = initial_param schema tree site in
     let f param =
       let stationary_distribution = extract_frequencies schema param in
@@ -248,7 +293,7 @@ module Model3 = struct
               best_guess.(i) +. if i = !c - 1 then  -. 1. else 0.
             )
     in
-    let ll, p_star = Nelder_mead.minimize ~tol:0.01 ?debug ~maxit:10_000 ~f ~sample:(sample theta0) () in
+    let ll, p_star = Nelder_mead.minimize ~tol:0.1 ?debug ~maxit:10_000 ~f ~sample:(sample theta0) () in
     -. ll, p_star
 
   let simulate_site exchangeability_matrix tree scale pi0 pi1 =
@@ -269,7 +314,100 @@ module Model3 = struct
       maximum_log_likelihood ?debug ~exchangeability_matrix:wag.rate_matrix tree site
     in
     printf "LL = %g, scale_hat = %g\n" ll p_hat.(0)
+
+  module Sample = struct
+    let log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample =
+      List.fold sample ~init:0. ~f:(fun acc site ->
+          acc +. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale site
+        )
+
+    let add_counts k1 k2 =
+      Amino_acid.Table.(init (fun aa -> get k1 aa + get k2 aa))
+
+    let initial_param schema tree samples =
+      let k0, k1 =
+        List.map samples ~f:(counts tree)
+        |> List.reduce_exn ~f:(fun (k00, k01) (k10, k11) ->
+            add_counts k00 k10,
+            add_counts k01 k11
+          )
+      in
+      Array.concat [
+        [| 0. |] ;
+        Model2.profile_guess schema k0 ;
+        Model2.profile_guess schema k1 ;
+      ]
+
+    let maximum_likelihood ?debug ?mode ~exchangeability_matrix tree sample =
+      let counts =
+        List.map sample ~f:(fun site -> Model2.counts (Tree.leaves site))
+        |> List.reduce_exn ~f:add_counts
+      in
+      let schema = Model2.param_schema ?mode counts in
+      let theta0 = initial_param schema tree sample in
+      let f param =
+        let stationary_distribution = extract_frequencies schema param in
+        let scale = 10. ** param.(0) in
+        -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample
+      in
+      let sample = Model2.nelder_mead_init theta0 in
+      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.1 ~maxit:10_000 ~f ~sample () in
+      -. ll, p_star.(0)
+  end
 end
+
+let lrt_1_vs_2_null_demo ~sample_size (wag : Wag.t) =
+  let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
+  let true_scale = 1. in
+  let f i =
+    printf "Iteration %d:\n%!" i ;
+    let sample =
+      Model1.Sample.draw
+        ~exchangeability_matrix:wag.rate_matrix
+        ~stationary_distribution:wag.freqs
+        ~scale:true_scale tree
+        sample_size in
+    let model1_ll, _ = Model1.Sample.maximum_likelihood ~debug:true ~exchangeability_matrix:wag.rate_matrix ~stationary_distribution:wag.freqs sample in
+    let model2_ll, _ = Model2.Sample.maximum_likelihood ~debug:true ~mode:`dense ~exchangeability_matrix:wag.rate_matrix sample in
+    2. *. (model2_ll -. model1_ll)
+  in
+  let sample = Array.init 1_000 ~f in
+  ignore (
+    OCamlR_graphics.hist
+      ~main:(sprintf "sample_size = %d" sample_size)
+      ~xlab:"2 log(L1 / L2)"
+      ~freq:false
+      ~breaks:(`n 20) sample :> OCamlR_graphics.hist) ;
+  let x = Array.init 100 ~f:(fun i -> float i) in
+  let y = Array.map x ~f:(Gsl.Randist.chisq_pdf ~nu:19.) in
+  OCamlR_graphics.lines ~x ~y ()
+
+let lrt_2_vs_3_null_demo ~sample_size (wag : Wag.t) =
+  let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
+  let true_scale = 1. in
+  let f i =
+    printf "Iteration %d:\n%!" i ;
+    let sample =
+      Model1.Sample.draw
+        ~exchangeability_matrix:wag.rate_matrix
+        ~stationary_distribution:wag.freqs
+        ~scale:true_scale tree
+        sample_size in
+    let model2_ll, _ = Model2.Sample.maximum_likelihood ~debug:true ~mode:`dense ~exchangeability_matrix:wag.rate_matrix sample in
+    let model3_ll, _ = Model3.Sample.maximum_likelihood ~debug:true ~mode:`dense ~exchangeability_matrix:wag.rate_matrix tree sample in
+    2. *. (model3_ll -. model2_ll)
+  in
+  let stat_values = Array.init 10 ~f in
+  ignore (
+    OCamlR_graphics.hist
+      ~main:(sprintf "sample_size = %d" sample_size)
+      ~xlab:"2 log(L1 / L2)"
+      ~freq:false
+      ~breaks:(`n 20) stat_values :> OCamlR_graphics.hist) ;
+  let x = Array.init 100 ~f:(fun i -> float i) in
+  let y = Array.map x ~f:(Gsl.Randist.chisq_pdf ~nu:19.) in
+  OCamlR_graphics.lines ~x ~y ()
+
 
 let lrt_2_3 ?debug ?mode exchangeability_matrix tree site =
   let model2_ll, p2 =
