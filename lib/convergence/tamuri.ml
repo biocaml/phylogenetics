@@ -53,6 +53,15 @@ module Model1 = struct
     let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.01 ~maxit:10_000 ~f ~sample () in
     ll, p_star.(0)
 
+  let simulate_site exchangeability_matrix stationary_distribution tree scale =
+    let root = choose_aa stationary_distribution in
+    let p = {
+      Evolution_model.stationary_distribution ; scale ;
+      exchangeability_matrix ;
+    }
+    in
+    Simulator.site_gillespie_first_reaction tree ~root ~param:(Fn.const p)
+
   let demo (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
     let root = choose_aa wag.freqs in
@@ -85,7 +94,6 @@ end
 
 module Model2 = struct
   let log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale site =
-    let module CTMC = Phylo_ctmc.Make(Amino_acid) in
     let p = { Evolution_model.scale ; exchangeability_matrix ; stationary_distribution } in
     let transition_matrix =
       let f = Evolution_model.transition_probability_matrix p in
@@ -162,20 +170,11 @@ module Model2 = struct
     Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card 0.1)
     |> Amino_acid.Vector.of_array_exn
 
-  let simulate_site exchangeability_matrix tree scale pi =
-    let root = choose_aa pi in
-    let p = {
-      Evolution_model.stationary_distribution = pi ; scale ;
-      exchangeability_matrix ;
-    }
-    in
-    Simulator.site_gillespie_first_reaction tree ~root ~param:(Fn.const p)
-
   let demo ?debug (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
     let true_pi = simulate_profile () in
     let true_scale = 1. in
-    let site = simulate_site wag.rate_matrix tree true_scale true_pi in
+    let site = Model1.simulate_site wag.rate_matrix true_pi tree true_scale in
     let ll_star = log_likelihood ~exchangeability_matrix:wag.rate_matrix ~stationary_distribution:true_pi ~scale:true_scale site in
     printf "LL* = %g\n" ll_star ;
     let ll, p_hat =
@@ -195,7 +194,6 @@ module Model3 = struct
     | _ -> assert false
 
   let log_likelihood ~exchangeability_matrix ~stationary_distribution:(pi0, pi1) ~scale site =
-    let module CTMC = Phylo_ctmc.Make(Amino_acid) in
     let param = param exchangeability_matrix scale pi0 pi1 in
     let p0 = param 0 in
     let p1 = param 1 in
@@ -290,7 +288,7 @@ let lrt_null_demo ?(sample_size = 1_000) (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
     let true_pi = Model2.simulate_profile () in
     let true_scale = 1. in
-    let site = Model2.simulate_site wag.rate_matrix tree true_scale true_pi in
+    let site = Model1.simulate_site wag.rate_matrix true_pi tree true_scale in
     let _D_, df, pval = lrt_2_3 wag.rate_matrix tree site in
     printf "D = %f, df = %f, p = %f\n%!" _D_ df pval ;
     pval
