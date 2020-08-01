@@ -16,6 +16,7 @@ module Simulator : module type of Simulator.Make(Amino_acid)(Evolution_model)
 
 module Model1 : sig
   val maximum_likelihood :
+    ?debug:bool ->
     exchangeability_matrix:Rate_matrix.Amino_acid.t ->
     stationary_distribution:Amino_acid.vector ->
     (_, Amino_acid.t, float * int) Tree.t ->

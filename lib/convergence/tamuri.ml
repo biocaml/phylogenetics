@@ -29,45 +29,32 @@ end
 module Simulator = Simulator.Make(Amino_acid)(Evolution_model)
 
 let choose_aa p =
-  p
-  |> Amino_acid.Table.of_vector
+  Amino_acid.Table.of_vector p
   |> Amino_acid.Table.choose
 
+module CTMC = Phylo_ctmc.Make(Amino_acid)
+
 module Model1 = struct
-  let maximum_likelihood ~exchangeability_matrix ~stationary_distribution site =
-    let module CTMC = Phylo_ctmc.Make(Amino_acid) in
+
+  let log_likelihood ~exchangeability_matrix ~stationary_distribution site param =
     let pi = (stationary_distribution : Amino_acid.vector :> vec) in
-    let f param =
-      let p = { Evolution_model.scale = 10. ** param.(0) ;
-                exchangeability_matrix ;
-                stationary_distribution } in
-      let transition_matrix =
-        let f = Evolution_model.transition_probability_matrix p in
-        fun (bl, _) -> (f bl :> mat)
-      in
-      -. CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
+    let p = { Evolution_model.scale = 10. ** param.(0) ;
+              exchangeability_matrix ;
+              stationary_distribution } in
+    let transition_matrix =
+      let f = Evolution_model.transition_probability_matrix p in
+      fun (bl, _) -> (f bl :> mat)
     in
+    CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
+
+  let maximum_likelihood ?debug ~exchangeability_matrix ~stationary_distribution site =
+    let f param = -. log_likelihood ~exchangeability_matrix ~stationary_distribution site param in
     let sample () = [| Owl.Stats.uniform_rvs ~a:(-4.) ~b:1. |] in
-    let ll, p_star = Nelder_mead.minimize ~debug:true ~maxit:100 ~f ~sample () in
+    let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.01 ~maxit:10_000 ~f ~sample () in
     ll, p_star.(0)
 
-  let likelihood ~exchangeability_matrix ~stationary_distribution site value =
-    let module CTMC = Phylo_ctmc.Make(Amino_acid) in
-    let pi = (stationary_distribution : Amino_acid.vector :> vec) in
-    let f param =
-      let p = { Evolution_model.scale = 10. ** param.(0) ;
-                exchangeability_matrix ;
-                stationary_distribution } in
-      let transition_matrix =
-        let f = Evolution_model.transition_probability_matrix p in
-        fun (bl, _) -> (f bl :> mat)
-      in
-      -. CTMC.pruning site ~transition_matrix ~leaf_state:Fn.id ~root_frequencies:pi
-    in
-    f value
-
   let demo (wag : Wag.t) =
-    let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:6 in
+    let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
     let root = choose_aa wag.freqs in
     let true_scale = 1. in
     let p = Evolution_model.param_of_wag wag true_scale in
@@ -79,7 +66,7 @@ module Model1 = struct
         site
     in
     let f x =
-      likelihood
+      log_likelihood
         ~exchangeability_matrix:wag.rate_matrix
         ~stationary_distribution:wag.freqs
         site
