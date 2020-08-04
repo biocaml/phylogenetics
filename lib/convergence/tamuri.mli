@@ -34,6 +34,6 @@ module Model3 : sig
 end
 
 val lrt_1_vs_2_null_demo : sample_size:int -> Wag.t -> unit
-val lrt_2_vs_3_null_demo : sample_size:int -> Wag.t -> unit
+val lrt_2_vs_3_null_demo : ?debug:bool -> sample_size:int -> Wag.t -> unit
 val lrt_demo : Wag.t -> unit
-val lrt_null_demo : ?sample_size:int -> Wag.t -> unit
+val lrt_null_demo : ?mode:[`dense | `sparse] -> ?sample_size:int -> Wag.t -> unit

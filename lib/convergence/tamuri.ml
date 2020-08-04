@@ -223,7 +223,7 @@ module Model2 = struct
         -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample
       in
       let sample = nelder_mead_init theta0 in
-      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.1 ~maxit:10_000 ~f ~sample () in
+      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.01 ~maxit:10_000 ~f ~sample () in
       -. ll, p_star.(0)
   end
 end
@@ -293,7 +293,7 @@ module Model3 = struct
               best_guess.(i) +. if i = !c - 1 then  -. 1. else 0.
             )
     in
-    let ll, p_star = Nelder_mead.minimize ~tol:0.1 ?debug ~maxit:10_000 ~f ~sample:(sample theta0) () in
+    let ll, p_star = Nelder_mead.minimize ~tol:0.01 ?debug ~maxit:10_000 ~f ~sample:(sample theta0) () in
     -. ll, p_star
 
   let simulate_site exchangeability_matrix tree scale pi0 pi1 =
@@ -351,7 +351,7 @@ module Model3 = struct
         -. log_likelihood ~exchangeability_matrix ~stationary_distribution ~scale sample
       in
       let sample = Model2.nelder_mead_init theta0 in
-      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.1 ~maxit:10_000 ~f ~sample () in
+      let ll, p_star = Nelder_mead.minimize ?debug ~tol:0.01 ~maxit:10_000 ~f ~sample () in
       -. ll, p_star.(0)
   end
 end
@@ -374,7 +374,7 @@ let lrt_1_vs_2_null_demo ~sample_size (wag : Wag.t) =
   let sample = Array.init 1_000 ~f in
   ignore (
     OCamlR_graphics.hist
-      ~main:(sprintf "sample_size = %d" sample_size)
+      ~main:(sprintf "M1 vs M2, sample_size = %d" sample_size)
       ~xlab:"2 log(L1 / L2)"
       ~freq:false
       ~breaks:(`n 20) sample :> OCamlR_graphics.hist) ;
@@ -382,26 +382,28 @@ let lrt_1_vs_2_null_demo ~sample_size (wag : Wag.t) =
   let y = Array.map x ~f:(Gsl.Randist.chisq_pdf ~nu:19.) in
   OCamlR_graphics.lines ~x ~y ()
 
-let lrt_2_vs_3_null_demo ~sample_size (wag : Wag.t) =
+let lrt_2_vs_3_null_demo ?debug ~sample_size (wag : Wag.t) =
   let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
   let true_scale = 1. in
-  let f i =
-    printf "Iteration %d:\n%!" i ;
+  let f _ =
+    (* printf "Iteration %d:\n%!" i ; *)
+    let stationary_distribution = Model2.simulate_profile () in
     let sample =
       Model1.Sample.draw
         ~exchangeability_matrix:wag.rate_matrix
-        ~stationary_distribution:wag.freqs
+        ~stationary_distribution
         ~scale:true_scale tree
         sample_size in
-    let model2_ll, _ = Model2.Sample.maximum_likelihood ~debug:true ~mode:`dense ~exchangeability_matrix:wag.rate_matrix sample in
-    let model3_ll, _ = Model3.Sample.maximum_likelihood ~debug:true ~mode:`dense ~exchangeability_matrix:wag.rate_matrix tree sample in
+    let model2_ll, _ = Model2.Sample.maximum_likelihood ?debug ~mode:`dense ~exchangeability_matrix:wag.rate_matrix sample in
+    let model3_ll, _ = Model3.Sample.maximum_likelihood ?debug ~mode:`dense ~exchangeability_matrix:wag.rate_matrix tree sample in
+    printf "%f\t%f\t%f\n%!" model2_ll model3_ll (2. *. (model3_ll -. model2_ll)) ;
     2. *. (model3_ll -. model2_ll)
   in
   let stat_values = Array.init 1_000 ~f in
   ignore (
     OCamlR_graphics.hist
-      ~main:(sprintf "sample_size = %d" sample_size)
-      ~xlab:"2 log(L1 / L2)"
+      ~main:(sprintf "M2 vs M3, sample_size = %d" sample_size)
+      ~xlab:"2 log(L3 / L2)"
       ~freq:false
       ~breaks:(`n 20) stat_values :> OCamlR_graphics.hist) ;
   let x = Array.init 100 ~f:(fun i -> float i) in
@@ -421,13 +423,13 @@ let lrt_2_3 ?debug ?mode exchangeability_matrix tree site =
   let pvalue = 1. -. Owl.Stats.chi2_cdf ~df _D_ in
   _D_, df, pvalue
 
-let lrt_null_demo ?(sample_size = 1_000) (wag : Wag.t) =
+let lrt_null_demo ?mode ?(sample_size = 1_000) (wag : Wag.t) =
   let sample _ =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
     let true_pi = Model2.simulate_profile () in
     let true_scale = 1. in
     let site = Model1.simulate_site wag.rate_matrix true_pi tree true_scale in
-    let _D_, df, pval = lrt_2_3 wag.rate_matrix tree site in
+    let _D_, df, pval = lrt_2_3 ?mode wag.rate_matrix tree site in
     printf "D = %f, df = %f, p = %f\n%!" _D_ df pval ;
     pval
   in
