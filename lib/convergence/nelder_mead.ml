@@ -38,11 +38,11 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
   let rec loop i =
     let ranks = Owl_utils.Array.argsort ~cmp:Float.compare obj in
     if debug then (
-      printf "\n\nIteration %d: %f %s\n%!" i obj.(ranks.(0)) (Phylogenetics.Utils.show_float_array points.(ranks.(0))) ;
+      printf "\n\nIteration %d: %f\n%!" i obj.(ranks.(0)) ;
       printf "Delta: %g\n%!" (obj.(ranks.(n)) -. obj.(ranks.(0)))
     ) ;
     let c =
-      Array.slice ranks 0 (-1)
+      Array.sub ranks ~pos:0 ~len:n
       |> Array.map ~f:(Array.get points)
       |> centroid
     in
@@ -64,10 +64,18 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
         points.(ranks.(n)) <- if Float.(f_e < f_r) then x_e else x_r ;
         obj.(ranks.(n)) <- Float.min f_r f_e ;
       | false, false ->
-        if debug then printf "Contraction\n" ;
-        let x_c = update ~from:c rho ~towards:points.(ranks.(n)) in
-        let f_c = f x_c in
-        if Float.(f_c < f_r) then (
+        let x_c, f_c, candidate_accepted =
+          if Float.(f_r < obj.(ranks.(n))) then (* outside contraction *)
+            let x_c = update ~from:c rho ~towards:x_r in
+            let f_c = f x_c in
+            x_c, f_c, Float.(f_c <= f_r)
+          else (* inside contraction *)
+            let x_cc = update ~from:c ~towards:points.(ranks.(n)) rho in
+            let f_cc = f x_cc in
+            x_cc, f_cc, Float.(f_cc < obj.(ranks.(n)))
+        in
+        if candidate_accepted then (
+          if debug then printf "Contraction, f_c = %f\n" f_c ;
           points.(ranks.(n)) <- x_c ;
           obj.(ranks.(n)) <- f_c ;
         )
@@ -83,6 +91,10 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
         )
     ) ;
     let sigma = Owl_base_stats.std obj in
+    if debug then (
+      printf "Sigma: %f\n" sigma ;
+      printf "Values: %s\n" (Phylogenetics.Utils.show_float_array (Array.init (n + 1) ~f:(fun i -> obj.(ranks.(i)))))
+    ) ;
     if Float.(sigma < tol) || i >= maxit then obj.(ranks.(0)), points.(ranks.(0))
     else loop (i + 1)
   in
