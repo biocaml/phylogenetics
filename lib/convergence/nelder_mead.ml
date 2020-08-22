@@ -82,7 +82,7 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
         else (
           if debug then printf "Shrink\n" ;
           Array.iteri points ~f:(fun i x_i ->
-              if ranks.(i) > 0 then (
+              if i <> ranks.(0) then (
                 let x_i = update ~from:points.(ranks.(0)) sigma ~towards:x_i in
                 points.(i) <- x_i ;
                 obj.(i) <- f x_i
