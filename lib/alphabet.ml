@@ -6,6 +6,7 @@ module type S = sig
   type matrix
   type 'a table
   val equal : t -> t -> bool
+  val compare : t -> t -> int
   val all : t list
   val card : int
   val to_int : t -> int
@@ -63,6 +64,7 @@ module Make(X : sig val card : int end) = struct
     else n
 
   let equal = Int.( = )
+  let compare = Int.compare
   let all = List.init card ~f:Fn.id
   type 'a table = 'a array
   module Table = struct
