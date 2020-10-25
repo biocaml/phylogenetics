@@ -13,8 +13,6 @@ module Evolution_model : sig
   val transition_probability_matrix : param -> float -> Amino_acid.matrix
 end
 
-module Simulator : module type of Simulator.Make(Amino_acid)(Evolution_model)
-
 type simulation = (Amino_acid.t, Amino_acid.t, float * int) Tree.t
 
 type likelihood_ratio_test = {
@@ -57,6 +55,12 @@ module Model2 : sig
     exchangeability_matrix:Rate_matrix.Amino_acid.t ->
     (_, Amino_acid.t, float * int) Tree.t ->
     float * param
+
+  val lrt :
+    ?mode:[< `dense | `sparse > `sparse ] ->
+    Wag.t ->
+    (_, Amino_acid.t, float * _) Phylogenetics.Tree.t ->
+    Model1.param * param * likelihood_ratio_test
 end
 
 module Model3 : sig
@@ -73,6 +77,13 @@ module Model3 : sig
     Convsim.tree ->
     (_, Amino_acid.t, float * int) Tree.t ->
     float * param
+
+  val lrt :
+    ?mode:[< `dense | `sparse > `sparse ] ->
+    Wag.t ->
+    Convsim.tree ->
+    (_, Amino_acid.t, float * int) Phylogenetics.Tree.t ->
+    Model2.param * param * likelihood_ratio_test
 
   val simulate_site :
     Amino_acid.matrix ->
