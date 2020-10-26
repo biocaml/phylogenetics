@@ -518,4 +518,18 @@ module Implementation_check = struct
          ~freq:false
          ~breaks:(`n 20) values :> OCamlR_graphics.hist) ;
     OCamlR_grDevices.dev_off ()
+
+  let render_stat_histogram ~title ~df results dest =
+    OCamlR_grDevices.pdf dest ;
+    ignore (
+      let values = Array.map results ~f:(fun (_,_,_,lrt) -> lrt._D_) in
+      OCamlR_graphics.hist
+         ~main:title
+         ~xlab:"p"
+         ~freq:false
+         ~breaks:(`n 20) values :> OCamlR_graphics.hist) ;
+    let x = Array.init 1_000 ~f:(fun i -> float i /. 10.) in
+    let y = Array.map x ~f:(Gsl.Randist.chisq_pdf ~nu:df) in
+    OCamlR_graphics.lines ~x ~y () ;
+    OCamlR_grDevices.dev_off ()
 end

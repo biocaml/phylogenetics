@@ -140,4 +140,11 @@ module Implementation_check : sig
     (_ * _ * _ * likelihood_ratio_test) array ->
     string ->
     unit
+
+  val render_stat_histogram :
+    title:string ->
+    df:float ->
+    (_ * _ * _ * likelihood_ratio_test) array ->
+    string ->
+    unit
 end
