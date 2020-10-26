@@ -1,8 +1,13 @@
+open Core_kernel
+open Phylogenetics_convergence
+
+let lrt_2_vs_3 () =
+  let open Tdg09.Implementation_check in
+  let wag = Phylogenetics.Wag.parse "wag.dat" in
+  lrt_2_vs_3_null_simulation ~nb_simulations:100 ~mode:`sparse wag
+  |> Fn.flip
+    (render_pvalue_histogram ~title:"M2 vs M3 under H0")
+    "model2_vs_model3_pvalues_under_h0.pdf"
+
 let () =
-  Owl_stats_prng.init 31415926535897931 ;
-  OCamlR_grDevices.pdf "model2_vs_model3_pvalues_under_h0.pdf" ;
-  (* Phylogenetics_convergence.Tamuri.lrt_1_vs_2_null_demo (Phylogenetics.Wag.parse "wag.dat") ~sample_size:1 ; *)
-  Phylogenetics_convergence.Tamuri.lrt_2_vs_3_null_demo ~debug:false (Phylogenetics.Wag.parse "wag.dat") ~sample_size:1 ;
-  (* Phylogenetics_convergence.Tamuri.lrt_null_demo ~mode:`dense ~sample_size:50 (Phylogenetics.Wag.parse "wag.dat") ; *)
-  OCamlR_grDevices.dev_off ()
-;;
+  lrt_2_vs_3 ()
