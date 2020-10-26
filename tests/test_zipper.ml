@@ -23,11 +23,11 @@ let myothertree = Phylogenetic_tree.of_preorder "0.2;0.2;0;0.3;0.3;1;2"
 
 let test_of_tree_check_subtress () =
   of_tree mytree |> (fun z -> [get_tree z Dir0; get_tree z Dir1]) |>
-  (check @@ slist Phylogenetic_tree.(testable pp equal) compare) "identical subtrees" mybranches
+  (check @@ slist Phylogenetic_tree.(testable pp equal) Poly.compare) "identical subtrees" mybranches
 
 let test_of_tree_check_lengths () =
   of_tree mytree |> (fun z -> [get_length z Dir0; get_length z Dir1]) |>
-  (check @@ slist (float eps) compare) "identical branch lengths" [0.1; 0.2]
+  (check @@ slist (float eps) Poly.compare) "identical branch lengths" [0.1; 0.2]
 
 let test_tree_and_back () =
   of_tree mytree |> to_tree |>

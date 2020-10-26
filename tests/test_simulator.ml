@@ -1,11 +1,15 @@
 open Core_kernel
 open Phylogenetics
 
-module Tamuri = Phylogenetics_convergence.Tamuri
-module Simulator = Simulator.Make(Amino_acid)(Tamuri.Evolution_model)
+module Tdg09 = Phylogenetics_convergence.Tdg09
+module Branch_info = struct
+  type t = float
+  let length x = x
+end
+module Simulator = Simulator.Make(Amino_acid)(Tdg09.Evolution_model)(Branch_info)
 
 let counts xs =
-  Amino_acid.Table.init (fun aa -> List.count xs ~f:(( = ) aa))
+  Amino_acid.Table.init (fun aa -> List.count xs ~f:(Amino_acid.equal aa))
 
 let multinomial_test freqs counts =
   let _N_ = Array.length freqs in
@@ -19,13 +23,13 @@ let multinomial_test freqs counts =
   _T_, 1. -. Owl.Stats.chi2_cdf ~df:(float _N_ -. 1.) _T_
 
 let test_stationary_distribution (wag : Wag.t) =
-  let p = Tamuri.Evolution_model.param_of_wag wag 1. in
-  Amino_acid.Matrix.(zero_eigen_vector (Tamuri.Evolution_model.rate_matrix p)),
+  let p = Tdg09.Evolution_model.param_of_wag wag 1. in
+  Amino_acid.Matrix.(zero_eigen_vector (Tdg09.Evolution_model.rate_matrix p)),
   p.stationary_distribution
 
 let stationary_counts_vs_props (wag : Wag.t) ~scale ~nb_leaves ~bl =
   let tree =
-    Non_empty_list.init nb_leaves ~f:(fun _ -> Tree.(branch (bl, ()) (leaf ())))
+    List1.init nb_leaves ~f:(fun _ -> Tree.(branch bl (leaf ())))
     |> Tree.node () 
   in
   let root =
@@ -33,7 +37,7 @@ let stationary_counts_vs_props (wag : Wag.t) ~scale ~nb_leaves ~bl =
     |> Amino_acid.Table.of_vector
     |> Amino_acid.Table.choose
   in
-  let p = Tamuri.Evolution_model.param_of_wag wag scale in
+  let p = Tdg09.Evolution_model.param_of_wag wag scale in
   let site = Simulator.site_gillespie_direct tree ~root ~param:(Fn.const p) in
   let leaves = Tree.leaves site in
   let counts = (counts leaves :> int array) in

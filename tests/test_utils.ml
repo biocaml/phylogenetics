@@ -12,7 +12,7 @@ let eps = 0.1
     Returns true if (1-p)*f1 < f2 < (1+p)*f1 *)
 let float_compare p f1 f2 =
   let diff = f1-.f2 |> Float.abs in
-  diff /. Float.abs f1 <= p
+  Float.(diff /. Float.abs f1 <= p)
 
 let check_likelihood = (check @@ testable
                           (pp (Alcotest.float eps))
@@ -53,7 +53,7 @@ let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
   match
     if Sys.command script <> 0 then fail_file "bppml failed" ;
     In_channel.read_lines "tmp.data"
-    |> List.filter ~f:(fun l->String.prefix l 11 = "Initial log")
+    |> List.filter ~f:String.(fun l-> equal (prefix l 11) "Initial log")
   with (* looking for a very specific line *)
   | [l] ->
     Scanf.sscanf l "Initial log likelihood.................: %f" (fun x->x)
