@@ -133,4 +133,10 @@ module Implementation_check : sig
     ?nb_simulations:int ->
     Wag.t ->
     (simulation * Model2.param * Model3.param * likelihood_ratio_test) array
+
+  val render_pvalue_histogram :
+    title:string ->
+    (_ * _ * _ * likelihood_ratio_test) array ->
+    string ->
+    unit
 end

@@ -507,4 +507,15 @@ module Implementation_check = struct
       simulation, p2, p3, lrt
     in
     Array.init nb_simulations ~f
+
+  let render_pvalue_histogram ~title results dest =
+    OCamlR_grDevices.pdf dest ;
+    ignore (
+      let values = Array.map results ~f:(fun (_,_,_,lrt) -> lrt.pvalue) in
+      OCamlR_graphics.hist
+         ~main:title
+         ~xlab:"p"
+         ~freq:false
+         ~breaks:(`n 20) values :> OCamlR_graphics.hist) ;
+    OCamlR_grDevices.dev_off ()
 end
