@@ -131,6 +131,7 @@ let rec leafset_generated_subtree t f leaves =
         leafset_generated_subtree b.tip f leaves
         |> Option.map ~f:(branch b.data)
       )
+    |> List1.of_list
     |> Option.map ~f:(node n.data)
 
 let%test "leafset_generated_subtree" =

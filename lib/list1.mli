@@ -7,7 +7,8 @@ val init : int -> f:(int -> 'a) -> 'a t
 val map : 'a t -> f:('a -> 'b) -> 'b t
 val mapi : 'a t -> f:(int -> 'a -> 'b) -> 'b t
 val map2_exn : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> 'c t
-val filter_map : 'a t -> f:('a -> 'b option) -> 'b t option
+val filter : 'a t -> f:('a -> bool) -> 'a list
+val filter_map : 'a t -> f:('a -> 'b option) -> 'b list
 val iter : 'a t -> f:('a -> unit) -> unit
 val fold : 'a t -> init:'c -> f:('c -> 'a -> 'c) -> 'c
 val fold_right : 'a t -> init:'c -> f:('a -> 'c -> 'c) -> 'c

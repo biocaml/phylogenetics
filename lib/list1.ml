@@ -36,9 +36,15 @@ let to_list (Cons (h, t)) =
 
 let filter_map (Cons (h, t)) ~f =
   match f h, List.filter_map t ~f with
-  | None, [] -> None
-  | None, h :: t -> Some (Cons (h, t))
-  | Some h, l -> Some (Cons (h, l))
+  | None, [] -> []
+  | None, (_ :: _ as r) -> r
+  | Some h, l -> h :: l
+
+let filter (Cons (h, t)) ~f =
+  match f h, List.filter t ~f with
+  | false, [] -> []
+  | false, (_ :: _ as r) -> r
+  | true, l -> h :: l
 
 let unzip (Cons ((h1, h2), t)) =
   let t1, t2 = List.unzip t in
