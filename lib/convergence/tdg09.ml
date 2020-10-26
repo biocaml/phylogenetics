@@ -473,7 +473,7 @@ module Implementation_check = struct
     printf "LL = %g, scale_hat = %g" ll scale_hat ;
     OCamlR_graphics.plot ~x ~y ()
 
-  let lrt_1_vs_2_null_simulation ?(seed = 31415926535897931) ?mode (wag : Wag.t) =
+  let lrt_1_vs_2_null_simulation ?(seed = 31415926535897931) ?mode ?(nb_simulations = 1_000) (wag : Wag.t) =
     Owl_stats_prng.init seed ;
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
     let true_scale = 1. in
@@ -488,7 +488,7 @@ module Implementation_check = struct
       let p1, p2, lrt = Model2.lrt ?mode wag tree site in
       simulation, p1, p2, lrt
     in
-    Array.init 1_000 ~f
+    Array.init nb_simulations ~f
 
   let lrt_2_vs_3_null_simulation ?(seed = 31415926535897931) ?mode ?(alpha = 0.1) ?(nb_simulations = 1_000) (wag : Wag.t) =
     Owl_stats_prng.init seed ;

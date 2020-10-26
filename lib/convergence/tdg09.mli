@@ -123,6 +123,7 @@ module Implementation_check : sig
   val lrt_1_vs_2_null_simulation :
     ?seed:int ->
     ?mode:[< `dense | `sparse > `sparse ] ->
+    ?nb_simulations:int ->
     Wag.t ->
     (simulation * Model1.param * Model2.param * likelihood_ratio_test) array
 
