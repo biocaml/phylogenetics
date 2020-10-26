@@ -12,9 +12,9 @@
  (preprocess (pps ppx_jane)))
 
 (executable
- (name tamuri_null_check)
- (modules tamuri_null_check)
- (libraries ocaml-r.grDevices phylogenetics.convergence)
+ (name tdg09_null_check)
+ (modules tdg09_null_check)
+ (libraries phylogenetics.convergence)
  (preprocess (pps ppx_jane)))
 
 (executable
