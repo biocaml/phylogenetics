@@ -515,7 +515,6 @@ module Implementation_check = struct
       OCamlR_graphics.hist
          ~main:title
          ~xlab:"p"
-         ~freq:false
          ~breaks:(`n 20) values :> OCamlR_graphics.hist) ;
     OCamlR_grDevices.dev_off ()
 
