@@ -13,6 +13,7 @@ val fold : 'a t -> init:'c -> f:('c -> 'a -> 'c) -> 'c
 val fold_right : 'a t -> init:'c -> f:('a -> 'c -> 'c) -> 'c
 val reduce : 'a t -> f:('a -> 'a -> 'a) -> 'a
 val to_list : 'a t -> 'a list
+val of_list : 'a list -> 'a t option
 val of_list_exn : 'a list -> 'a t
 val unzip : ('a * 'b) t -> 'a t * 'b t
 val for_all : 'a t -> f:('a -> bool) -> bool
