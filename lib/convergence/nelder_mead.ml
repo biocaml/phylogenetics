@@ -49,7 +49,7 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
     let x_r = update ~from:c (-. alpha) ~towards:points.(ranks.(n)) in
     let f_r = f x_r in
     if debug then (
-      printf "Candidate: %f %s\n" f_r (Phylogenetics.Utils.show_float_array x_r)
+      printf "Candidate: %f\n" f_r ;
     ) ;
     (
       match Float.(f_r < obj.(ranks.(0)), f_r < obj.(ranks.(Int.(n - 1)))) with
