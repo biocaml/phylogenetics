@@ -16,6 +16,9 @@ let fold (Cons (h, t)) ~init ~f =
 let fold_right (Cons (h, t)) ~init ~f =
   f h (List.fold_right t ~f ~init)
 
+let reduce (Cons (h, t)) ~f =
+  List.reduce_exn (h :: t) ~f
+
 let map (Cons (h, t)) ~f =
   cons (f h) (List.map t ~f)
 
