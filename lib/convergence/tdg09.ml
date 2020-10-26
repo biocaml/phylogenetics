@@ -525,7 +525,7 @@ module Implementation_check = struct
       let values = Array.map results ~f:(fun (_,_,_,lrt) -> lrt._D_) in
       OCamlR_graphics.hist
          ~main:title
-         ~xlab:"p"
+         ~xlab:"D"
          ~freq:false
          ~breaks:(`n 20) values :> OCamlR_graphics.hist) ;
     let x = Array.init 1_000 ~f:(fun i -> float i /. 10.) in
