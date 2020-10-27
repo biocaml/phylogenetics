@@ -130,6 +130,8 @@ module Implementation_check : sig
              and type leaf_info := int * Convsim.condition
              and type branch_info := Convsim.Branch_info.t
 
+  val simulate_profile : float -> Amino_acid.vector
+
   val likelihood_plot_demo : Wag.t -> unit
 
   val lrt_1_vs_2_null_simulation :

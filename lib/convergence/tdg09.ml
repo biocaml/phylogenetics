@@ -293,10 +293,6 @@ module Make(Branch_info : Branch_info)(Leaf_info : Leaf_info)(Site : Site with t
       let ll, schema, vec = inner_maximum_log_likelihood ?debug ?mode ~exchangeability_matrix tree site in
       ll, decode_vec schema vec
 
-    let simulate_profile alpha =
-      Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card alpha)
-      |> Amino_acid.Vector.of_array_exn
-
     let lrt ?mode (wag : Wag.t) tree site =
       let exchangeability_matrix = wag.rate_matrix in
       let stationary_distribution = wag.freqs in
@@ -441,6 +437,10 @@ module Implementation_check = struct
 
   include Make(Convsim.Branch_info)(Leaf_info)(Site)
 
+  let simulate_profile alpha =
+    Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:Amino_acid.card alpha)
+    |> Amino_acid.Vector.of_array_exn
+
   let likelihood_plot_demo (wag : Wag.t) =
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:100 in
     let root = choose_aa wag.freqs in
@@ -495,7 +495,7 @@ module Implementation_check = struct
     let tree = Convsim.pair_tree ~branch_length1:1. ~branch_length2:1. ~npairs:30 in
     let true_scale = 1. in
     let f _ =
-      let stationary_distribution = Model2.simulate_profile alpha in
+      let stationary_distribution = simulate_profile alpha in
       let simulation =
         Model1.simulate_site
           ~exchangeability_matrix:wag.rate_matrix
