@@ -66,8 +66,8 @@ let pair_tree ~branch_length1 ~branch_length2 ~npairs : tree =
   let tree = Tree.binary_node () in
   let make_pair i =
     tree
-      (branch branch_length2 `Ancestral (leaf i `Ancestral))
-      (branch branch_length2 `Convergent (leaf i `Convergent))
+      (branch branch_length2 `Ancestral (leaf (2 * i) `Ancestral))
+      (branch branch_length2 `Convergent (leaf (2 * i + 1) `Convergent))
     |> branch branch_length1 `Ancestral
   in
   Tree.node ()  (List1.init npairs ~f:make_pair)
