@@ -50,8 +50,8 @@ let lrt ~full_log_likelihood ~reduced_log_likelihood ~df =
 
 module type S = sig
   type branch_info
+  type leaf_info
   type site
-  type tree
 
   type simulation = (Amino_acid.t, Amino_acid.t, branch_info) Tree.t
 
@@ -62,7 +62,7 @@ module type S = sig
       ?debug:bool ->
       exchangeability_matrix:Rate_matrix.Amino_acid.t ->
       stationary_distribution:Amino_acid.vector ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       float * param
 
@@ -84,14 +84,14 @@ module type S = sig
       ?debug:bool ->
       ?mode:[< `dense | `sparse > `sparse ] ->
       exchangeability_matrix:Rate_matrix.Amino_acid.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       float * param
 
     val lrt :
       ?mode:[< `dense | `sparse > `sparse ] ->
       Wag.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       Model1.param * param * likelihood_ratio_test
   end
@@ -107,14 +107,14 @@ module type S = sig
       ?debug:bool ->
       ?mode:[< `dense | `sparse > `sparse ] ->
       exchangeability_matrix:Rate_matrix.Amino_acid.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       float * param
 
     val lrt :
       ?mode:[< `dense | `sparse > `sparse ] ->
       Wag.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       Model2.param * param * likelihood_ratio_test
 
@@ -123,7 +123,7 @@ module type S = sig
       scale:float ->
       stationary_distribution0:Amino_acid.vector ->
       stationary_distribution1:Amino_acid.vector ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       simulation
   end
 end

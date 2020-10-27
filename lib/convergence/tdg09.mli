@@ -23,7 +23,7 @@ type likelihood_ratio_test = {
 
 module type S = sig
   type branch_info
-  type tree
+  type leaf_info
   type site
 
   type simulation = (Amino_acid.t, Amino_acid.t, branch_info) Tree.t
@@ -35,7 +35,7 @@ module type S = sig
       ?debug:bool ->
       exchangeability_matrix:Rate_matrix.Amino_acid.t ->
       stationary_distribution:Amino_acid.vector ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       float * param
 
@@ -57,14 +57,14 @@ module type S = sig
       ?debug:bool ->
       ?mode:[< `dense | `sparse > `sparse ] ->
       exchangeability_matrix:Rate_matrix.Amino_acid.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       float * param
 
     val lrt :
       ?mode:[< `dense | `sparse > `sparse ] ->
       Wag.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       Model1.param * param * likelihood_ratio_test
   end
@@ -80,14 +80,14 @@ module type S = sig
       ?debug:bool ->
       ?mode:[< `dense | `sparse > `sparse ] ->
       exchangeability_matrix:Rate_matrix.Amino_acid.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       float * param
 
     val lrt :
       ?mode:[< `dense | `sparse > `sparse ] ->
       Wag.t ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       site ->
       Model2.param * param * likelihood_ratio_test
 
@@ -96,7 +96,7 @@ module type S = sig
       scale:float ->
       stationary_distribution0:Amino_acid.vector ->
       stationary_distribution1:Amino_acid.vector ->
-      tree ->
+      (_, leaf_info, branch_info) Tree.t ->
       simulation
   end
 end
@@ -121,13 +121,13 @@ module type Site = sig
 end
 
 module Make(Branch_info : Branch_info)(Leaf_info : Leaf_info)(Site : Site with type species = Leaf_info.species) :
-  S with type tree := (Amino_acid.t, Leaf_info.t, Branch_info.t) Tree.t
-     and type site := Site.t
+  S with type site := Site.t
+     and type leaf_info := Leaf_info.t
      and type branch_info := Branch_info.t
 
 module Implementation_check : sig
   include S with type site := Amino_acid.t array
-             and type tree := Convsim.tree
+             and type leaf_info := int * Convsim.condition
              and type branch_info := Convsim.Branch_info.t
 
   val likelihood_plot_demo : Wag.t -> unit
