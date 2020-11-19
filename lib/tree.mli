@@ -53,7 +53,7 @@ val propagate :
   branch:('d -> 'b -> 'd) ->
   ('d, 'e, 'b) t
 
-val pre :
+val prefix_traversal :
   ('n, 'l, 'b) t ->
   init:'c ->
   node:('c -> 'n -> 'c) ->
@@ -63,11 +63,11 @@ val pre :
 
 val leaves : (_, 'l, _) t -> 'l list
 
-val map_leaves :
-  ('a, 'l, 'b) t ->
-  root:'b ->
-  f:('l -> 'b -> 'c) ->
-  'c list
+val fold_leaves :
+  (_, 'l, _) t ->
+  init:'a ->
+  f:('a -> 'l -> 'a) ->
+  'a
 
 (* val node_prefix_synthesis :
  *   ('a, 'b, 'l) t ->

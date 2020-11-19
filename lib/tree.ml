@@ -44,7 +44,7 @@ let rec to_printbox_aux t ?parent_branch ~node ~leaf ~branch = match t with
 let to_printbox ?(node = fun _ -> "·") ?(leaf = fun _ -> "·") ?(branch = fun _ -> None) t =
   to_printbox_aux t ?parent_branch:None ~node ~leaf ~branch
 
-let rec pre t ~init ~node ~leaf ~branch =
+let rec prefix_traversal t ~init ~node ~leaf ~branch =
   match t with
   | Leaf l -> leaf init l
   | Node n ->
@@ -54,18 +54,16 @@ let rec pre t ~init ~node ~leaf ~branch =
       ~f:(fun init -> pre_branch ~init ~leaf ~node ~branch)
 
 and pre_branch (Branch b) ~init ~node ~leaf ~branch =
-  pre b.tip ~init:(branch init b.data) ~leaf ~node ~branch
+  prefix_traversal b.tip ~init:(branch init b.data) ~leaf ~node ~branch
 
-let map_leaves t ~root ~f =
-  pre t ~init:([], root)
-    ~branch:(fun (acc, _) b -> acc, b)
-    ~node:(fun (acc, b) _ -> acc, b)
-    ~leaf:(fun (acc, b) l -> (f l b :: acc, b))
-  |> fst
-  |> List.rev
+let fold_leaves t ~init ~f =
+  prefix_traversal t ~init
+    ~branch:(fun acc _ -> acc)
+    ~node:(fun acc _ -> acc)
+    ~leaf:(fun acc l -> f acc l)
 
 let leaves t =
-  pre t ~init:[]
+  prefix_traversal t ~init:[]
     ~branch:(fun acc _ -> acc)
     ~node:(fun acc _ -> acc)
     ~leaf:(fun acc l -> l :: acc)

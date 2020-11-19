@@ -87,7 +87,7 @@ let newick_tree_of_tree (tree : tree) =
 module More_than_two_conditions = struct
   type condition = int
   let nb_conditions t =
-    Tree.pre t
+    Tree.prefix_traversal t
       ~init:Int.Set.empty
       ~node:Fn.const
       ~leaf:Fn.const
