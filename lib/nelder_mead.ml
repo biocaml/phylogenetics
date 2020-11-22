@@ -93,7 +93,7 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
     let sigma = Owl_base_stats.std obj in
     if debug then (
       printf "Sigma: %f\n" sigma ;
-      printf "Values: %s\n" (Phylogenetics.Utils.show_float_array (Array.init (n + 1) ~f:(fun i -> obj.(ranks.(i)))))
+      printf "Values: %s\n" (Utils.show_float_array (Array.init (n + 1) ~f:(fun i -> obj.(ranks.(i)))))
     ) ;
     if Float.(sigma < tol) || i >= maxit then obj.(ranks.(0)), points.(ranks.(0))
     else loop (i + 1)
