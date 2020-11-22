@@ -16,6 +16,13 @@ module Make(A : Alphabet) : sig
     root_frequencies:vec ->
     float
 
+  val pruning_with_missing_values :
+    ('n, 'l, 'b) Tree.t ->
+    transition_matrix:('b -> mat) ->
+    leaf_state:('l -> A.t option) ->
+    root_frequencies:vec ->
+    float
+
   val conditionial_likelihoods :
     ('n, 'l, 'b) Tree.t ->
     transition_matrix:('b -> mat) ->

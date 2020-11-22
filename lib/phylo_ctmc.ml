@@ -49,6 +49,32 @@ module Make(A : Alphabet) = struct
     let SV (v, carry) = SV.mul (tree t) (SV.of_vec root_frequencies) in
     Float.log (Vector.sum v) +. carry
 
+  let pruning_with_missing_values t ~transition_matrix ~leaf_state ~root_frequencies =
+    let open Option.Let_syntax in
+    let rec tree (t : _ Tree.t) =
+      match t with
+      | Leaf l ->
+        let%map state = leaf_state l in
+        indicator ~i:(A.to_int state) ~n:A.card
+        |> SV.of_vec
+      | Node n ->
+        let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
+            let%map tip_term = tree b.tip in
+            SV.mat_vec_mul (transition_matrix b.data) tip_term
+          )
+        in
+        match terms with
+        | [] -> None
+        | _ :: _ as xs ->
+          List.reduce_exn xs ~f:SV.mul
+          |> Option.some
+    in
+    match tree t with
+    | Some res_tree ->
+      let SV (v, carry) = SV.mul res_tree (SV.of_vec root_frequencies) in
+      Float.log (Vector.sum v) +. carry
+    | None -> 0.
+
   let conditionial_likelihoods t ~transition_matrix ~leaf_state =
     let rec tree (t : _ Tree.t) =
       match t with
