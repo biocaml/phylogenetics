@@ -18,6 +18,7 @@ module type S = sig
     val of_array_exn : 'a array -> 'a table
     val of_vector : vector -> float table
     val choose : float table -> t
+    val fold : 'a table -> init:'b -> f:('b -> 'a -> 'b) -> 'b
   end
   module Vector : sig
     include Linear_algebra.Vector with type t := vector
@@ -86,6 +87,7 @@ module Make(X : sig val card : int end) = struct
       Array.init (length v) ~f:(get v)
     let choose xs =
       Owl.Stats.categorical_rvs xs
+    let fold = Array.fold
   end
   module Vector = struct
     include Linear_algebra.Lacaml.Vector
