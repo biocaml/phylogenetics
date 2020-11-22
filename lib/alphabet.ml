@@ -10,6 +10,7 @@ module type S = sig
   val all : t list
   val card : int
   val to_int : t -> int
+  val counts : t Sequence.t -> int table
   module Table : sig
     val init : (t -> 'a) -> 'a table
     val get : 'a table -> t -> 'a
@@ -66,6 +67,12 @@ module Make(X : sig val card : int end) = struct
   let equal = Int.( = )
   let compare = Int.compare
   let all = List.init card ~f:Fn.id
+
+  let counts xs =
+    let r = Array.create ~len:card 0 in
+    Sequence.iter ~f:(fun aa -> r.(aa) <- r.(aa) + 1) xs ;
+    r
+
   type 'a table = 'a array
   module Table = struct
     let init f = Array.init card ~f
