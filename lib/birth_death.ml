@@ -11,27 +11,8 @@ let make ~birth_rate ~death_rate =
   then invalid_arg "birth rate and death rate should be positive" ;
   { birth_rate ; death_rate }
 
-(** A state monad to generate integer identifiers *)
-module Id_monad = struct
-  type 'a t = int -> 'a * int
-
-  let return x = fun s -> x, s
-
-  let (let*) (x : 'a t) (f : 'a -> 'b t) : 'b t  =
-    fun state ->
-    let y, state' = x state in
-    f y state'
-
-  let (let+) (x : 'a t) (f : 'a -> 'b) : 'b t  =
-    fun state ->
-    let y, state' = x state in
-    f y, state'
-
-  let new_id id = (id, id + 1)
-end
-
 let simulation p rng ~time =
-  let open Id_monad in
+  let open ID_monad in
   let rec branch t =
     let next_birth = Randist.exponential rng ~mu:p.birth_rate in
     let next_death = Randist.exponential rng ~mu:p.death_rate in
@@ -46,5 +27,4 @@ let simulation p rng ~time =
     else
       return @@ Tree.branch next_death (Tree.leaf id)
   in
-  let k = branch 0. in
-  fst (k 0)
+  run (branch 0.)
