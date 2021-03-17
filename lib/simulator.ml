@@ -107,7 +107,7 @@ struct
               ) in
           let pos_rates = Array.map rates ~f:(fun r -> Owl.Stats.sum (r :> float array)) in
           let total_rate = Array.reduce_exn pos_rates ~f:( +. ) in
-          let tau = Owl.Stats.exponential_rvs ~lambda:(1. /. total_rate) in
+          let tau = Owl.Stats.exponential_rvs ~lambda:total_rate in
           if Float.(tau > remaining_time) then state
           else
             let pos = Owl.Stats.categorical_rvs pos_rates in
