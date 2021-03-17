@@ -2,10 +2,38 @@
  (name phylogenetics)
  (public_name phylogenetics)
  (inline_tests)
- (libraries angstrom.unix biocaml.ez core_kernel gnuplot gsl lacaml owl printbox)
+ (libraries angstrom.unix biocaml.ez core_kernel gnuplot gsl lacaml menhirLib owl printbox)
  (preprocess (pps ppx_deriving.show ppx_inline_test ppx_jane -allow-unannotated-ignores)))
 
 (menhir
- (modules newick_parser))
+ (modules newick_parser)
+ (flags --table))
 
 (ocamllex newick_lexer)
+
+;; No built-in support for Menhir's parser messages yet
+
+(rule
+ (with-stdout-to
+  newick_parser.messages.new
+  (run menhir %{dep:newick_parser.mly} --list-errors)))
+
+(rule
+ (with-stdout-to
+  newick_parser_errors.ml
+  (run menhir %{dep:newick_parser.mly} --compile-errors %{dep:newick_parser.messages})))
+
+(rule
+ (with-stdout-to
+  newick_parser.messages.updated
+  (run menhir %{dep:newick_parser.mly} --update-errors %{dep:newick_parser.messages})))
+
+(rule
+ (alias update-newick_parser-messages)
+ (action
+  (diff newick_parser.messages newick_parser.messages.updated)))
+
+(rule
+ (alias create-newick_parser-messages)
+ (action
+  (diff newick_parser.messages newick_parser.messages.new)))

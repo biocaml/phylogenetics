@@ -7,15 +7,15 @@
 %token <string> FLOAT
 %token <string> INT
 %token <string> STRING
-%token COMMA COLON SEMICOLON LPAREN RPAREN LBRACKET RBRACKET NHXTAG EQUAL
+%token COMMA COLON SEMICOLON LPAREN RPAREN LBRACKET RBRACKET NHXTAG EQUAL EOF
 
 %start start
 %type <Newick_ast.t> start
 
 %%
 start:
-  | tree SEMICOLON { Tree $1 }
-  | branch_with_length SEMICOLON { Branch $1 }
+  | tree SEMICOLON EOF { Tree $1 }
+  | branch_with_length SEMICOLON EOF { Branch $1 }
 ;
 
 tree:

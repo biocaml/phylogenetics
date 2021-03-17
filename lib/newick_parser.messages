@@ -1,0 +1,10 @@
+start: LPAREN RPAREN EOF
+start: LPAREN RPAREN COLON FLOAT EOF
+
+semi-colon expected at end of input
+
+###
+
+start: LPAREN EOF
+
+unclosed parenthesis

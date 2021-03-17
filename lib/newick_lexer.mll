@@ -1,5 +1,7 @@
 {
 open Newick_parser
+
+exception Error of Newick_ast.error
 }
 
 rule token = parse
@@ -14,6 +16,7 @@ rule token = parse
   | ']' { RBRACKET }
   | "&&NHX" { NHXTAG }
   | '=' { EQUAL }
+  | eof { EOF }
 
   | ['0'-'9']+ as i
                { INT i }
@@ -23,4 +26,4 @@ rule token = parse
   | ['A'-'Z''a'-'z''0'-'9''-''_''.''/']+ as lxm { STRING(lxm) }
 
   | _
-      { failwith (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf)) }
+      { raise (Error (Newick_ast.mkerror lexbuf "unexpected character")) }
