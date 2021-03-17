@@ -12,18 +12,12 @@
  (preprocess (pps ppx_jane)))
 
 (executable
- (name tdg09_null_check)
- (modules tdg09_null_check)
- (libraries phylogenetics.convergence)
- (preprocess (pps ppx_jane)))
-
-(executable
  (name bench_app)
  (modules bench_app)
  (libraries phylogenetics core_bench)
  (preprocess (pps ppx_jane)))
 
-(alias
- (name   runtest)
+(rule
+ (alias runtest)
  (action (run ./test_app.exe))
- (deps ../tests/data/tiny1.fasta ../tests/data/wag.dat))
+ (deps ../tests/data/tiny1.fasta))
