@@ -5,8 +5,7 @@ exception Error of Newick_ast.error
 }
 
 rule token = parse
-  | [' ''\t']+ { token lexbuf }
-  | "\\\n" { token lexbuf }
+  | [' ''\t''\n']+ { token lexbuf }
   | ':' { COLON }
   | ';' { SEMICOLON }
   | '(' { LPAREN }
@@ -25,5 +24,5 @@ rule token = parse
 
   | ['A'-'Z''a'-'z''0'-'9''-''_''.''/']+ as lxm { STRING(lxm) }
 
-  | _
-      { raise (Error (Newick_ast.mkerror lexbuf "unexpected character")) }
+  | _ as c
+      { raise (Error (Newick_ast.mkerror lexbuf (Printf.sprintf "unexpected character: %c" c))) }
