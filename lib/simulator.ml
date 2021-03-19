@@ -113,7 +113,7 @@ struct
             let pos = Owl.Stats.categorical_rvs pos_rates in
             let next_letter = symbol_sample (rates.(pos) :> float array) in
             let next_state =
-              let t = Array.copy seq in
+              let t = Array.copy state in
               t.(pos) <- next_letter ;
               t
             in
