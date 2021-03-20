@@ -94,32 +94,29 @@ struct
         loop n (BI.length b)
       )
 
-  let sequence_gillespie_direct tree ~root ~param =
-    let codon_rates = memo M.rate_matrix in
+  let sequence_gillespie_direct rng tree ~update_iterator ~root ~rate_vector =
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun seq b ->
-        let rec loop state remaining_time =
-          let rate_matrices = Array.mapi state ~f:(fun i _ -> codon_rates (param state i b)) in
-          let rates =
-            Array.mapi rate_matrices ~f:(fun i mat ->
-                A.Table.init (fun m ->
-                    if A.equal m state.(i) then 0. else (mat :> A.matrix).A.%{state.(i), m}
-                  )
-              ) in
-          let pos_rates = Array.map rates ~f:(fun r -> Owl.Stats.sum (r :> float array)) in
-          let total_rate = Array.reduce_exn pos_rates ~f:( +. ) in
-          let tau = Owl.Stats.exponential_rvs ~lambda:total_rate in
+        let state = Array.copy seq in
+        let n = Array.length state in
+        let rate i = rate_vector b state i in
+        let rates = Array.init n ~f:rate in
+        let pos_rate i = Owl.Stats.sum (rates.(i) : float A.table :> float array) in
+        let pos_rates = Discrete_pd.init n ~f:pos_rate in
+        let rec loop remaining_time =
+          let total_rate = Discrete_pd.total_weight pos_rates in
+          let tau = Gsl.Randist.exponential rng ~mu:total_rate in
           if Float.(tau > remaining_time) then state
           else
-            let pos = Owl.Stats.categorical_rvs pos_rates in
+            let pos = Discrete_pd.draw pos_rates rng in
             let next_letter = symbol_sample (rates.(pos) :> float array) in
-            let next_state =
-              let t = Array.copy state in
-              t.(pos) <- next_letter ;
-              t
-            in
-            loop next_state Float.(remaining_time - tau)
+            state.(pos) <- next_letter ;
+            update_iterator ~n ~pos (fun pos ->
+                rates.(pos) <- rate pos ;
+                Discrete_pd.update pos_rates pos (pos_rate pos)
+              ) ;
+            loop Float.(remaining_time - tau)
         in
-        loop seq (BI.length b)
+        loop (BI.length b)
       )
 
   let hmm0 ~len ~dist =

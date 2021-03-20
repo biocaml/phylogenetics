@@ -36,9 +36,11 @@ sig
     (A.t, A.t, BI.t) Tree.t
 
   val sequence_gillespie_direct :
+    Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
+    update_iterator:(n:int -> pos:int -> (int -> unit) -> unit) ->
     root:A.t array ->
-    param:(A.t array -> int -> BI.t -> M.param) ->
+    rate_vector:(BI.t -> A.t array -> int -> float A.table) ->
     (A.t array, A.t array, BI.t) Tree.t
 
   val hmm0 :
