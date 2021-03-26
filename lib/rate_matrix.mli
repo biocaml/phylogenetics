@@ -55,6 +55,8 @@ module Amino_acid : sig
   include module type of Make(Amino_acid)
 end
 
+val make : int -> f:(int -> int -> float) -> Linear_algebra.Lacaml.mat
+
 val transition_probability_matrix :
   tau:float ->
   rates:float array array ->

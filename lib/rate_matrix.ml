@@ -108,6 +108,21 @@ module Make(A : Alphabet.S_int) = struct
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
 end
 
+let make n ~f =
+  let r = Matrix.init n ~f:(fun _ _ -> 0.) in
+  for i = 0 to n - 1 do
+    let total = ref 0. in
+    for j = 0 to n - 1 do
+      if i <> j then (
+        let r_ij = f i j in
+        if Float.(r_ij < 0.) then (failwith "Rates should be positive") ;
+        total := r_ij +. !total ;
+        Matrix.set r i j r_ij
+      )
+    done ;
+    Matrix.set r i i (-. !total)
+  done ;
+  r
 
 let transition_probability_matrix ~tau ~rates =
   Owl.Mat.(
