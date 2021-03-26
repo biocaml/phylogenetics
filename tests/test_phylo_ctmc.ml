@@ -6,7 +6,7 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   let module Align = Alignment.Make(Seq.DNA) in
   let module F = Felsenstein.Make(Nucleotide)(Align)(M) in
   let module SG = Sequence_generation.Make(Nucleotide)(Seq.DNA)(Align)(M) in
-  let module CTMC = Phylo_ctmc.Make(Nucleotide) in
+  let module CTMC = Phylo_ctmc in
   let tree = Phylogenetic_tree.make_random tree_size in
   let align =
     SG.seqgen_string_list () tree seq_size
@@ -18,8 +18,8 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
     let transition_matrix l = (M.transition_probability_matrix () l :> Linear_algebra.Lacaml.mat) in
     let root_frequencies = (M.stationary_distribution () :> Linear_algebra.Lacaml.vec) in
     Array.init (Align.length align) ~f:(fun i ->
-        let leaf_state (_, index) = Align.get_base align ~seq:index ~pos:i in
-        CTMC.pruning tree ~transition_matrix ~leaf_state ~root_frequencies
+        let leaf_state (_, index) = Align.get_base align ~seq:index ~pos:i |> Nucleotide.to_int in
+        CTMC.pruning tree ~nstates:Nucleotide.card ~transition_matrix ~leaf_state ~root_frequencies
       )
     |> Owl.Stats.sum
   in
