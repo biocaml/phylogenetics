@@ -5,7 +5,7 @@ exception Error of Newick_ast.error
 }
 
 rule token = parse
-  | [' ''\t''\n']+ { token lexbuf }
+  | [' ''\t''\n''\r']+ { token lexbuf }
   | ':' { COLON }
   | ';' { SEMICOLON }
   | '(' { LPAREN }
