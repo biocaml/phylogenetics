@@ -22,8 +22,9 @@ module type S = sig
     val fold : 'a table -> init:'b -> f:('b -> 'a -> 'b) -> 'b
   end
   module Vector : sig
-    include Linear_algebra.Vector with type t := vector
-    val init : (t -> float) -> vector
+    type symbol = t
+    include Linear_algebra.Vector with type t = vector
+    val init : (symbol -> float) -> vector
     val map : vector -> f:(float -> float) -> vector
     val sum : vector -> float
     val normalize : vector -> vector
@@ -34,9 +35,10 @@ module type S = sig
   val flat_profile : unit -> vector
   val random_profile : float -> vector
   module Matrix : sig
-    include Linear_algebra.Matrix with type t := matrix
+    type symbol = t
+    include Linear_algebra.Matrix with type t = matrix
                                    and type vec := vector
-    val init : (t -> t -> float) -> matrix
+    val init : (symbol -> symbol -> float) -> matrix
     val of_arrays : float array array -> matrix option
     val of_arrays_exn : float array array -> matrix
   end
@@ -92,6 +94,7 @@ module Make(X : sig val card : int end) = struct
     let fold = Array.fold
   end
   module Vector = struct
+    type symbol = t
     include Linear_algebra.Lacaml.Vector
     let init f = init card ~f
     let normalize v =
@@ -120,6 +123,7 @@ module Make(X : sig val card : int end) = struct
     Vector.init (fun i -> v.(i))
 
   module Matrix = struct
+    type symbol = t
     include Linear_algebra.Lacaml.Matrix
             
     let init f = init card ~f
