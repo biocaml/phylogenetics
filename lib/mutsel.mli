@@ -13,14 +13,13 @@ type param = {
   scaled_fitness : Amino_acid.vector ;
   gBGC : float ;
 }
-(**
-
-*)
 
 val random_param :
   alpha_nucleotide:float ->
   alpha_fitness:float ->
   param
+
+val flat_param : unit -> param
 
 val rate_matrix : param -> NSCodon_rate_matrix.t
 val stationary_distribution : param -> NSCodon.vector
