@@ -18,18 +18,21 @@ module Make
     (BI : Branch_info) :
 sig
   val site_exponential_method :
+    Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:A.t ->
     param:(BI.t -> M.param) ->
     (A.t, A.t, BI.t) Tree.t
 
   val site_gillespie_direct :
+    Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:A.t ->
     param:(BI.t -> M.param) ->
     (A.t, A.t, BI.t) Tree.t
 
   val site_gillespie_first_reaction :
+    Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:A.t ->
     param:(BI.t -> M.param) ->
@@ -44,6 +47,7 @@ sig
     (A.t array, A.t array, BI.t) Tree.t
 
   val hmm0 :
+    Gsl.Rng.t ->
     len:int ->
     dist:(int -> float A.table) ->
     A.t array
@@ -53,6 +57,7 @@ module Mutsel(BI : Branch_info) : sig
   include module type of Make(Mutsel.NSCodon)(Mutsel)(BI)
 
   val alignment :
+    Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:Mutsel.NSCodon.t array ->
     (int -> BI.t -> Mutsel.param) ->
