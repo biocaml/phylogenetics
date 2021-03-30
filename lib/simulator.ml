@@ -35,11 +35,12 @@ module Make
                           and type matrix := A.matrix)
     (BI : Branch_info) =
 struct
-  let symbol_sample v =
-    Owl.Stats.categorical_rvs v
+  let symbol_sample rng v =
+    Gsl.Randist.discrete_preproc v
+    |> Gsl.Randist.discrete rng
     |> A.of_int_exn
 
-  let site_exponential_method tree ~(root : A.t) ~param =
+  let site_exponential_method rng tree ~(root : A.t) ~param =
     let rate_matrix = memo (fun branch -> M.rate_matrix (param branch)) in
     let transition_matrix b =
       A.Matrix.(expm (scal_mul (BI.length b) (rate_matrix b)))
@@ -47,11 +48,11 @@ struct
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
         A.Matrix.row (transition_matrix b) (n :> int)
         |> A.Vector.to_array
-        |> symbol_sample
+        |> symbol_sample rng
       )
 
   (* Gillespie "first reaction" method *)
-  let site_gillespie_first_reaction tree ~(root : A.t) ~param =
+  let site_gillespie_first_reaction rng tree ~(root : A.t) ~param =
     let rate_matrix = memo (fun b -> M.rate_matrix (param b)) in
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
         let rec loop state remaining_time =
@@ -62,7 +63,7 @@ struct
                   let rate = (rate_matrix b).A.%{state, m} in
                   if Float.(rate < 1e-30) then (Float.infinity, m)
                   else
-                    let tau = Owl.Stats.exponential_rvs ~lambda:rate in
+                    let tau = Gsl.Randist.exponential rng ~mu:rate in
                     tau, m
               )
           in
@@ -77,17 +78,17 @@ struct
       )
 
   (* Gillespie "direct" method *)
-  let site_gillespie_direct tree ~(root : A.t) ~param =
+  let site_gillespie_direct rng tree ~(root : A.t) ~param =
     let codon_rates = memo (fun b -> M.rate_matrix (param b)) in
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
         let rec loop state remaining_time =
           let rate_matrix = codon_rates b in
           let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
           let total_rate = Owl.Stats.sum (rates :> float array) in
-          let tau = Owl.Stats.exponential_rvs ~lambda:total_rate in
+          let tau = Gsl.Randist.exponential rng ~mu:total_rate in
           if Float.(tau > remaining_time) then state
           else
-            let next_state = symbol_sample (rates :> float array) in
+            let next_state = symbol_sample rng (rates :> float array) in
             (* assert (state <> next_state) ; *)
             loop next_state Float.(remaining_time - tau)
         in
@@ -108,7 +109,7 @@ struct
           if Float.(tau > remaining_time) then state
           else
             let pos = Discrete_pd.draw pos_rates rng in
-            let next_letter = symbol_sample (rates.(pos) :> float array) in
+            let next_letter = symbol_sample rng (rates.(pos) :> float array) in
             state.(pos) <- next_letter ;
             update_iterator ~n ~pos (fun pos ->
                 rates.(pos) <- rate pos ;
@@ -119,16 +120,16 @@ struct
         loop (BI.length b)
       )
 
-  let hmm0 ~len ~dist =
-    Array.init len ~f:(fun i -> symbol_sample (dist i : float A.table :> float array))
+  let hmm0 rng ~len ~dist =
+    Array.init len ~f:(fun i -> symbol_sample rng (dist i : float A.table :> float array))
 end
 
 module Mutsel(BI : Branch_info) = struct
   include Make(Mutsel.NSCodon)(Mutsel)(BI)
 
-  let alignment tree ~root param =
+  let alignment rng tree ~root param =
     List.init (Array.length root) ~f:(fun i ->
-        site_gillespie_direct tree ~root:root.(i) ~param:(param i)
+        site_gillespie_direct rng tree ~root:root.(i) ~param:(param i)
         |> Tree.leaves
         |> List.map ~f:Codon.Universal_genetic_code.NS.to_string
       )
