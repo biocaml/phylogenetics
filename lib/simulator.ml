@@ -63,7 +63,7 @@ struct
                   let rate = (rate_matrix b).A.%{state, m} in
                   if Float.(rate < 1e-30) then (Float.infinity, m)
                   else
-                    let tau = Gsl.Randist.exponential rng ~mu:rate in
+                    let tau = Gsl.Randist.exponential rng ~mu:(1. /. rate) in
                     tau, m
               )
           in
@@ -85,7 +85,7 @@ struct
           let rate_matrix = codon_rates b in
           let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
           let total_rate = Owl.Stats.sum (rates :> float array) in
-          let tau = Gsl.Randist.exponential rng ~mu:total_rate in
+          let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
           if Float.(tau > remaining_time) then state
           else
             let next_state = symbol_sample rng (rates :> float array) in
@@ -105,7 +105,7 @@ struct
         let pos_rates = Discrete_pd.init n ~f:pos_rate in
         let rec loop remaining_time =
           let total_rate = Discrete_pd.total_weight pos_rates in
-          let tau = Gsl.Randist.exponential rng ~mu:total_rate in
+          let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
           if Float.(tau > remaining_time) then state
           else
             let pos = Discrete_pd.draw pos_rates rng in
