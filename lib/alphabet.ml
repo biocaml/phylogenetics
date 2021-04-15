@@ -18,7 +18,7 @@ module type S = sig
     val map : 'a table -> f:('a -> 'b) -> 'b table
     val of_array_exn : 'a array -> 'a table
     val of_vector : vector -> float table
-    val choose : float table -> t
+    val choose : float table -> rng:Gsl.Rng.t -> t
     val fold : 'a table -> init:'b -> f:('b -> 'a -> 'b) -> 'b
   end
   module Vector : sig
@@ -89,8 +89,9 @@ module Make(X : sig val card : int end) = struct
     let of_vector v =
       let open Linear_algebra.Lacaml.Vector in
       Array.init (length v) ~f:(get v)
-    let choose xs =
-      Owl.Stats.categorical_rvs xs
+    let choose xs ~rng =
+      Gsl.Randist.(discrete_preproc xs |> discrete rng)
+
     let fold = Array.fold
   end
   module Vector = struct
