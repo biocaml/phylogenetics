@@ -1,4 +1,4 @@
-(test
-  (name simulator)
+(tests
+  (names birth_death_simulator simulator)
   (libraries phylogenetics)
   (deps ../data/wag.dat))
