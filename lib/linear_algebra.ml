@@ -191,10 +191,21 @@ module Owl_implementation = struct
       in
       loop k
 
+    let transpose = M.transpose
+
     let diagonalize m =
       Owl_lapacke.syevr ~a:m ~jobz:'V' ~range:'A' ~vl:0. ~vu:0. ~il:0 ~iu:0 ~abstol:1e-6 ~uplo:'U'
 
-    let transpose = M.transpose
+    let%test "Owl Matrix.diagonalize" =
+      let m = init 13 ~f:(fun i j ->
+          float i +. float j
+        )
+      in
+      let vp, p = diagonalize m in
+      robust_equal
+        ~tol:1e-6
+        (dot p (dot (diagm vp) (transpose p)))
+        m
 
     let zero_eigen_vector m =
       let n =
@@ -328,12 +339,23 @@ module Lacaml = struct
     let set m i j x = m.{i + 1, j + 1} <- x
     let row mat r = Mat.copy_row mat (r + 1) (* FIXME: costly operation! *)
 
+    let transpose m = Mat.transpose_copy m
+
     let diagonalize m =
       let tmp = lacpy m in (* copy matrix to avoid erasing original *)
       let _, v, c, _ = syevr ~vectors:true tmp in (* syevr = find eigenvalues and eigenvectors *)
       v, c
 
-    let transpose m = Mat.transpose_copy m
+    let%test "Lapack Matrix.diagonalize" =
+      let m = init 13 ~f:(fun i j ->
+          float i +. float j
+        )
+      in
+      let vp, p = diagonalize m in
+      robust_equal
+        ~tol:1e-6
+        (dot p (dot (diagm vp) (transpose p)))
+        m
 
     let pp = pp_mat
 
