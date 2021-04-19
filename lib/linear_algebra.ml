@@ -66,6 +66,10 @@ module type Matrix = sig
   (** Initialises a square matrix from a int->int->float function. *)
   val init : int -> f:(int -> int -> float) -> t
 
+  (** [init_sym n ~f] creates a symetric square matrix by calling [f]
+     only for elements s.t. [i <= j] *)
+  val init_sym : int -> f:(int -> int -> float) -> t
+
   (** Initializes a square diagonal matrix from the vector of its diagonal elements. *)
   val diagm : vec -> t
 
@@ -148,6 +152,19 @@ module Owl_implementation = struct
     type t = mat
     let dim = M.shape
     let init size ~f = M.init_2d size size f
+
+    let init_sym size ~f =
+      let r = init size ~f:(fun _ _ -> 0.) in
+      for i = 0 to size - 1 do
+        M.set r i i (f i i) ;
+        for j = i + 1 to size - 1 do
+          let r_ij = f i j in
+          M.set r i j r_ij ;
+          M.set r j i r_ij
+        done
+      done ;
+      r
+
     let diagm v = M.diagm v
     let dot a b = M.dot a b
 
@@ -312,6 +329,19 @@ module Lacaml = struct
     type t = mat
     let dim m = Mat.dim1 m, Mat.dim2 m
     let init size ~f = Mat.init_rows size size (fun i j -> f (i - 1) (j - 1))
+
+    let init_sym size ~f =
+      let r = init size ~f:(fun _ _ -> 0.) in
+      for i = 0 to size - 1 do
+        r.{i, i} <- f i i ;
+        for j = i + 1 to size - 1 do
+          let r_ij = f i j in
+          r.{i, j} <- r_ij ;
+          r.{j, i} <- r_ij
+        done
+      done ;
+      r
+
     let diagm v = Mat.of_diag v
     let add a b = Mat.add a b
     let norm1 x = lange ~norm:`O x

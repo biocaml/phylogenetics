@@ -68,6 +68,10 @@ module type Matrix = sig
   (** Initialises a square matrix from a int->int->float function. *)
   val init : int -> f:(int -> int -> float) -> t
 
+  (** [init_sym n ~f] creates a symetric square matrix by calling [f]
+     only for elements s.t. [i <= j] *)
+  val init_sym : int -> f:(int -> int -> float) -> t
+
   (** Initializes a square diagonal matrix from the vector of its diagonal elements. *)
   val diagm : vec -> t
 
