@@ -39,6 +39,7 @@ module type S = sig
     include Linear_algebra.Matrix with type t = matrix
                                    and type vec := vector
     val init : (symbol -> symbol -> float) -> matrix
+    val init_sym : (symbol -> symbol -> float) -> matrix
     val of_arrays : float array array -> matrix option
     val of_arrays_exn : float array array -> matrix
   end
@@ -128,6 +129,7 @@ module Make(X : sig val card : int end) = struct
     include Linear_algebra.Lacaml.Matrix
             
     let init f = init card ~f
+    let init_sym f = init_sym card ~f
     let of_arrays_exn xs =
       let m = Array.length xs in
       if m = card then of_arrays_exn xs
