@@ -332,10 +332,10 @@ module Lacaml = struct
 
     let init_sym size ~f =
       let r = init size ~f:(fun _ _ -> 0.) in
-      for i = 0 to size - 1 do
-        r.{i, i} <- f i i ;
-        for j = i + 1 to size - 1 do
-          let r_ij = f i j in
+      for i = 1 to size do
+        r.{i, i} <- f (i - 1) (i - 1) ;
+        for j = i + 1 to size do
+          let r_ij = f (i - 1) (j - 1) in
           r.{i, j} <- r_ij ;
           r.{j, i} <- r_ij
         done
