@@ -30,7 +30,7 @@ let make_exn = function
 module Relaxed_parser = struct
   let parse_header l =
     match
-      String.split l ~on:'\t'
+      String.split_on_chars l ~on:['\t' ; ' ']
       |> List.filter ~f:(String.( <> ) "")
     with
     | [ m ; n ] -> (
