@@ -21,10 +21,10 @@ module Model = struct
     p.stationary_distribution.Amino_acid.%(j)
 
   let rate_matrix p =
-    Rate_matrix.Amino_acid.make (substitution_rate p)  
+    Rate_matrix.Amino_acid.make (substitution_rate p)
 end
 
-module Sim = Simulator.Make(Amino_acid)(Model)(Branch_info)
+module Sim = Simulator.Make(Amino_acid)(Branch_info)
 
 let single_branch_tree l =
   Tree.node () List1.(cons (Tree.branch l (Tree.leaf ())) [])
@@ -33,7 +33,7 @@ let draw_amino_acid_profile rng alpha =
   let theta = Array.create ~len:20 0. in
   Gsl.Randist.dirichlet rng ~alpha:(Array.create ~len:20 alpha) ~theta ;
   Amino_acid.Vector.of_array_exn theta
-  
+
 let simulation_on_one_branch simulator simulator_name =
   let rng = Gsl.Rng.(make (default ())) in
   let tree = single_branch_tree 10. in
@@ -45,9 +45,10 @@ let simulation_on_one_branch simulator simulator_name =
     exchangeability_matrix ;
   }
   in
+  let rates = Model.rate_matrix param in
   let empirical_frequencies =
     Sequence.init 1000 ~f:(fun _ ->
-        simulator rng tree ~root ~param:(Fn.const param)
+        simulator rng tree ~root ~rate_matrix:(Fn.const rates)
         |> Tree.leaves
         |> List.hd_exn
       )
@@ -72,4 +73,3 @@ let simulation_on_one_branch simulator simulator_name =
 let () =
   simulation_on_one_branch Sim.site_gillespie_direct "Gillespie direct" ;
   simulation_on_one_branch Sim.site_gillespie_first_reaction "Gillespie first reaction"
- 

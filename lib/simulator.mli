@@ -1,11 +1,3 @@
-module type Evolution_model = sig
-  type param
-  type vector
-  type matrix
-  val stationary_distribution : param -> vector
-  val rate_matrix : param -> matrix
-end
-
 module type Branch_info = sig
   type t
   val length : t -> float
@@ -13,29 +5,32 @@ end
 
 module Make
     (A : Alphabet.S_int)
-    (M : Evolution_model with type vector := A.vector
-                          and type matrix := A.matrix)
     (BI : Branch_info) :
 sig
+  val transition_matrix :
+    (BI.t -> A.matrix) ->
+    BI.t ->
+    A.matrix
+
   val site_exponential_method :
     Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:A.t ->
-    param:(BI.t -> M.param) ->
+    transition_matrix:(BI.t -> A.matrix) ->
     (A.t, A.t, BI.t) Tree.t
 
   val site_gillespie_direct :
     Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:A.t ->
-    param:(BI.t -> M.param) ->
+    rate_matrix:(BI.t -> A.matrix) ->
     (A.t, A.t, BI.t) Tree.t
 
   val site_gillespie_first_reaction :
     Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:A.t ->
-    param:(BI.t -> M.param) ->
+    rate_matrix:(BI.t -> A.matrix) ->
     (A.t, A.t, BI.t) Tree.t
 
   val sequence_gillespie_direct :
@@ -53,13 +48,13 @@ sig
     A.t array
 end
 
-module Mutsel(BI : Branch_info) : sig
-  include module type of Make(Mutsel.NSCodon)(Mutsel)(BI)
+module NSCodon(BI : Branch_info) : sig
+  include module type of Make(Mutsel.NSCodon)(BI)
 
   val alignment :
     Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
     root:Mutsel.NSCodon.t array ->
-    (int -> BI.t -> Mutsel.param) ->
+    rate_matrix:(int -> BI.t -> Mutsel.NSCodon_rate_matrix.t) ->
     Dna.t list
 end

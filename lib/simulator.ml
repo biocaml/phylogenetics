@@ -6,24 +6,6 @@
 *)
 open Core_kernel
 
-let memo f =
-  let table = Caml.Hashtbl.create 253 in
-  fun x ->
-    match Caml.Hashtbl.find table x with
-    | y -> y
-    | exception Caml.Not_found ->
-      let y = f x in
-      Caml.Hashtbl.add table x y ;
-      y
-
-module type Evolution_model = sig
-  type param
-  type vector
-  type matrix
-  val stationary_distribution : param -> vector
-  val rate_matrix : param -> matrix
-end
-
 module type Branch_info = sig
   type t
   val length : t -> float
@@ -31,8 +13,6 @@ end
 
 module Make
     (A : Alphabet.S_int)
-    (M : Evolution_model with type vector := A.vector
-                          and type matrix := A.matrix)
     (BI : Branch_info) =
 struct
   let symbol_sample rng v =
@@ -40,11 +20,10 @@ struct
     |> Gsl.Randist.discrete rng
     |> A.of_int_exn
 
-  let site_exponential_method rng tree ~(root : A.t) ~param =
-    let rate_matrix = memo (fun branch -> M.rate_matrix (param branch)) in
-    let transition_matrix b =
-      A.Matrix.(expm (scal_mul (BI.length b) (rate_matrix b)))
-    in
+  let transition_matrix rate_matrix b =
+    A.Matrix.(expm (scal_mul (BI.length b) (rate_matrix b)))
+
+  let site_exponential_method rng tree ~(root : A.t) ~transition_matrix =
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
         A.Matrix.row (transition_matrix b) (n :> int)
         |> A.Vector.to_array
@@ -52,15 +31,15 @@ struct
       )
 
   (* Gillespie "first reaction" method *)
-  let site_gillespie_first_reaction rng tree ~(root : A.t) ~param =
-    let rate_matrix = memo (fun b -> M.rate_matrix (param b)) in
+  let site_gillespie_first_reaction rng tree ~(root : A.t) ~rate_matrix =
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
+        let rate_matrix = rate_matrix b in
         let rec loop state remaining_time =
           let waiting_times =
             A.Table.init (fun m ->
                 if A.equal m state then (Float.infinity, m)
                 else
-                  let rate = (rate_matrix b).A.%{state, m} in
+                  let rate = rate_matrix.A.%{state, m} in
                   if Float.(rate < 1e-30) then (Float.infinity, m)
                   else
                     let tau = Gsl.Randist.exponential rng ~mu:(1. /. rate) in
@@ -78,11 +57,10 @@ struct
       )
 
   (* Gillespie "direct" method *)
-  let site_gillespie_direct rng tree ~(root : A.t) ~param =
-    let codon_rates = memo (fun b -> M.rate_matrix (param b)) in
+  let site_gillespie_direct rng tree ~(root : A.t) ~rate_matrix =
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
+        let rate_matrix = rate_matrix b in
         let rec loop state remaining_time =
-          let rate_matrix = codon_rates b in
           let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
           let total_rate = Owl.Stats.sum (rates :> float array) in
           let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
@@ -124,12 +102,13 @@ struct
     Array.init len ~f:(fun i -> symbol_sample rng (dist i : float A.table :> float array))
 end
 
-module Mutsel(BI : Branch_info) = struct
-  include Make(Mutsel.NSCodon)(Mutsel)(BI)
+module NSCodon(BI : Branch_info) = struct
+  include Make(Mutsel.NSCodon)(BI)
 
-  let alignment rng tree ~root param =
+  let alignment rng tree ~root ~rate_matrix =
     List.init (Array.length root) ~f:(fun i ->
-        site_gillespie_direct rng tree ~root:root.(i) ~param:(param i)
+        let rate_matrix = rate_matrix i in
+        site_gillespie_direct rng tree ~root:root.(i) ~rate_matrix
         |> Tree.leaves
         |> List.map ~f:Codon.Universal_genetic_code.NS.to_string
       )
