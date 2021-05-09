@@ -485,7 +485,7 @@ module Lacaml = struct
         else (
           let s = Owl_maths.log2 (norm_x /. 5.4) in
           let t = ceil s in
-          if s > 0. then inplace_scal_mat_mul (2. ** (-. t)) x ;
+          let x = if s > 0. then scal_mul (2. ** (-. t)) x else x in
 
           let c =
             [|64764752532480000.; 32382376266240000.; 7771770303897600.;
