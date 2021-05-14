@@ -526,7 +526,7 @@ module Lacaml = struct
           let b = Mat.add v u in
           gesv a b ;
 
-          let x = ref (lacpy b) in
+          let x = ref b in
           if s > 0. then (
             for _i = 1 to int_of_float t do
               x := gemm !x !x
