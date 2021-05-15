@@ -32,6 +32,8 @@ module type S = sig
     val of_array : float array -> vector option
     val of_array_exn : float array -> vector
     val upcast_exn : Linear_algebra.Lacaml.vec -> vector
+    val get : t -> symbol -> float
+    val set : t -> symbol -> float -> unit
   end
   val flat_profile : unit -> vector
   val random_profile : float -> vector

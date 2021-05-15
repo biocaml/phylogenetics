@@ -29,8 +29,9 @@ struct
     (* for all base check if x is smaller than transition proba,
        if yes return base else decrement x *)
     let rec aux i x =
-      let proba = A.Vector.get vec i in
-      if Float.(x < proba) then A.of_int_exn i
+      let s = A.of_int_exn i in
+      let proba = A.Vector.get vec s in
+      if Float.(x < proba) then s
       else aux (i+1) (x-.proba)
     in
     Random.float 1.0 |> aux 0
