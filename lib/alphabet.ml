@@ -26,6 +26,7 @@ module type S = sig
     include Linear_algebra.Vector with type t = vector
     val init : (symbol -> float) -> vector
     val map : vector -> f:(float -> float) -> vector
+    val iteri : vector -> f:(symbol -> float -> unit) -> unit
     val sum : vector -> float
     val normalize : vector -> vector
     val of_array : float array -> vector option
@@ -98,6 +99,12 @@ module Make(X : sig val card : int end) = struct
   module Vector = struct
     type symbol = t
     include Linear_algebra.Lacaml.Vector
+
+    let iteri v ~f =
+      for i = 0 to card - 1 do
+        f i (get v i)
+      done
+
     let init f = init card ~f
     let normalize v =
       let s = sum v in
@@ -127,7 +134,7 @@ module Make(X : sig val card : int end) = struct
   module Matrix = struct
     type symbol = t
     include Linear_algebra.Lacaml.Matrix
-            
+
     let init f = init card ~f
     let init_sym f = init_sym card ~f
     let of_arrays_exn xs =
