@@ -60,7 +60,7 @@ let sample_branch rng times =
 (* TODO: check the implementation against the TESS R package, for
  * instance by inspecting the distribution of a summary statistics
  * like the gamma on simulation from both implementations *)
-let age_ntaxa_simulation p rng ~age ~ntaxa =
+let age_ntaxa_simulation ?sampling_probability:(rho = 1.) p rng ~age ~ntaxa =
   if Float.(p.birth_rate <= p.death_rate) then invalid_arg "expected birth_rate > death_rate" ;
   let n_inner_nodes = ntaxa - 1 in
   if n_inner_nodes < 1 then invalid_arg "not enough taxa" ;
@@ -68,16 +68,18 @@ let age_ntaxa_simulation p rng ~age ~ntaxa =
   let b = p.birth_rate and d = p.death_rate in
   let speciation_times = Array.map u ~f:Float.(fun u ->
       age
-      - (
+      -
+      (
         log (
-          ((b - d) /
-           (1. - u * (1. - ((b - d) * exp ((d - b) * age)) / (b - d * exp ((d - b) * age)))) + d)
-          / b
+          (
+            (b - d)
+            / (1. - u * (1. - ((b-d)*exp((d-b)*age))/(rho*b+(b*(1.-rho)-d)*exp((d-b)*age) ) ) )
+            - (b * (1. - rho) - d)
+          )
+          /
+          (rho * b)
         )
-        +
-        (d-b) * age
-      )
-        /  (d-b)
+        + (d - b) * age ) / (d-b)
     )
   in
   Array.sort speciation_times ~compare:Float.compare ;

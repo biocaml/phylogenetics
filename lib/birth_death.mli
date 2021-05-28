@@ -12,6 +12,7 @@ val simulation :
   (int, int, float) Tree.branch
 
 val age_ntaxa_simulation :
+  ?sampling_probability:float ->
   t ->
   Gsl.Rng.t ->
   age:float ->
