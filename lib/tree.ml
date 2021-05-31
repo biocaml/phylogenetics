@@ -225,3 +225,29 @@ module Simplify_node_with_single_child_tests = struct
       `+- A
        +- B |}]
 end
+
+let unfold t ~init ~branch:f_b ~leaf:f_l ~node:f_n =
+  let rec traverse_node acc = function
+    | Leaf l ->
+      let acc', l' = f_l acc l in
+      acc', leaf l'
+    | Node n ->
+      let acc', ni = f_n acc n.data in
+      let acc'', rev_branches =
+        List1.fold n.branches ~init:(acc', []) ~f:(fun (acc, branches) b ->
+            let acc', b' = traverse_branch acc b in
+            acc', b' :: branches
+          )
+      in
+      acc'',
+      node ni (
+        rev_branches
+        |> List.rev
+        |> List1.of_list_exn
+      )
+  and traverse_branch acc (Branch b) =
+    let acc', bi = f_b acc b.data in
+    let acc'', tip = traverse_node acc' b.tip in
+    acc'', branch bi tip
+  in
+  snd (traverse_node init t)

@@ -69,6 +69,14 @@ val fold_leaves :
   f:('a -> 'l -> 'a) ->
   'a
 
+val unfold :
+  ('n, 'l, 'b) t ->
+  init:'a ->
+  branch:('e -> 'b -> 'a * 'bb) ->
+  leaf:('a -> 'l -> 'e * 'll) ->
+  node:('a -> 'n -> 'e * 'nn) ->
+  ('nn, 'll, 'bb) t
+
 (* val node_prefix_synthesis :
  *   ('a, 'b, 'l) t ->
  *   init:'c ->
