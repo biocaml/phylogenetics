@@ -57,20 +57,26 @@ struct
       )
 
   (* Gillespie "direct" method *)
+  let branch_gillespie_direct rng ~start_state ~rate_matrix ~branch_length ~init ~f =
+    let rec loop state remaining_time acc =
+      let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
+      let total_rate = Owl.Stats.sum (rates :> float array) in
+      let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
+      if Float.(tau > remaining_time) then acc
+      else
+        let next_state = symbol_sample rng (rates :> float array) in
+        (* assert (state <> next_state) ; *)
+        let remaining_time' = remaining_time -. tau in
+        loop next_state remaining_time' (f acc next_state (branch_length -. remaining_time'))
+    in
+    loop start_state branch_length init
+
   let site_gillespie_direct rng tree ~(root : A.t) ~rate_matrix =
     Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
         let rate_matrix = rate_matrix b in
-        let rec loop state remaining_time =
-          let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
-          let total_rate = Owl.Stats.sum (rates :> float array) in
-          let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
-          if Float.(tau > remaining_time) then state
-          else
-            let next_state = symbol_sample rng (rates :> float array) in
-            (* assert (state <> next_state) ; *)
-            loop next_state Float.(remaining_time - tau)
-        in
-        loop n (BI.length b)
+        branch_gillespie_direct rng
+          ~start_state:n ~rate_matrix ~branch_length:(BI.length b)
+          ~init:n ~f:(fun _ n _ -> n)
       )
 
   let sequence_gillespie_direct rng tree ~update_iterator ~root ~rate_vector =

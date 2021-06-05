@@ -19,6 +19,15 @@ sig
     transition_matrix:(BI.t -> A.matrix) ->
     (A.t, A.t, BI.t) Tree.t
 
+  val branch_gillespie_direct :
+    Gsl.Rng.t ->
+    start_state:A.t ->
+    rate_matrix:A.matrix ->
+    branch_length:float ->
+    init:'a ->
+    f:('a -> A.t -> float -> 'a) ->
+    'a
+
   val site_gillespie_direct :
     Gsl.Rng.t ->
     (_, _, BI.t) Tree.t ->
