@@ -152,6 +152,18 @@ let array_recurrent_init n ~init ~f =
   done ;
   r
 
+let collapse_mapping ~start_state path times =
+  assert Array.(length path = length times) ;
+  let n = Array.length path in
+  let rec loop prec_state i acc =
+    if i = n then acc
+    else
+      let acc' = if path.(i) <> prec_state then (path.(i), times.(i)) :: acc else acc in
+      loop path.(i) (i + 1) acc'
+  in
+  loop start_state 0 []
+  |> Array.of_list_rev
+
 let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_length:lambda ~start_state ~end_state ~nstates =
   let p_b_given_a_lambda = Matrix.get (_P_ lambda) start_state end_state in
   let p_n_given_lambda n = Gsl.Randist.poisson_pdf n ~mu:(mu *. lambda) in
@@ -197,7 +209,7 @@ let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_len
     Array.sort r ~compare:Float.compare ;
     r
   in
-  Array.zip_exn path times
+  collapse_mapping path times ~start_state
 
 let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
   let rec traverse_node = function
