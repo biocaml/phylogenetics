@@ -6,7 +6,7 @@ let rng = Gsl.Rng.(make (default ()))
 
 let sample_tree () =
   let bdp = Birth_death.make ~birth_rate:2. ~death_rate:1. in
-  Birth_death.age_ntaxa_simulation bdp rng ~age:1. ~ntaxa:5
+  Birth_death.age_ntaxa_simulation bdp rng ~age:1. ~ntaxa:100
 
 module Branch_info = struct
   type t = float
@@ -16,6 +16,7 @@ end
 module AASim = Phylogenetics.Simulator.Make(Amino_acid)(Branch_info)
 
 let valine = Option.value_exn (Amino_acid.of_char 'V')
+let alanine = Option.value_exn (Amino_acid.of_char 'A')
 
 let wag = Wag.parse "../data/wag.dat"
 
@@ -42,6 +43,60 @@ let wag_param = {
   exchangeability_matrix = wag.rate_matrix ;
   scale = 1. ;
 }
+
+(* Test on single branch *)
+
+let int_histogram xs =
+  let n = List.length xs in
+  Biocaml_unix.Accu.counts (Stream.of_list xs)
+  |> CFStream.Stream.to_list
+  |> List.map ~f:(fun (i, k) -> i, float k /. float n)
+  |> List.sort ~compare:Poly.compare
+
+let render_int_histogram xs =
+  int_histogram xs
+  |> List.map ~f:(fun (k, f) -> sprintf "%02d %.3f" k f)
+  |> String.concat ~sep:" | "
+  |> print_endline
+
+let nb_events_along_branch_by_rejection_sampling rng ~param ~branch_length ~start_state ~end_state ~sample_size =
+  let rate_matrix = rate_matrix param in
+  let rec loop acc n =
+    if n = 0 then acc
+    else
+      let nb_events, simulated_end_state =
+        AASim.branch_gillespie_direct rng
+          ~start_state ~rate_matrix ~branch_length
+          ~init:(0, start_state) ~f:(fun (acc, _) n _ -> acc + 1, n)
+      in
+      if Amino_acid.equal simulated_end_state end_state then loop (nb_events :: acc) (n - 1)
+      else loop acc n
+  in
+  loop [] sample_size
+
+let nb_event_along_branch rng ~param ~branch_length ~start_state ~end_state ~sample_size =
+  let process = Phylo_ctmc.uniformized_process (rate_matrix param :> Matrix.t) in
+  List.init sample_size ~f:(fun _ ->
+      Phylo_ctmc.conditional_simulation_along_branch
+        rng process ~branch_length
+        ~start_state:(Amino_acid.to_int start_state)
+        ~end_state:(Amino_acid.to_int end_state)
+        ~nstates:Amino_acid.card
+      |> Array.length
+    )
+
+let () =
+  let start_state = alanine in
+  let end_state = valine in
+  let sample_size = 100 in
+  let branch_length = 2. in
+  render_int_histogram @@ nb_events_along_branch_by_rejection_sampling rng
+    ~param:wag_param ~branch_length
+    ~start_state ~end_state ~sample_size ;
+  render_int_histogram @@ nb_event_along_branch rng
+    ~param:wag_param ~branch_length
+    ~start_state ~end_state ~sample_size
+
 
 let sample_site tree root =
   let rates = rate_matrix wag_param in
