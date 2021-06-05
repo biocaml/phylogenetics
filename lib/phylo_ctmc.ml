@@ -67,48 +67,148 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     Float.log (Vector.sum v) +. carry
   | None -> 0.
 
-let conditionial_likelihoods t ~nstates ~transition_matrix ~leaf_state =
+let conditionial_likelihoods t ~nstates ~leaf_state ~transition_matrix =
   let rec tree (t : _ Tree.t) =
     match t with
     | Leaf l ->
       let state = leaf_state l in
       let cl = indicator ~i:state ~n:nstates in
-      Tree.leaf (SV.of_vec cl)
-
+      Tree.leaf state, SV.of_vec cl
     | Node n ->
-      let children = List1.map n.branches ~f:branch in
-      let cl =
-        List1.map children ~f:Tree.(fun (Branch b) ->
-            SV.mat_vec_mul b.data (Tree.data b.tip)
-          )
-        |> List1.to_list
-        |> List.reduce_exn ~f:SV.mul
+      let children, cls =
+        List1.map n.branches ~f:branch
+        |> List1.unzip
       in
-      Tree.Node { data = cl ; branches = children }
+      let cl = List1.reduce cls ~f:SV.mul in
+      Tree.node cl children, cl
   and branch ((Branch b) : _ Tree.branch) =
     let mat = transition_matrix b.data in
-    Tree.branch mat (tree b.tip)
+    let tip, tip_cl = tree b.tip in
+    let cl = SV.mat_vec_mul mat tip_cl in
+    Tree.branch (b.data, mat) tip, cl
   in
-  tree t
+  fst (tree t)
 
-let conditional_simulation t ~root_frequencies ~choose =
+let conditional_simulation rng t ~root_frequencies =
+  let nstates = Vector.length root_frequencies in
   let rec tree (t : _ Tree.t) prior =
-    let SV (conditional_likelihood, _) = Tree.data t in
-    let state =
-      Vector.mul prior conditional_likelihood
-      |> choose
-    in
     match t with
-    | Leaf _ -> Tree.leaf state
+    | Leaf i -> Tree.leaf i
     | Node n ->
+      let SV (conditional_likelihood, _) = n.data in
+      let weights =
+        Array.init nstates ~f:(fun i ->
+            prior i *. Vector.get conditional_likelihood i
+          )
+        |> Gsl.Randist.discrete_preproc
+      in
+      let state = Gsl.Randist.discrete rng weights in
       let branches = List1.map n.branches ~f:(fun br -> branch br state) in
       Tree.node state branches
 
   and branch (Branch br) parent_state =
-    let prior = Matrix.row br.data parent_state in
-    (* FIXME: lacaml is not good at getting a row (while it is for
-       columns). Maybe change operations so that this operation is
-       avoided? *)
+    let prior i = Matrix.get (snd br.data) parent_state i in
     Tree.branch br.data (tree br.tip prior)
   in
-  tree t root_frequencies
+  tree t (Vector.get root_frequencies)
+
+type uniformized_process = {
+  _Q_ : mat ; (* transition rates *)
+  _P_ : float -> mat ; (* transition_probabilities, lambda -> exp (lambda Q) *)
+  _R_ : int -> mat ; (* transition probabilities in uniformized process, R^n *)
+  mu : float ; (* uniformized rate \mu *)
+}
+
+let range_map_reduce a b ~map ~reduce =
+  if b <= a then invalid_arg "empty range" ;
+  let rec loop i acc =
+    if i = b then acc
+    else loop (i + 1) (reduce acc (map i))
+  in
+  loop (a + 1) (map a)
+
+let uniformized_process rates =
+  let _Q_ = rates in
+  let _P_ = fun lambda -> Matrix.(expm (scal_mul lambda _Q_)) in
+  let m, n = Matrix.dim _Q_ in
+  if m <> n then invalid_arg "square matrix expected" ;
+  let mu = range_map_reduce 0 n ~map:(fun i-> -. Matrix.get _Q_ i i) ~reduce:Float.max in
+  let _R_ = Matrix.init n ~f:(fun i j -> Matrix.get _Q_ i j /. mu +. if i = j then 1. else 0.) in
+  let cache = Int.Table.create () in
+  let rec pow_R n =
+    assert (n > 0) ;
+    if n = 1 then _R_
+    else
+      Int.Table.find_or_add cache n ~default:(fun () ->
+          Matrix.dot (pow_R (n - 1)) _R_
+        )
+  in
+  { _Q_ ; _P_ ; _R_ = pow_R ; mu }
+
+let array_recurrent_init n ~init ~f =
+  let r = Array.create ~len:n (f ~prec:init 0) in
+  for i = 1 to n - 1 do
+    r.(i) <- f ~prec:r.(i - 1) i
+  done ;
+  r
+
+let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_length:lambda ~start_state ~end_state ~nstates =
+  let p_b_given_a_lambda = Matrix.get (_P_ lambda) start_state end_state in
+  let p_n_given_lambda n = Gsl.Randist.poisson_pdf n ~mu:(mu *. lambda) in
+  let p_b_given_n_a n =
+    if n = 0 then
+      if start_state = end_state then 1. else 0.
+    else
+      Matrix.get (_R_ n) start_state end_state
+  in
+  let sample_n_given_a_b_lambda () =
+    let g = p_b_given_a_lambda *. Gsl.Rng.uniform rng in
+    let rec loop acc i =
+      let acc' = acc +. p_n_given_lambda i *. p_b_given_n_a i in
+      if Float.(acc' > g) then i
+      else loop acc' (i + 1)
+    in
+    loop 0. 0
+  in
+  let n = sample_n_given_a_b_lambda () in
+  let sample_path () =
+    array_recurrent_init n ~init:start_state ~f:(fun ~prec:current_state i ->
+        let transition_probability =
+          if i < n - 1 then
+            let _R_first_half = _R_ 1 in
+            let _R_second_half = _R_ (n - i - 1) in
+            fun s ->
+              Matrix.get _R_first_half current_state s
+              *. Matrix.get _R_second_half s end_state
+          else
+            let _R_ = _R_ 1 in
+            fun s -> Matrix.get _R_ s end_state
+        in
+        let weights =
+          Array.init nstates ~f:transition_probability
+          |> Gsl.Randist.discrete_preproc
+        in
+        Gsl.Randist.discrete rng weights
+      )
+  in
+  let path = sample_path () in
+  let times =
+    let r = Array.init n  ~f:(fun _ -> Gsl.Rng.uniform rng *. lambda) in
+    Array.sort r ~compare:Float.compare ;
+    r
+  in
+  Array.zip_exn path times
+
+let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
+  let rec traverse_node = function
+    | Tree.Leaf l -> Tree.leaf l
+    | Node n ->
+      Tree.node n.data (List1.map n.branches ~f:(traverse_branch n.data))
+  and traverse_branch a (Tree.Branch br) =
+    let b = Tree.data br.tip in
+    let branch_data = fst br.data in
+    let branch_length = branch_length branch_data in
+    let data = conditional_simulation_along_branch rng (process branch_data) ~nstates ~branch_length ~start_state:a ~end_state:b in
+    Tree.branch (branch_data, data) (traverse_node br.tip)
+  in
+  traverse_node sim

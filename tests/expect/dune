@@ -1,4 +1,4 @@
 (tests
-  (names birth_death_simulator simulator)
+  (names birth_death_simulator phylo_ctmc_substitution_mappings simulator)
   (libraries phylogenetics)
   (deps ../data/wag.dat))
