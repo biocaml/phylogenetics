@@ -59,22 +59,27 @@ let render_int_histogram xs =
   |> String.concat ~sep:" | "
   |> print_endline
 
-let nb_events_along_branch_by_rejection_sampling rng ~param ~branch_length ~start_state ~end_state ~sample_size =
+let simulation_along_branch_by_rejection_sampling rng ~param ~branch_length ~start_state ~end_state ~init ~f =
   let rate_matrix = rate_matrix param in
-  let rec loop acc n =
-    if n = 0 then acc
-    else
-      let nb_events, simulated_end_state =
-        AASim.branch_gillespie_direct rng
-          ~start_state ~rate_matrix ~branch_length
-          ~init:(0, start_state) ~f:(fun (acc, _) n _ -> acc + 1, n)
-      in
-      if Amino_acid.equal simulated_end_state end_state then loop (nb_events :: acc) (n - 1)
-      else loop acc n
+  let rec loop () =
+    let res, simulated_end_state =
+      AASim.branch_gillespie_direct rng
+        ~start_state ~rate_matrix ~branch_length
+        ~init:(init, start_state) ~f:(fun (acc, _) n _ -> f acc n, n)
+    in
+    if Amino_acid.equal simulated_end_state end_state then res
+    else loop ()
   in
-  loop [] sample_size
+  loop ()
 
-let nb_event_along_branch rng ~param ~branch_length ~start_state ~end_state ~sample_size =
+let nb_events_along_branch_by_rejection_sampling rng ~param ~branch_length ~start_state ~end_state ~sample_size =
+  List.init sample_size ~f:(fun _ ->
+      simulation_along_branch_by_rejection_sampling
+        ~init:0 ~f:(fun acc _ -> acc + 1)
+        rng ~param ~branch_length ~start_state ~end_state
+    )
+
+let nb_events_along_branch rng ~param ~branch_length ~start_state ~end_state ~sample_size =
   let process = Phylo_ctmc.uniformized_process (rate_matrix param :> Matrix.t) in
   List.init sample_size ~f:(fun _ ->
       Phylo_ctmc.conditional_simulation_along_branch
@@ -88,15 +93,14 @@ let nb_event_along_branch rng ~param ~branch_length ~start_state ~end_state ~sam
 let () =
   let start_state = alanine in
   let end_state = valine in
-  let sample_size = 100 in
+  let sample_size = 10_000 in
   let branch_length = 2. in
   render_int_histogram @@ nb_events_along_branch_by_rejection_sampling rng
     ~param:wag_param ~branch_length
     ~start_state ~end_state ~sample_size ;
-  render_int_histogram @@ nb_event_along_branch rng
+  render_int_histogram @@ nb_events_along_branch rng
     ~param:wag_param ~branch_length
     ~start_state ~end_state ~sample_size
-
 
 let sample_site tree root =
   let rates = rate_matrix wag_param in

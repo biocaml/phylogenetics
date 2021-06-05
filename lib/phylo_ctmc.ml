@@ -136,8 +136,9 @@ let uniformized_process rates =
   let _R_ = Matrix.init n ~f:(fun i j -> Matrix.get _Q_ i j /. mu +. if i = j then 1. else 0.) in
   let cache = Int.Table.create () in
   let rec pow_R n =
-    assert (n > 0) ;
-    if n = 1 then _R_
+    assert (n >= 0) ;
+    if n = 0 then Matrix.init (fst (Matrix.dim rates)) ~f:(fun i j -> if i = j then 1. else 0.)
+    else if n = 1 then _R_
     else
       Int.Table.find_or_add cache n ~default:(fun () ->
           Matrix.dot (pow_R (n - 1)) _R_
@@ -146,11 +147,13 @@ let uniformized_process rates =
   { _Q_ ; _P_ ; _R_ = pow_R ; mu }
 
 let array_recurrent_init n ~init ~f =
-  let r = Array.create ~len:n (f ~prec:init 0) in
-  for i = 1 to n - 1 do
-    r.(i) <- f ~prec:r.(i - 1) i
-  done ;
-  r
+  if n = 0 then [| |]
+  else
+    let r = Array.create ~len:n (f ~prec:init 0) in
+    for i = 1 to n - 1 do
+      r.(i) <- f ~prec:r.(i - 1) i
+    done ;
+    r
 
 let collapse_mapping ~start_state path times =
   assert Array.(length path = length times) ;
@@ -184,17 +187,13 @@ let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_len
   in
   let n = sample_n_given_a_b_lambda () in
   let sample_path () =
+    let _R_1 = _R_ 1 in
     array_recurrent_init n ~init:start_state ~f:(fun ~prec:current_state i ->
         let transition_probability =
-          if i < n - 1 then
-            let _R_first_half = _R_ 1 in
-            let _R_second_half = _R_ (n - i - 1) in
-            fun s ->
-              Matrix.get _R_first_half current_state s
-              *. Matrix.get _R_second_half s end_state
-          else
-            let _R_ = _R_ 1 in
-            fun s -> Matrix.get _R_ s end_state
+          let _R_second_half = _R_ (n - i - 1) in
+          fun s ->
+            Matrix.get _R_1 current_state s
+            *. Matrix.get _R_second_half s end_state
         in
         let weights =
           Array.init nstates ~f:transition_probability
