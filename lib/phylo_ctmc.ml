@@ -93,22 +93,23 @@ let conditional_simulation rng t ~root_frequencies =
   let nstates = Vector.length root_frequencies in
   let rec tree (t : _ Tree.t) prior =
     match t with
-    | Leaf i -> Tree.leaf i
+    | Leaf i -> Tree.leaf i, prior i
     | Node n ->
-      let SV (conditional_likelihood, _) = n.data in
+      let SV (conditional_likelihood, carry) = n.data in
       let weights =
         Array.init nstates ~f:(fun i ->
             prior i *. Vector.get conditional_likelihood i
           )
-        |> Gsl.Randist.discrete_preproc
       in
-      let state = Gsl.Randist.discrete rng weights in
+      let state = Gsl.Randist.(discrete rng (discrete_preproc weights)) in
       let branches = List1.map n.branches ~f:(fun br -> branch br state) in
-      Tree.node state branches
+      Tree.node state branches,
+      weights.(state) *. Float.exp carry
 
   and branch (Branch br) parent_state =
     let prior i = Matrix.get (snd br.data) parent_state i in
-    Tree.branch br.data (tree br.tip prior)
+    let tree, _ = tree br.tip prior in
+    Tree.branch br.data tree
   in
   tree t (Vector.get root_frequencies)
 
@@ -208,7 +209,9 @@ let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_len
     Array.sort r ~compare:Float.compare ;
     r
   in
-  collapse_mapping path times ~start_state
+  let r = collapse_mapping path times ~start_state in
+  assert (start_state = end_state || Array.length r > 0) ;
+  r
 
 let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
   let rec traverse_node = function

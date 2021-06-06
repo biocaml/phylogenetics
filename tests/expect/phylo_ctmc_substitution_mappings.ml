@@ -6,7 +6,15 @@ let rng = Gsl.Rng.(make (default ()))
 
 let sample_tree () =
   let bdp = Birth_death.make ~birth_rate:2. ~death_rate:1. in
-  Birth_death.age_ntaxa_simulation bdp rng ~age:1. ~ntaxa:100
+  Birth_death.age_ntaxa_simulation bdp rng ~age:1. ~ntaxa:5
+  (* Tree.node  () (List1.singleton (Tree.branch 1. @@ Tree.leaf 0)) *)
+
+let sample_profile () =
+  let disp = 1. in
+  Amino_acid.Vector.init (fun _ ->
+      Gsl.Randist.gamma rng ~a:(1. /. disp) ~b:(1. /. disp)
+    )
+  |> Amino_acid.Vector.normalize
 
 module Branch_info = struct
   type t = float
@@ -122,12 +130,13 @@ let sufficient_statistics ~nstates tree =
   let waiting_times = Array.create ~len:nstates 0. in
   iter_branches tree ~f:(fun start_state (bl, mapping) _ ->
       match mapping with
-      | [||] -> ()
+      | [||] ->
+        waiting_times.(start_state) <- waiting_times.(start_state) +. bl
       | _ ->
         Array.iteri mapping ~f:(fun k (s_j, t_j)  ->
             let s_i, t_i =
               if k = 0 then start_state, 0.
-              else mapping.(k -1)
+              else mapping.(k - 1)
             in
             counts.(s_i).(s_j) <- 1 + counts.(s_i).(s_j) ;
             waiting_times.(s_i) <- waiting_times.(s_i) +. (t_j -. t_i)
@@ -137,7 +146,7 @@ let sufficient_statistics ~nstates tree =
     ) ;
   counts, waiting_times
 
-let mapping_likelihood ~nstates ~rate_matrix tree =
+let mapping_log_likelihood ~nstates ~rate_matrix tree =
   let counts, waiting_times = sufficient_statistics ~nstates tree in
   let lik = ref 0. in
   for i = 0 to nstates - 1 do
@@ -151,29 +160,106 @@ let mapping_likelihood ~nstates ~rate_matrix tree =
   done ;
   !lik
 
+let simulation_probability ~root_frequencies t =
+  let rec traverse_tree parent mat = function
+    | Tree.Leaf l -> Matrix.get mat parent l
+    | Node n ->
+      Matrix.get mat parent n.data
+      *.
+      (
+        List1.map n.branches ~f:(traverse_branch n.data)
+        |> List1.reduce ~f:( *. )
+      )
+  and traverse_branch parent (Branch b) =
+    traverse_tree parent (snd b.data) b.tip
+
+  and traverse_root = function
+    | Tree.Leaf l -> Vector.get root_frequencies l
+    | Node n ->
+      Vector.get root_frequencies n.data
+      *.
+      (
+        List1.map n.branches ~f:(traverse_branch n.data)
+        |> List1.reduce ~f:( *. )
+      )
+  in
+  traverse_root t
+
 let () =
   let tree = sample_tree () in
   let site = sample_site tree valine in
   let nstates = Amino_acid.card in
-  let transition_matrix = (transition_matrix wag_param :> float -> Matrix.t) in
   let leaf_state = Amino_acid.to_int in
-  let root_frequencies =  (wag.freqs :> Vector.t) in
-  let conditional_likelihoods =
-    Phylo_ctmc.conditionial_likelihoods site ~nstates ~leaf_state ~transition_matrix
+  let rec loop n scale stationary_distribution =
+    if n = 0 then ()
+    else (
+      let root_frequencies = (stationary_distribution : Amino_acid.vector :> Vector.t) in
+      let param = {
+        exchangeability_matrix = wag.rate_matrix ;
+        stationary_distribution ; scale ;
+      }
+      in
+      let transition_matrix = (transition_matrix param :> float -> Matrix.t) in
+      let process =
+        let p = Phylo_ctmc.uniformized_process (rate_matrix param :> Matrix.t) in
+        fun _ -> p
+      in
+      let conditional_likelihoods =
+        Phylo_ctmc.conditionial_likelihoods site ~nstates ~leaf_state ~transition_matrix
+      in
+      let mean_full_log_prob =
+        Array.init 1_000 ~f:(fun _ ->
+            let conditional_simulation, _ =
+              Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
+            in
+            simulation_probability ~root_frequencies conditional_simulation
+            |> Float.log
+          )
+        |> Gsl.Stats.mean
+      in
+      let marginal_log_prob =
+        Phylo_ctmc.pruning site ~nstates ~transition_matrix ~leaf_state ~root_frequencies
+      in
+      let mean_mapping_log_prob =
+        let mappings =
+          Array.init 1_000 ~f:(fun _ ->
+              let conditional_simulation, prob =
+                Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
+              in
+              Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~process conditional_simulation,
+              prob
+            )
+        in
+        fun stationary_distribution ->
+          let rate_matrix = (rate_matrix { param with stationary_distribution } :> Matrix.t) in
+          Array.map mappings ~f:(fun (mapping, prob) ->
+              mapping_log_likelihood ~nstates ~rate_matrix mapping +. Float.log prob
+            )
+          |> Gsl.Stats.mean
+      in
+      let mean_mapping_log_prob_opt, next_vec =
+        Nelder_mead.minimize
+          ~f:(fun vec ->
+              let pi = Amino_acid.Vector.(normalize (exp (of_array_exn vec))) in
+              -. mean_mapping_log_prob pi)
+          ~sample:(fun () -> sample_profile () |> Amino_acid.Vector.to_array)
+          ~tol:1e-3
+          ()
+      in
+      let next_vec = Amino_acid.Vector.(normalize (exp (of_array_exn next_vec))) in
+      printf "%f %f %f %f\n" marginal_log_prob mean_full_log_prob (mean_mapping_log_prob param.stationary_distribution) (-. mean_mapping_log_prob_opt) ; 
+      loop (n - 1) scale next_vec
+      (* let rate_matrix = (rate_matrix wag_param :> Matrix.t) in *)
+      (* let mapping_log_likelihood =
+       *   Array.init 1_00 ~f:(fun _ ->
+       *       
+       *       Float.log prob' *)
+      (* ) *)
+    )
   in
-  let rate_matrix = (rate_matrix wag_param :> Matrix.t) in
-  let process =
-    let p = Phylo_ctmc.uniformized_process rate_matrix in
-    fun _ -> p
-  in
-  let mean_mapping_likelihood =
-    Array.init 1_000 ~f:(fun _ ->
-        Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
-        |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~process
-        |> mapping_likelihood ~nstates ~rate_matrix
-      )
-    |> Gsl.Stats.mean
-  in
-  printf "%f %f\n"
-    (Phylo_ctmc.pruning site ~nstates ~transition_matrix ~leaf_state ~root_frequencies)
-    mean_mapping_likelihood
+  print_endline (
+    Tree.leaves site
+    |> List.map ~f:Amino_acid.to_char
+    |> String.of_char_list
+  ) ;
+  loop 5 1. wag.freqs

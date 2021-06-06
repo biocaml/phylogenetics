@@ -29,7 +29,7 @@ val conditional_simulation :
   Gsl.Rng.t ->
   (shifted_vector, int, 'b * mat) Tree.t ->
   root_frequencies:vec ->
-  (int, int, 'b * mat) Tree.t
+  (int, int, 'b * mat) Tree.t * float
 
 type uniformized_process
 val uniformized_process : mat -> uniformized_process
