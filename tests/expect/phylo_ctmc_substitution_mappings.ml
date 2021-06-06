@@ -125,29 +125,30 @@ let iter_branches t ~f =
   in
   traverse_node t
 
-let sufficient_statistics ~nstates tree =
+let sufficient_statistics ~nstates trees =
   let counts = Array.make_matrix ~dimx:nstates ~dimy:nstates 0 in
   let waiting_times = Array.create ~len:nstates 0. in
-  iter_branches tree ~f:(fun start_state (bl, mapping) _ ->
-      match mapping with
-      | [||] ->
-        waiting_times.(start_state) <- waiting_times.(start_state) +. bl
-      | _ ->
-        Array.iteri mapping ~f:(fun k (s_j, t_j)  ->
-            let s_i, t_i =
-              if k = 0 then start_state, 0.
-              else mapping.(k - 1)
-            in
-            counts.(s_i).(s_j) <- 1 + counts.(s_i).(s_j) ;
-            waiting_times.(s_i) <- waiting_times.(s_i) +. (t_j -. t_i)
-          ) ;
-        let (last_state, last_time) = Array.last mapping in
-        waiting_times.(last_state) <- waiting_times.(last_state) +. bl -. last_time
+  Array.iter trees ~f:(fun tree ->
+      iter_branches tree ~f:(fun start_state (bl, mapping) _ ->
+          match mapping with
+          | [||] ->
+            waiting_times.(start_state) <- waiting_times.(start_state) +. bl
+          | _ ->
+            Array.iteri mapping ~f:(fun k (s_j, t_j)  ->
+                let s_i, t_i =
+                  if k = 0 then start_state, 0.
+                  else mapping.(k - 1)
+                in
+                counts.(s_i).(s_j) <- 1 + counts.(s_i).(s_j) ;
+                waiting_times.(s_i) <- waiting_times.(s_i) +. (t_j -. t_i)
+              ) ;
+            let (last_state, last_time) = Array.last mapping in
+            waiting_times.(last_state) <- waiting_times.(last_state) +. bl -. last_time
+        )
     ) ;
-  counts, waiting_times
+    counts, waiting_times
 
-let mapping_log_likelihood ~nstates ~rate_matrix tree =
-  let counts, waiting_times = sufficient_statistics ~nstates tree in
+let mapping_log_likelihood_aux ~nstates ~rate_matrix counts waiting_times =
   let lik = ref 0. in
   for i = 0 to nstates - 1 do
     for j = 0 to nstates - 1 do
@@ -159,6 +160,10 @@ let mapping_log_likelihood ~nstates ~rate_matrix tree =
     done ;
   done ;
   !lik
+
+let mapping_log_likelihood ~nstates ~rate_matrix tree =
+  let counts, waiting_times = sufficient_statistics ~nstates tree in
+  mapping_log_likelihood_aux ~nstates ~rate_matrix counts waiting_times
 
 let simulation_probability ~root_frequencies t =
   let rec traverse_tree parent mat = function
@@ -184,6 +189,8 @@ let simulation_probability ~root_frequencies t =
       )
   in
   traverse_root t
+
+let aa_sum f = List.fold Amino_acid.all ~init:0. ~f:(fun acc i -> acc +. f i)
 
 let () =
   let tree = sample_tree () in
@@ -220,8 +227,8 @@ let () =
       let marginal_log_prob =
         Phylo_ctmc.pruning site ~nstates ~transition_matrix ~leaf_state ~root_frequencies
       in
-      let mean_mapping_log_prob =
-        let mappings =
+      let mean_mapping_log_prob, mean_mapping_log_prob_opt, scale_hat, pi_hat =
+        let mappings, probs =
           Array.init 1_000 ~f:(fun _ ->
               let conditional_simulation, prob =
                 Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
@@ -229,32 +236,35 @@ let () =
               Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~process conditional_simulation,
               prob
             )
+          |> Array.unzip
         in
-        fun stationary_distribution ->
-          let rate_matrix = (rate_matrix { param with stationary_distribution } :> Matrix.t) in
-          Array.map mappings ~f:(fun (mapping, prob) ->
-              mapping_log_likelihood ~nstates ~rate_matrix mapping +. Float.log prob
+        let counts, waiting_times = sufficient_statistics ~nstates mappings in
+        let mean_mapping_log_prob_opt, scale_hat, pi_hat =
+          let nu = Amino_acid.Vector.init (fun _j ->
+              aa_sum (fun i -> waiting_times.((i :> int)) (* *. param.exchangeability_matrix.Amino_acid.%{i, j} *))
+              /. aa_sum (fun _i -> (* float counts.((i :> int)).((j :> int)) *) float 1)
             )
-          |> Gsl.Stats.mean
+          in
+          if true then exit 0 ;
+          let scale_hat = Amino_acid.Vector.sum nu in
+          let pi_hat = Amino_acid.Vector.normalize nu in
+          (* let rate_matrix_hat = (rate_matrix { param with scale = scale_hat ; stationary_distribution = pi_hat } :> Matrix.t) in *)
+          (* mapping_log_likelihood_aux ~nstates ~rate_matrix:rate_matrix_hat counts waiting_times,
+           * scale_hat,
+           * pi_hat *)
+          42., scale_hat, pi_hat
+        in
+        let mean_mapping_log_prob =
+          let rate_matrix = (rate_matrix { param with stationary_distribution } :> Matrix.t) in
+          (
+            mapping_log_likelihood_aux ~nstates ~rate_matrix counts waiting_times
+            +. Array.fold probs ~init:0. ~f:(fun acc p -> acc +. Float.log p)
+          ) /. float (Array.length mappings)
+        in
+        mean_mapping_log_prob, mean_mapping_log_prob_opt, scale_hat, pi_hat
       in
-      let mean_mapping_log_prob_opt, next_vec =
-        Nelder_mead.minimize
-          ~f:(fun vec ->
-              let pi = Amino_acid.Vector.(normalize (exp (of_array_exn vec))) in
-              -. mean_mapping_log_prob pi)
-          ~sample:(fun () -> sample_profile () |> Amino_acid.Vector.to_array)
-          ~tol:1e-3
-          ()
-      in
-      let next_vec = Amino_acid.Vector.(normalize (exp (of_array_exn next_vec))) in
-      printf "%f %f %f %f\n" marginal_log_prob mean_full_log_prob (mean_mapping_log_prob param.stationary_distribution) (-. mean_mapping_log_prob_opt) ; 
-      loop (n - 1) scale next_vec
-      (* let rate_matrix = (rate_matrix wag_param :> Matrix.t) in *)
-      (* let mapping_log_likelihood =
-       *   Array.init 1_00 ~f:(fun _ ->
-       *       
-       *       Float.log prob' *)
-      (* ) *)
+      printf "%f %f %f %f\n" marginal_log_prob mean_full_log_prob mean_mapping_log_prob mean_mapping_log_prob_opt ; 
+      loop (n - 1) scale_hat pi_hat
     )
   in
   print_endline (
