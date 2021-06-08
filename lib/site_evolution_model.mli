@@ -66,3 +66,15 @@ module K80 : Nucleotide_S_with_reduction with type param = float
 (** K80 model with numerical calculation of probability
    transition matrix *)
 module K80_numerical : Nucleotide_S_with_reduction with type param = float
+
+module Amino_acid_GTR : sig
+  type t = {
+    stationary_distribution : Amino_acid.vector ;
+    exchangeability_matrix : Amino_acid.matrix ;
+    scale : float ;
+  }
+
+  val rate_matrix : t -> Rate_matrix.Amino_acid.t
+
+  val transition_matrix : t -> float -> Amino_acid.matrix
+end

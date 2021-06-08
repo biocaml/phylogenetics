@@ -138,3 +138,24 @@ module type Nucleotide_S_with_reduction =
   S_with_reduction
   with type vec := Nucleotide.vector
    and type mat := Nucleotide.matrix
+
+
+module Amino_acid_GTR = struct
+  type t = {
+    stationary_distribution : Amino_acid.vector ;
+    exchangeability_matrix : Amino_acid.matrix ;
+    scale : float ;
+  }
+
+  let substitution_rate p i j =
+    p.scale *.
+    p.exchangeability_matrix.Amino_acid.%{i, j} *.
+    p.stationary_distribution.Amino_acid.%(j)
+
+  let rate_matrix p =
+    Rate_matrix.Amino_acid.make (substitution_rate p)
+
+  let transition_matrix p =
+    let m = rate_matrix p in
+    fun bl -> Amino_acid.Matrix.(expm (scal_mul bl m))
+end
