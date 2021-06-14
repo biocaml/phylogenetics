@@ -158,4 +158,20 @@ module Amino_acid_GTR = struct
   let transition_matrix p =
     let m = rate_matrix p in
     fun bl -> Amino_acid.Matrix.(expm (scal_mul bl m))
+
+  let transition_matrix_diag p =
+    let module V = Amino_acid.Vector in
+    let module M = Amino_acid.Matrix in
+    let m = rate_matrix p in
+    let pi = p.stationary_distribution in
+    let sqrt_pi = V.map pi ~f:Float.sqrt in
+    let diag_pi = M.diagm sqrt_pi in
+    let diag_pi_inv = V.map sqrt_pi ~f:(fun v -> 1. /. v) |> M.diagm in
+    let m' = M.(dot diag_pi @@ dot m diag_pi_inv) in
+    let (d_vec, step_transform_matrix) = M.diagonalize m' in
+    let transform_matrix = M.dot diag_pi_inv step_transform_matrix in
+    let rev_transform_matrix = M.dot (M.transpose step_transform_matrix) diag_pi in
+    fun t ->
+      let exp_matrix = V.(exp (scal_mul t d_vec)) |> M.diagm in
+      M.(dot transform_matrix  @@ dot exp_matrix rev_transform_matrix)
 end

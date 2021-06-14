@@ -77,4 +77,5 @@ module Amino_acid_GTR : sig
   val rate_matrix : t -> Rate_matrix.Amino_acid.t
 
   val transition_matrix : t -> float -> Amino_acid.matrix
+  val transition_matrix_diag : t -> float -> Amino_acid.matrix
 end

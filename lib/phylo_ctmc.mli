@@ -29,24 +29,27 @@ val conditional_simulation :
   Gsl.Rng.t ->
   (shifted_vector, int, 'b * mat) Tree.t ->
   root_frequencies:vec ->
-  (int, int, 'b * mat) Tree.t * float
+  (int, int, 'b * mat) Tree.t
 
-type uniformized_process
-val uniformized_process : mat -> uniformized_process
+module Path_sampler : sig
+  type t
+  val uniformization : mat -> t
+  val rejection_sampling : mat -> t
+end
 
 val conditional_simulation_along_branch :
   Gsl.Rng.t ->
-  uniformized_process ->
+  Path_sampler.t ->
+  nstates:int ->
   branch_length:float ->
   start_state:int ->
   end_state:int ->
-  nstates:int ->
   (int * float) array
 
 val substitution_mapping :
   nstates:int ->
   branch_length:('b -> float) ->
   rng:Gsl.Rng.t ->
-  process:('b -> uniformized_process) ->
+  sampler:('b -> Path_sampler.t) ->
   (int, int, 'b * mat) Tree.t ->
   (int, int, 'b * (int * float) array) Tree.t

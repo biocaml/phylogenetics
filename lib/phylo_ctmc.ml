@@ -93,9 +93,9 @@ let conditional_simulation rng t ~root_frequencies =
   let nstates = Vector.length root_frequencies in
   let rec tree (t : _ Tree.t) prior =
     match t with
-    | Leaf i -> Tree.leaf i, prior i
+    | Leaf i -> Tree.leaf i
     | Node n ->
-      let SV (conditional_likelihood, carry) = n.data in
+      let SV (conditional_likelihood, _) = n.data in
       let weights =
         Array.init nstates ~f:(fun i ->
             prior i *. Vector.get conditional_likelihood i
@@ -103,13 +103,11 @@ let conditional_simulation rng t ~root_frequencies =
       in
       let state = Gsl.Randist.(discrete rng (discrete_preproc weights)) in
       let branches = List1.map n.branches ~f:(fun br -> branch br state) in
-      Tree.node state branches,
-      weights.(state) *. Float.exp carry
+      Tree.node state branches
 
   and branch (Branch br) parent_state =
     let prior i = Matrix.get (snd br.data) parent_state i in
-    let tree, _ = tree br.tip prior in
-    Tree.branch br.data tree
+    Tree.branch br.data (tree br.tip prior)
   in
   tree t (Vector.get root_frequencies)
 
@@ -168,7 +166,7 @@ let collapse_mapping ~start_state path times =
   loop start_state 0 []
   |> Array.of_list_rev
 
-let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_length:lambda ~start_state ~end_state ~nstates =
+let conditional_simulation_along_branch_by_uniformization { _Q_ ; _P_ ; _R_ ; mu } ~rng ~nstates ~branch_length:lambda ~start_state ~end_state =
   let p_b_given_a_lambda = Matrix.get (_P_ lambda) start_state end_state in
   let p_n_given_lambda n = Gsl.Randist.poisson_pdf n ~mu:(mu *. lambda) in
   let p_b_given_n_a n =
@@ -213,7 +211,50 @@ let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_len
   assert (start_state = end_state || Array.length r > 0) ;
   r
 
-let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
+let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~rng ~nstates ~branch_length ~start_state ~end_state ~init ~f =
+  let module A = Alphabet.Make(struct let card = nstates end) in
+  let module BI = struct type t = float let length = Fn.id end in
+  let module Sim = Simulator.Make(A)(BI) in
+  let rec loop () =
+    let res, simulated_end_state =
+      Sim.branch_gillespie_direct rng
+        ~start_state ~rate_matrix ~branch_length
+        ~init:(init, start_state) ~f:(fun (acc, _) s t -> f acc s t, s)
+    in
+    if A.equal simulated_end_state end_state then res
+    else loop ()
+  in
+  loop ()
+
+let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~rng ~nstates ~branch_length ~start_state ~end_state =
+  conditional_simulation_along_branch_by_rejection_sampling
+    ~rate_matrix ~rng ~nstates ~branch_length ~start_state ~end_state
+    ~init:[] ~f:(fun acc s t -> (s, t) :: acc)
+  |> Array.of_list_rev
+
+module Path_sampler = struct
+  type t =
+    | Uniformization_sampler of uniformized_process
+    | Rejection_sampler of { rates : mat }
+
+  let uniformization mat =
+    Uniformization_sampler (uniformized_process mat)
+
+  let rejection_sampling rates =
+    Rejection_sampler { rates }
+
+  let sample meth =
+    match meth with
+    | Uniformization_sampler up ->
+      conditional_simulation_along_branch_by_uniformization up
+    | Rejection_sampler { rates = rate_matrix } ->
+      conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix
+end
+
+let conditional_simulation_along_branch rng path_sampler =
+  Path_sampler.sample path_sampler ~rng
+
+let substitution_mapping ~nstates ~branch_length ~rng ~sampler sim =
   let rec traverse_node = function
     | Tree.Leaf l -> Tree.leaf l
     | Node n ->
@@ -222,7 +263,7 @@ let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
     let b = Tree.data br.tip in
     let branch_data = fst br.data in
     let branch_length = branch_length branch_data in
-    let data = conditional_simulation_along_branch rng (process branch_data) ~nstates ~branch_length ~start_state:a ~end_state:b in
+    let data = conditional_simulation_along_branch rng (sampler branch_data) ~nstates ~branch_length ~start_state:a ~end_state:b in
     Tree.branch (branch_data, data) (traverse_node br.tip)
   in
   traverse_node sim
