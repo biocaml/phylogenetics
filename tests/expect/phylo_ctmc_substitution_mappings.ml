@@ -263,7 +263,7 @@ let mapping_log_likelihood site (param : AAGTR.t) theta =
   in
   let log_probs =
     Array.init 1_0000 ~f:(fun _ ->
-        let conditional_simulation, _prob =
+        let conditional_simulation =
           Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
         in
         let mapping =
@@ -481,26 +481,49 @@ let _solve2 param counts waiting_times root_counts =
     -. sigma *. mean_waiting_times pi
     +. cst
   in
-  let rec loop n pi sigma =
+  let find_lambda sigma lambda =
+    let f lambda = aa_sum (fun j ->
+        Amino_acid.Table.get partial_counts j
+        /. (lambda +. sigma *. Amino_acid.Table.get partial_waiting_times j)
+      ) -. 1.
+    in
+    let f' lambda =
+      -. aa_sum (fun j ->
+        Amino_acid.Table.get partial_counts j
+        /. ((lambda +. sigma *. Amino_acid.Table.get partial_waiting_times j) ** 2.)
+      )
+    in
+    let rec newton_iteration lambda =
+      let f_lambda = f lambda in
+      printf "newton: %f %f\n" lambda f_lambda ;
+      let lambda' = lambda -. f lambda /. f' lambda in
+      if Float.(abs (lambda -. lambda') < 1e-6)
+      then lambda'
+      else newton_iteration lambda'
+    in
+    newton_iteration lambda
+  in
+  let rec loop n pi sigma lambda =
     let obj = obj pi sigma in
     printf "it %d: obj = %f\n" n obj ;
     if n = 0 then { param with stationary_distribution = pi ; scale = sigma }
     else
       let open Amino_acid in
+      let lambda' = find_lambda sigma lambda in
       let pi' =
         Vector.init (fun j ->
-            (Table.get partial_counts j) /. sigma /. (Table.get partial_waiting_times j)
+            (Table.get partial_counts j) /. (lambda' +. sigma *. (Table.get partial_waiting_times j))
           )
-        |> Amino_acid.Vector.normalize
       in
-      let sigma' = total_counts /. mean_waiting_times pi' in
-      print_endline ([%show: float array] (Vector.to_array pi')) ;
-      loop (n - 1) pi' sigma'
+      let pi'' = Amino_acid.Vector.normalize pi' in
+      let sigma' = total_counts /. mean_waiting_times pi'' in
+      printf "sigma = %f, lambda = %f, sumpi = %f, pi = %s\n" sigma' lambda' (Vector.sum pi') ([%show: float array] (Vector.to_array pi'')) ;
+      loop (n - 1) pi'' sigma' lambda'
   in
-  loop 1 param.stationary_distribution param.scale
+  loop 5 param.stationary_distribution param.scale 0.
 
 let () =
-  let tree = sample_tree 100 in
+  let tree = sample_tree 1000 in
   let param = sample_param wag in
   let site = sample_site tree param valine in
   let nstates = Amino_acid.card in
@@ -518,15 +541,13 @@ let () =
         Phylo_ctmc.conditionial_likelihoods site ~nstates ~leaf_state ~transition_matrix
       in
       let mean_mapping_log_prob, param_hat =
-        let mappings, _ =
+        let mappings =
           Array.init 30 ~f:(fun _ ->
-              let conditional_simulation, prob =
+              let conditional_simulation =
                 Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
               in
-              Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~sampler conditional_simulation,
-              prob
+              Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~sampler conditional_simulation
             )
-          |> Array.unzip
         in
         let counts, waiting_times, root_counts = sufficient_statistics mappings in
         (* print_endline ([%show: float array] waiting_times) ;
@@ -572,7 +593,7 @@ let () =
     |> List.map ~f:Amino_acid.to_char
     |> String.of_char_list
   ) ;
-  let ma_time, ma_param = time ~f:(loop 3) wag_param in
+  let ma_time, ma_param = time ~f:(loop 15) wag_param in
   let ma_ll = pruning site ma_param in
   printf "Mapping LL: %f\n" ma_ll ;
   let nm_time, (nm_ll, nm_param) = time ~f:(optimize_pruning site) wag_param in
