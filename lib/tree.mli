@@ -45,7 +45,7 @@ val map :
   branch:('c -> 'f) ->
   ('d, 'e, 'f) t
 
-val map2 :
+val map2_exn :
   ('a, 'b, 'c) t ->
   ('d, 'e, 'f) t ->
   node:('a -> 'd -> 'x) ->
@@ -53,6 +53,13 @@ val map2 :
   branch:('c -> 'f -> 'z) ->
   ('x, 'y, 'z) t
 
+val map_branch2_exn :
+  ('a, 'b, 'c) branch ->
+  ('d, 'e, 'f) branch ->
+  node:('a -> 'd -> 'x) ->
+  leaf:('b -> 'e -> 'y) ->
+  branch:('c -> 'f -> 'z) ->
+  ('x, 'y, 'z) branch
 
 val propagate :
   ('n, 'l, 'b) t ->
