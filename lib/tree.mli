@@ -6,9 +6,9 @@ type ('n, 'l, 'b) t =
   | Leaf of 'l
 
 and ('n, 'l, 'b) branch = Branch of {
-  data : 'b ;
-  tip : ('n, 'l, 'b) t ;
-}
+    data : 'b ;
+    tip : ('n, 'l, 'b) t ;
+  }
 
 val leaf : 'l -> (_, 'l, 'b) t
 
@@ -44,6 +44,15 @@ val map :
   leaf:('b -> 'e) ->
   branch:('c -> 'f) ->
   ('d, 'e, 'f) t
+
+val map2 :
+  ('a, 'b, 'c) t ->
+  ('d, 'e, 'f) t ->
+  node:('a -> 'd -> 'x) ->
+  leaf:('b -> 'e -> 'y) ->
+  branch:('c -> 'f -> 'z) ->
+  ('x, 'y, 'z) t
+
 
 val propagate :
   ('n, 'l, 'b) t ->
@@ -89,8 +98,8 @@ val leafset_generated_subtree :
   string list ->
   ('n, 'l, 'b) t option
 (** [leafset_generated_subtree t f xs] returns the maximal subtree of
-   [t] whose leaves all return a string in [xs] when applied to [f] if
-   it exists (and [None] otherwise) *)
+    [t] whose leaves all return a string in [xs] when applied to [f] if
+    it exists (and [None] otherwise) *)
 
 val simplify_node_with_single_child :
   merge_branch_data:('b list -> 'b) ->

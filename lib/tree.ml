@@ -8,9 +8,9 @@ type ('n, 'l, 'b) t =
   | Leaf of 'l
 
 and ('n, 'l, 'b) branch = Branch of {
-  data : 'b ;
-  tip : ('n, 'l, 'b) t ;
-}
+    data : 'b ;
+    tip : ('n, 'l, 'b) t ;
+  }
 
 let leaf l = Leaf l
 
@@ -82,6 +82,22 @@ and map_branch (Branch b) ~node ~leaf ~branch =
   Branch {
     data = branch b.data ;
     tip = map b.tip ~node ~leaf ~branch ;
+  }
+
+let rec map2 t1 t2 ~node ~leaf ~branch =
+  match t1, t2 with
+  | Node n1, Node n2 ->
+    Node {
+      data = node n1.data n2.data ;
+      branches = List1.map2_exn n1.branches n2.branches ~f:(map_branch2 ~node ~leaf ~branch) ;
+    }
+  | Leaf l1, Leaf l2 -> Leaf (leaf l1 l2)
+  | _ -> failwith "Attempted to match node from tree to branch of other tree"
+
+and map_branch2 (Branch b1) (Branch b2) ~node ~leaf ~branch =
+  Branch {
+    data = branch b1.data b2.data ;
+    tip = map2 b1.tip b2.tip ~node ~leaf ~branch ;
   }
 
 let propagate t ~init ~node ~leaf ~branch =
