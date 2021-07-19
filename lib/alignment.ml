@@ -69,6 +69,23 @@ let composition al =
     ) ;
   List.map (C.to_alist acc) ~f:(fun (c, k) -> (c, float k /. n))
 
+let constant_site al j =
+  let m = nrows al in
+  let rec find_state i =
+    if i < m then
+      match al.sequences.(i).[j] with
+      | '-' -> find_state (i + 1)
+      | c -> find_other_state c (i + 1)
+    else true
+  and find_other_state c i =
+    if i < m then
+      match al.sequences.(i).[j] with
+      | '-' -> find_other_state c (i + 1)
+      | c' when Char.equal c c' -> find_other_state c (i + 1)
+      | _ -> false
+    else true
+  in
+  find_state 0
 
 open Core_kernel
 open Biocaml_ez (* for fasta parsing *)

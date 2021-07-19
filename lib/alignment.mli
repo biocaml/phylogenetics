@@ -25,7 +25,7 @@ val find_sequence :
 val residues : t -> column:int -> Char.Set.t
 val number_of_residues_per_column_stats : t -> (int * int) list
 val composition : t -> (Char.t * float) list
-
+val constant_site : t -> int -> bool
 (** Module for alignments (sets of aligned sequences with same length).
     Provides a functor to build from SEQUENCE modules. *)
 
