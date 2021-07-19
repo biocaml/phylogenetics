@@ -41,6 +41,13 @@ let from_fasta fn =
     )
   | Error msg -> Error (`Msg (Error.to_string_hum msg))
 
+let to_fasta ({sequences ; descriptions}) fn =
+  Out_channel.with_file fn ~f:(fun oc ->
+      Array.iter2_exn descriptions sequences ~f:(fun desc seq ->
+          Out_channel.output_lines oc [desc ; seq]
+        )
+    )
+
 let find_sequence t id =
   Array.findi t.descriptions ~f:(fun _ x -> String.equal x id)
   |> Option.map ~f:(fun (i, _) -> t.sequences.(i))

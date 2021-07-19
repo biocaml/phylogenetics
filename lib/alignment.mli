@@ -16,6 +16,8 @@ type parsing_error = [
 val from_fasta :
   string ->
   (t, [> parsing_error]) result
+val to_fasta : t -> string -> unit
+
 val indel_free_columns : t -> bool array
 val nrows : t -> int
 val ncols : t -> int
