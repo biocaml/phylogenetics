@@ -4,6 +4,9 @@ type t = private {
   descriptions : string array ;
   sequences : string array ;
 }
+
+val of_assoc_list : (string * string) list -> t
+
 type parsing_error = [
   | `Fasta_parser_error of int * string
   | `Msg of string

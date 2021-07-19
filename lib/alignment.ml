@@ -5,6 +5,10 @@ type t = {
   sequences : string array ;
 }
 
+let of_assoc_list l =
+  let descriptions, sequences = List.unzip l |> Tuple2.map ~f:List.to_array
+  in { descriptions ; sequences }
+
 let nrows a = Array.length a.sequences
 let ncols a = String.length a.sequences.(0)
 
