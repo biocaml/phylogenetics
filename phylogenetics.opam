@@ -2,7 +2,7 @@
 opam-version: "2.0"
 synopsis: "Algorithms and datastructures for phylogenetics"
 maintainer: ["philippe.veber@gmail.com"]
-authors: ["Vincent Lanore" "Philippe Veber"]
+authors: ["Louis Duchemin" "Vincent Lanore" "Philippe Veber"]
 license: "CeCILL-B"
 tags: ["bioinformatics" "evolution" "phylogeny"]
 homepage: "https://github.com/biocaml/phylogenetics/"

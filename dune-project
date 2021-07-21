@@ -8,6 +8,7 @@
 (bug_reports "https://github.com/biocaml/phylogenetics/issues")
 (license CeCILL-B)
 (authors
+  "Louis Duchemin"
   "Vincent Lanore"
   "Philippe Veber")
 (maintainers "philippe.veber@gmail.com")
