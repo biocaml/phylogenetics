@@ -167,7 +167,7 @@ let () =
     fun _ -> p
   in
   let mean_mapping_likelihood =
-    Array.init 1_000 ~f:(fun _ ->
+    Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
         |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~process
         |> mapping_likelihood ~nstates ~rate_matrix
