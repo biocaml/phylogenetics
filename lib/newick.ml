@@ -32,7 +32,8 @@ let loop lexbuf result =
 let parse lexbuf =
   try loop lexbuf (Newick_parser.Incremental.start lexbuf.lex_curr_p)
   with
-  | Newick_lexer.Error msg -> Error msg
+  | Newick_lexer.Error (`Newick_parser_error e) ->
+    Error (`Newick_parser_error e)
 
 let from_file fn =
   In_channel.with_file fn ~f:(fun ic ->
