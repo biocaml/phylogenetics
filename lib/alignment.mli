@@ -23,6 +23,11 @@ val map :
   f:(description:string -> sequence:string -> string * string) ->
   (t, [> `Unequal_sequence_lengths]) result
 
+val array_mapi :
+  t ->
+  f:(int -> description:string -> sequence:string -> 'a) ->
+  'a array
+
 val fold :
   t ->
   init:'a ->

@@ -46,6 +46,10 @@ let map t ~f =
     ~f:(fun description sequence -> f ~description ~sequence)
   |> of_tuples
 
+let array_mapi t ~f =
+  Array.mapi t.descriptions
+    ~f:(fun i description -> f i ~description ~sequence:t.sequences.(i))
+
 let fold t ~init ~f = Array.fold2_exn t.descriptions t.sequences ~init
     ~f:(fun acc description sequence -> f acc ~description ~sequence)
 
