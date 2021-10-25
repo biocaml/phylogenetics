@@ -5,41 +5,63 @@ type t = {
   sequences : string array ;
 }
 
-let of_assoc_list l =
-  let descriptions, sequences = List.unzip l |> Tuple2.map ~f:List.to_array
-  in { descriptions ; sequences }
+let sequence t i = t.sequences.(i)
+
+let description t i = t.descriptions.(i)
 
 let nrows a = Array.length a.sequences
 let ncols a = String.length a.sequences.(0)
 
-type parsing_error = [
-  | `Fasta_parser_error of int * string
-  | `Msg of string
+
+type error = [
+  | `Empty_alignment
+  | `Unequal_sequence_lengths
 ]
 [@@deriving show]
 
+type parsing_error = [
+  | `Fasta_parser_error of string
+  | error
+]
+[@@deriving show]
+
+let check_non_empty_list = function
+  | [] -> Error (`Empty_alignment)
+  | items -> Ok items
+
+let of_tuples items =
+  let descriptions, sequences = Array.unzip items in
+  let n = String.length sequences.(0) in
+  if (Array.for_all sequences ~f:(fun s -> String.length s = n))
+  then Ok { descriptions ; sequences  ; }
+  else Error `Unequal_sequence_lengths
+
+let of_assoc_list l =
+  match check_non_empty_list l with
+  | Ok items -> Array.of_list items |> of_tuples
+  | Error e -> Error e
+
+let map t ~f =
+  Array.map2_exn t.descriptions t.sequences
+    ~f:(fun description sequence -> f ~description ~sequence)
+  |> of_tuples
+
+let fold t ~init ~f = Array.fold2_exn t.descriptions t.sequences ~init
+    ~f:(fun acc description sequence -> f acc ~description ~sequence)
+
+let of_fasta_items (items:Biocaml_unix.Fasta.item list) =
+  List.map items ~f:(fun x -> x.description, x.sequence)
+  |> of_assoc_list
+
 let from_fasta fn =
+  let open Result.Monad_infix in
   let parsing =
     Biocaml_unix.Fasta.with_file fn ~f:(fun header stream ->
         CFStream.Stream.Result.all' stream ~f:(fun items -> header, CFStream.Stream.to_list items)
       )
+    |> Result.map_error ~f:(fun e -> `Fasta_parser_error (Error.to_string_hum e))
   in
-  match parsing with
-  | Ok (_, items) -> (
-      match Array.of_list items with
-      | [||] -> Error (`Msg "Empty FASTA file")
-      | res ->
-        let sequences = Array.map res ~f:(fun x -> x.sequence) in
-        let n = String.length sequences.(0) in
-        if not (Array.for_all sequences ~f:(fun s -> String.length s = n)) then
-          Error (`Msg "Not an alignment: sequences with different lengths")
-        else
-          Ok {
-            descriptions = Array.map res ~f:(fun x -> x.description) ;
-            sequences  ;
-          }
-    )
-  | Error msg -> Error (`Msg (Error.to_string_hum msg))
+  parsing >>| snd >>= of_fasta_items
 
 let to_fasta ({sequences ; descriptions}) fn =
   Out_channel.with_file fn ~f:(fun oc ->
