@@ -28,7 +28,7 @@ let data = function
 
 module B = PrintBox
 
-let rec to_printbox_aux t ?parent_branch ~node ~leaf ~branch = match t with
+let rec to_printbox_aux t ?parent_branch ~node ~leaf ~branch () = match t with
   | Leaf l -> B.text (leaf l)
   | Node n ->
     let node_text = match Option.bind parent_branch ~f:branch with
@@ -36,13 +36,13 @@ let rec to_printbox_aux t ?parent_branch ~node ~leaf ~branch = match t with
       | Some b_label -> sprintf "%s - %s" b_label (node n.data)
     in
     List1.map n.branches ~f:(fun (Branch b) ->
-        to_printbox_aux ~parent_branch:b.data ~node ~leaf ~branch b.tip
+        to_printbox_aux ~parent_branch:b.data ~node ~leaf ~branch b.tip ()
       )
     |> List1.to_list
     |> B.tree (B.text node_text)
 
 let to_printbox ?(node = fun _ -> "·") ?(leaf = fun _ -> "·") ?(branch = fun _ -> None) t =
-  to_printbox_aux t ?parent_branch:None ~node ~leaf ~branch
+  to_printbox_aux t ?parent_branch:None ~node ~leaf ~branch ()
 
 let rec prefix_traversal t ~init ~node ~leaf ~branch =
   match t with
