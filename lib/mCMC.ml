@@ -44,10 +44,3 @@ let my_step v =
     ) in
   let new_tree = Phylogenetic_tree.set_branch_lengths v.tree lengths in
   {align=v.align; tree=new_tree}, 1.
-
-let test i = run my_theta0 my_step my_likelihood i
-             |> List.map ~f:(function {tree;_} ->
-                 List.nth_exn (Phylogenetic_tree.get_branch_lengths tree) 5)
-             |> List.filteri ~f:(fun x _ -> x>i/5)
-             |> Stat_tools.plot_sample_list
-           ; Stat_tools.pause ()

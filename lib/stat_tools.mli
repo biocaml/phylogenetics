@@ -14,14 +14,3 @@ val sample_list_of_file: string -> sample_list
 val sample_list_extrema: sample_list -> float * float
 
 val sample_list_mean: sample_list -> float
-
-
-(** {5 Plots} *)
-
-val bins: ?nb:int -> sample_list -> (float * float) list
-
-val plot_sample_list: ?nb:int -> sample_list -> unit
-
-val plot_sample_lists: ?nb:int -> sample_list list -> unit
-
-val pause: unit -> unit

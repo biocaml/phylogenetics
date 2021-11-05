@@ -21,36 +21,3 @@ let sample_list_mean d =
   List.fold d ~init:(0., 0) ~f:(fun (s, c) x -> (s+.x, c+1))
   |> fun (s, c) -> s /. (float_of_int c)
 
-
-(* ========== *)
-(*  PLOTTING  *)
-(* ========== *)
-let bins ?(nb=20) d =
-  let dmin, dmax = sample_list_extrema d in
-  let bin_size = (dmax -. dmin)/.(float_of_int nb) in
-  let count i = List.count d ~f:(
-      fun x ->
-        Float.(x > (float_of_int i)*.bin_size) &&
-        Float.(x < ((float_of_int i)+.1.)*.bin_size)
-    ) in
-  List.init nb ~f:(
-    fun x -> (float_of_int x +. 0.5) *. bin_size,
-             (nb * count x |> float_of_int)
-             /. (List.length d |> float_of_int |> ( *. ) (dmax -. dmin))
-  )
-
-let plot_sample_list ?(nb=20) d =
-  let gp = Gnuplot.create () in
-  Gnuplot.Series.lines_xy ~title:"Plot a line" ~color:`Blue (bins ~nb d)
-  |> Gnuplot.plot gp
-
-let plot_sample_lists ?(nb=20) l =
-  let gp = Gnuplot.create () in
-  List.mapi l ~f:(
-    fun i x -> Gnuplot.Series.lines_xy
-        ~title:(Printf.sprintf "distrib %d" i)
-        (bins ~nb x)
-  ) |> Gnuplot.plot_many gp
-
-let pause () =
-  ignore (In_channel.input_line In_channel.stdin : string option)
