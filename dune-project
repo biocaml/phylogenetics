@@ -18,6 +18,7 @@
   (synopsis "Algorithms and datastructures for phylogenetics")
   (tags (bioinformatics evolution phylogeny))
   (depends
+    (alcotest :with-test)
     angstrom-unix
     (biocaml (>= 0.8.0))
     (core (>= v0.14.0))
@@ -28,4 +29,6 @@
     (ocaml-r (>= 0.2.0))
     owl
     ppx_deriving
-    printbox))
+    printbox)
+  (conflicts
+    (core_bench (< v0.14))))

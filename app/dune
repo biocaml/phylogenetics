@@ -14,6 +14,7 @@
 (executable
  (name bench_app)
  (modules bench_app)
+ (optional)
  (libraries phylogenetics core_bench)
  (preprocess (pps ppx_jane)))
 
