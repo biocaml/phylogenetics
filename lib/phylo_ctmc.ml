@@ -1,5 +1,5 @@
 open Core_kernel
-open Linear_algebra.Lacaml
+open Linear_algebra
 
 type shifted_vector = SV of vec * float
 module SV = struct

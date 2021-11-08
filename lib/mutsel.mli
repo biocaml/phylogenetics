@@ -15,6 +15,7 @@ type param = {
 }
 
 val random_param :
+  Gsl.Rng.t ->
   alpha_nucleotide:float ->
   alpha_fitness:float ->
   param

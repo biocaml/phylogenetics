@@ -1,4 +1,4 @@
-open Linear_algebra.Lacaml
+open Linear_algebra
 
 type shifted_vector = SV of vec * float
 

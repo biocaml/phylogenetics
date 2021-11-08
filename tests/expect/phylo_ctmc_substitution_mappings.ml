@@ -1,6 +1,6 @@
 open Core_kernel
 open Phylogenetics
-open Phylogenetics.Linear_algebra.Lacaml
+open Phylogenetics.Linear_algebra
 
 let rng = Gsl.Rng.(make (default ()))
 

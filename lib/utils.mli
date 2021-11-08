@@ -17,4 +17,13 @@ type float_array_array = float array array
 val robust_equal : float -> float -> bool
 val float_array_robust_equal : float array -> float array -> bool
 
-val random_profile : int -> Linear_algebra.Lacaml.vec
+val random_profile : Gsl.Rng.t -> int -> Linear_algebra.vec
+
+val array_sum : float array -> float
+
+val array_order :
+  'a array ->
+  compare:('a -> 'a -> int) ->
+  int array
+
+val rng_of_int : int -> Gsl.Rng.t

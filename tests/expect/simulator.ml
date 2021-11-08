@@ -1,7 +1,7 @@
 open Core_kernel
 open Phylogenetics
 
-module L = Linear_algebra.Lacaml
+module L = Linear_algebra
 
 module Branch_info = struct
   type t = float

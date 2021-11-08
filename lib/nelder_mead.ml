@@ -36,7 +36,7 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
   let points = Array.init (n + 1) ~f:(fun _ -> sample ()) in
   let obj = Array.map points ~f in
   let rec loop i =
-    let ranks = Owl_utils.Array.argsort ~cmp:Float.compare obj in
+    let ranks = Utils.array_order ~compare:Float.compare obj in
     if debug then (
       printf "\n\nIteration %d: %f\n%!" i obj.(ranks.(0)) ;
       printf "Delta: %g\n%!" (obj.(ranks.(n)) -. obj.(ranks.(0)))
@@ -90,7 +90,7 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
             )
         )
     ) ;
-    let sigma = Owl_base_stats.std obj in
+    let sigma = Gsl.Stats.sd obj in
     if debug then (
       printf "Sigma: %f\n" sigma ;
       printf "Values: %s\n" (Utils.show_float_array (Array.init (n + 1) ~f:(fun i -> obj.(ranks.(i)))))

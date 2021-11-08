@@ -1,5 +1,5 @@
 open Core_kernel
-open Linear_algebra.Lacaml
+open Linear_algebra
 
 module type S = sig
   type vector
@@ -27,10 +27,6 @@ module Make(A : Alphabet.S_int) = struct
   type t = A.matrix
   let sum f =
     List.fold A.all ~init:0. ~f:(fun acc n -> acc +. f n)
-
-  let random_profile alpha =
-    Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:A.card alpha)
-    |> A.Vector.of_array_exn
 
   let stationary_distribution (m : A.matrix) =
     Matrix.zero_eigen_vector (m :> mat)
@@ -101,8 +97,9 @@ module Make(A : Alphabet.S_int) = struct
     scaled_rate_matrix stationary_distribution m
 
   let%test "gtr stationary distribution" =
-    let pi = random_profile 10. in
-    let gtr_params = Utils.random_profile (A.card * (A.card - 1) / 2) in
+    let rng = Utils.rng_of_int 12334 in
+    let pi = A.random_profile rng 10. in
+    let gtr_params = Utils.random_profile rng (A.card * (A.card - 1) / 2) in
     let gtr_rates = gtr ~equilibrium_frequencies:pi ~transition_rates:gtr_params in
     let pi' = stationary_distribution gtr_rates in
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
@@ -125,11 +122,12 @@ let make n ~f =
   r
 
 let transition_probability_matrix ~tau ~rates =
-  Owl.Mat.(
-    of_arrays rates *$ tau
-    |> Owl.Linalg.D.expm
-    |> to_arrays
+  Matrix.((
+    (of_arrays_exn rates
+     |> scal_mul tau
+     |> expm) :> Lacaml.D.mat)
   )
+  |> Lacaml.D.Mat.to_array
 
 module Nucleotide = struct
   include Make(Nucleotide)

@@ -21,7 +21,7 @@ module type S = sig
 
   val gtr :
     equilibrium_frequencies:vector ->
-    transition_rates:Linear_algebra.Lacaml.vec ->
+    transition_rates:Linear_algebra.vec ->
     t
   (**
      {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#GTR_model_(Tavar%C3%A9_1986)}Generalised
@@ -55,7 +55,7 @@ module Amino_acid : sig
   include module type of Make(Amino_acid)
 end
 
-val make : int -> f:(int -> int -> float) -> Linear_algebra.Lacaml.mat
+val make : int -> f:(int -> int -> float) -> Linear_algebra.mat
 
 val transition_probability_matrix :
   tau:float ->

@@ -68,10 +68,19 @@ let float_array_robust_equal x y =
   );
   res
 
-let random_profile n =
-  let v = Array.init n ~f:(fun _ ->
-      Owl.Stats.uniform_rvs ~a:0. ~b:1.
-    )
-  in
+let random_profile rng n =
+  let v = Array.init n ~f:(fun _ -> Gsl.Rng.uniform rng) in
   let s = Array.fold v ~init:0. ~f:( +. ) in
-  Linear_algebra.Lacaml.Vector.init n ~f:(fun i -> v.(i) /. s)
+  Linear_algebra.Vector.init n ~f:(fun i -> v.(i) /. s)
+
+let array_sum xs = Array.fold xs ~f:( +. ) ~init:0.
+
+let array_order xs ~compare =
+  let ys = Array.mapi xs ~f:(fun i x -> x, i) in
+  Array.sort ys ~compare:(Tuple2.compare ~cmp1:compare ~cmp2:Int.compare) ;
+  Array.map ~f:snd ys
+
+let rng_of_int seed =
+  let res = Gsl.Rng.(make (default ())) in
+  Gsl.Rng.set res (Nativeint.of_int seed) ;
+  res

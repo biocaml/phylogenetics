@@ -21,23 +21,23 @@ let flat_fitness () =
   Amino_acid.Vector.init (fun _ -> 1. /. float Amino_acid.card)
   |> fitness_of_profile
 
-let random_param ~alpha_nucleotide ~alpha_fitness =
-  let pi = Nucleotide.random_profile alpha_nucleotide in
-  let rho = Utils.random_profile 6 in
+let random_param rng ~alpha_nucleotide ~alpha_fitness =
+  let pi = Nucleotide.random_profile rng alpha_nucleotide in
+  let rho = Utils.random_profile rng 6 in
   let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
   {
     nucleotide_rates ;
     nucleotide_stat_dist = pi ;
     omega = 1. ;
     scaled_fitness =
-      Amino_acid.random_profile alpha_fitness
+      Amino_acid.random_profile rng alpha_fitness
       |> fitness_of_profile ;
     gBGC = 0. ;
   }
 
 let flat_param () =
   let pi = Nucleotide.flat_profile () in
-  let rho = Linear_algebra.Lacaml.Vector.init 6 ~f:(fun _ -> 1. /. 6.) in
+  let rho = Linear_algebra.Vector.init 6 ~f:(fun _ -> 1. /. 6.) in
   let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
   {
     nucleotide_rates ;
@@ -99,7 +99,8 @@ let transition_probability_matrix p t =
 (* == TESTS ================================================================= *)
 
 let test_stationary_distribution_sums_to_one stationary_distribution =
-  let p = random_param ~alpha_nucleotide:10. ~alpha_fitness:10. in
+  let rng = Utils.rng_of_int 23408348 in
+  let p = random_param rng ~alpha_nucleotide:10. ~alpha_fitness:10. in
   let pi = (stationary_distribution p : NSCodon.vector) in
   Utils.robust_equal 1. (NSCodon.Vector.sum pi)
 
@@ -127,7 +128,8 @@ let%test "Codon model stationary distribution for flat parameters is uniform" =
   test_stationary_distribution_for_flat_parameters_is_uniform stationary_distribution_by_linear_resolution
 
 let test_stationary_distribution_with_flat_nucleotidic_parameters_has_equal_frequency_for_synonyms stationary_distribution =
-  let p = random_param ~alpha_nucleotide:10. ~alpha_fitness:10. in
+  let rng = Utils.rng_of_int 234088 in
+  let p = random_param rng ~alpha_nucleotide:10. ~alpha_fitness:10. in
   let p_flat = flat_param () in
   let p = { p with nucleotide_rates = p_flat.nucleotide_rates ;
                    nucleotide_stat_dist = p_flat.nucleotide_stat_dist } in
@@ -145,10 +147,10 @@ let%test "Codon model stationary distribution with flat nucleotidic parameters h
   test_stationary_distribution_with_flat_nucleotidic_parameters_has_equal_frequency_for_synonyms stationary_distribution_by_linear_resolution
 
 let test_both_stationary_distribution_calculation p =
-  let open Linear_algebra.Lacaml in
+  let open Linear_algebra in
   let pi = (stationary_distribution p :> vec) in
   let pi' = (NSCodon_rate_matrix.stationary_distribution (rate_matrix p) :> vec) in
-  let res = Linear_algebra.Lacaml.Vector.robust_equal ~tol:1e-6 pi pi' in
+  let res = Linear_algebra.Vector.robust_equal ~tol:1e-6 pi pi' in
   if not res then (
     let pi = Vector.to_array pi in
     let pi' = Vector.to_array pi' in
@@ -157,10 +159,12 @@ let test_both_stationary_distribution_calculation p =
   res
 
 let%test "Codon model stationary distribution calculation" =
-  let p = random_param ~alpha_nucleotide:10. ~alpha_fitness:10. in
+  let rng = Utils.rng_of_int 314159 in
+  let p = random_param rng ~alpha_nucleotide:10. ~alpha_fitness:10. in
   test_both_stationary_distribution_calculation p
 
 let%test "Codon model stationary distribution calculation with gBGC" =
-  let p = random_param ~alpha_nucleotide:10. ~alpha_fitness:10. in
+  let rng = Utils.rng_of_int 3484085 in
+  let p = random_param rng ~alpha_nucleotide:10. ~alpha_fitness:10. in
   let p = { p with gBGC = 0.2345 } in
   test_both_stationary_distribution_calculation p

@@ -27,8 +27,5 @@
     (lacaml (>= 10.0.2))
     menhir
     (ocaml-r (>= 0.2.0))
-    owl
     ppx_deriving
-    printbox)
-  (conflicts
-    (core_bench (< v0.14))))
+    printbox))

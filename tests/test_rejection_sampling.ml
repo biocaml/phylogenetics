@@ -1,6 +1,8 @@
 open Core_kernel
 open Phylogenetics
 
+let rng = Gsl.Rng.(make (default ()))
+
 (** {6 Test input parameters} *)
 
 module Align = Alignment.Make(Seq.DNA)
@@ -8,7 +10,7 @@ module RS_DNA = Rejection_sampling.Make(Align)
 let myalign = Align.of_string_list ["A"; "A"; "A"; "T"]
 let mybasetree = Phylogenetic_tree.of_preorder "0.1;0.1;0.1;0.1;0;1;2.5;0.1;2;3"
 let mysampler = Stat_tools.sample_branch_lengths ~branchs:(fun i -> i=5)
-    ~sampler:(fun () -> Owl.Stats.uniform_rvs ~a:0. ~b: 5.0) mybasetree
+    ~sampler:(fun () -> Gsl.Rng.uniform rng *. 5.) mybasetree
 
 module K80 = struct
   include Site_evolution_model.K80

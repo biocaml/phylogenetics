@@ -56,9 +56,29 @@ let rec backward_aux t i = match t with
         )
     )
 
+let array_min_elt_index xs ~compare =
+  match xs with
+  | [| |] -> None
+  | _ ->
+    let n = Array.length xs in
+    let rec loop acc i =
+      if i >= n then Some acc
+      else
+        let acc' =
+          match compare xs.(acc) xs.(i) with
+          | -1
+          |  0 -> acc
+          |  1 -> i
+          |  _ -> assert false
+        in
+        loop acc' (i + 1)
+    in
+    loop 0 1
+
 let backward costs t =
-  let root = Owl.Utils.Array.min_i ~cmp:Float.compare costs in
-  backward_aux t root
+  match array_min_elt_index costs ~compare:Float.compare with
+  | None -> assert false
+  | Some root -> backward_aux t root
 
 let fitch ?cost ~n ~category t =
   let costs, routing = forward ?cost ~n ~category t in

@@ -31,12 +31,12 @@ module type S = sig
     val normalize : vector -> vector
     val of_array : float array -> vector option
     val of_array_exn : float array -> vector
-    val upcast_exn : Linear_algebra.Lacaml.vec -> vector
+    val upcast_exn : Linear_algebra.vec -> vector
     val get : t -> symbol -> float
     val set : t -> symbol -> float -> unit
   end
   val flat_profile : unit -> vector
-  val random_profile : float -> vector
+  val random_profile : Gsl.Rng.t -> float -> vector
   module Matrix : sig
     type symbol = t
     include Linear_algebra.Matrix with type t = matrix
@@ -54,8 +54,8 @@ end
 
 module type S_int = sig
   include S with type t = private int
-             and type vector = private Linear_algebra.Lacaml.vec
-             and type matrix = private Linear_algebra.Lacaml.mat
+             and type vector = private Linear_algebra.vec
+             and type matrix = private Linear_algebra.mat
              and type 'a table = private 'a array
   val of_int : int -> t option
   val of_int_exn : int -> t
@@ -91,7 +91,7 @@ module Make(X : sig val card : int end) = struct
       if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
       else a
     let of_vector v =
-      let open Linear_algebra.Lacaml.Vector in
+      let open Linear_algebra.Vector in
       Array.init (length v) ~f:(get v)
     let choose xs ~rng =
       Gsl.Randist.(discrete_preproc xs |> discrete rng)
@@ -100,7 +100,7 @@ module Make(X : sig val card : int end) = struct
   end
   module Vector = struct
     type symbol = t
-    include Linear_algebra.Lacaml.Vector
+    include Linear_algebra.Vector
 
     let iteri v ~f =
       for i = 0 to card - 1 do
@@ -118,7 +118,7 @@ module Make(X : sig val card : int end) = struct
       try Some (of_array_exn a)
       with _ -> None
     let upcast_exn a =
-      let n = Linear_algebra.Lacaml.Vector.length a in
+      let n = Linear_algebra.Vector.length a in
       if n = card
       then a
       else
@@ -129,13 +129,14 @@ module Make(X : sig val card : int end) = struct
     let theta = Float.(1. / of_int card) in
     Vector.init (fun _ -> theta)
 
-  let random_profile alpha =
-    let v = Owl.Stats.dirichlet_rvs ~alpha:(Array.create ~len:card alpha) in
+  let random_profile rng alpha =
+    let v = Table.init (fun _ -> 0.) in
+    Gsl.Randist.dirichlet rng ~alpha:(Array.create ~len:card alpha) ~theta:v ;
     Vector.init (fun i -> v.(i))
 
   module Matrix = struct
     type symbol = t
-    include Linear_algebra.Lacaml.Matrix
+    include Linear_algebra.Matrix
 
     let init f = init card ~f
     let init_sym f = init_sym card ~f
@@ -150,11 +151,11 @@ module Make(X : sig val card : int end) = struct
   end
 
   let to_int i = i
-  type vector = Linear_algebra.Lacaml.vec
+  type vector = Linear_algebra.vec
 
   let ( .%() ) v i = Vector.get v i
   let ( .%()<- ) v i x = Vector.set v i x
-  type matrix = Linear_algebra.Lacaml.mat
+  type matrix = Linear_algebra.mat
   let ( .%{} ) m (i,j) = Matrix.get m i j
   let ( .%{}<- ) m (i, j) x = Matrix.set m i j x
 end

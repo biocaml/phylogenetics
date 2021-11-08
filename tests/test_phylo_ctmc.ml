@@ -15,13 +15,13 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   let felsenstein_result = F.felsenstein () tree align in
   let ctmc_result =
     let tree = Phylogenetic_tree.to_tree tree in
-    let transition_matrix l = (M.transition_probability_matrix () l :> Linear_algebra.Lacaml.mat) in
-    let root_frequencies = (M.stationary_distribution () :> Linear_algebra.Lacaml.vec) in
+    let transition_matrix l = (M.transition_probability_matrix () l :> Linear_algebra.mat) in
+    let root_frequencies = (M.stationary_distribution () :> Linear_algebra.vec) in
     Array.init (Align.length align) ~f:(fun i ->
         let leaf_state (_, index) = Align.get_base align ~seq:index ~pos:i |> Nucleotide.to_int in
         CTMC.pruning tree ~nstates:Nucleotide.card ~transition_matrix ~leaf_state ~root_frequencies
       )
-    |> Owl.Stats.sum
+    |> Utils.array_sum
   in
   Test_utils.check_likelihood felsenstein_result ctmc_result
 

@@ -142,145 +142,6 @@ module type S = sig
   module Matrix : Matrix with type t = mat and type vec := vec
 end
 
-module Owl_implementation = struct
-  module M = Owl.Mat
-
-  type vec = M.mat
-  type mat = M.mat
-
-  module Matrix = struct
-    type t = mat
-    let dim = M.shape
-    let init size ~f = M.init_2d size size f
-
-    let init_sym size ~f =
-      let r = init size ~f:(fun _ _ -> 0.) in
-      for i = 0 to size - 1 do
-        M.set r i i (f i i) ;
-        for j = i + 1 to size - 1 do
-          let r_ij = f i j in
-          M.set r i j r_ij ;
-          M.set r j i r_ij
-        done
-      done ;
-      r
-
-    let diagm v = M.diagm v
-    let dot a b = M.dot a b
-
-    let row mat r = M.transpose (M.row mat r)
-
-    let inplace_scal_mul f a = M.scalar_mul_ f a
-
-    let scal_mul f a = M.scalar_mul f a
-
-    let add a b = M.add a b
-    let mul = M.mul
-    let expm a = Owl.Linalg.D.expm a
-
-    let log m = M.log m
-
-    let max = M.max'
-
-    let robust_equal ~tol:p m1 m2 =
-      let diff = M.abs (add m1 (scal_mul (-1.) m2)) in (* substract two matrices *)
-      max diff <= p
-
-    let get m i j = M.get m i j
-    let set m i j x = M.set m i j x
-
-    let inverse m = M.inv m
-
-    let apply m v = M.dot m v
-
-    let pow x k =
-      let m, n = M.shape x in
-      if m <> n then invalid_arg "non-square matrix" ;
-      if k < 0 then invalid_arg "negative power" ;
-      let rec loop k =
-        if k = 0 then M.eye m
-        else if k mod 2 = 0 then
-          let r = loop (k / 2) in
-          M.dot r r
-        else
-          let r = loop ((k - 1) / 2) in
-          M.dot x (M.dot r r)
-      in
-      loop k
-
-    let transpose = M.transpose
-
-    let diagonalize m =
-      Owl_lapacke.syevr ~a:m ~jobz:'V' ~range:'A' ~vl:0. ~vu:0. ~il:0 ~iu:0 ~abstol:1e-6 ~uplo:'U'
-
-    let%test "Owl Matrix.diagonalize" =
-      let m = init 13 ~f:(fun i j ->
-          float i +. float j
-        )
-      in
-      let vp, p = diagonalize m in
-      robust_equal
-        ~tol:1e-6
-        (dot p (dot (diagm vp) (transpose p)))
-        m
-
-    let zero_eigen_vector m =
-      let n =
-        let (m, n) = M.shape m in
-        if m <> n then invalid_arg "Expected square matrix" else n
-      in
-      let a = M.(transpose (m :> mat) @= ones 1 n)
-      and b = M.init_2d (n + 1) 1 (fun i _ -> if i < n then 0. else 1.) in
-      Owl.Linalg.D.linsolve a b
-
-    let of_arrays xs =
-      let m = Array.length xs in
-      if Array.for_all (fun row -> Array.length row = m) xs then
-        Some (Owl.Mat.of_arrays xs)
-      else None
-
-    let of_arrays_exn xs =
-      match of_arrays xs with
-      | Some m -> m
-      | None -> failwith "Arrays do not represent a matrix"
-
-    let pp = Owl_pretty.pp_dsnda
-  end
-
-  module Vector = struct
-    type t = vec
-    let length x =
-      match Owl.Arr.shape x with
-      | [| n ; 1 |] -> n
-      | _ -> assert false
-    let init size ~f = M.init_2d size 1 (fun i _ -> f i)
-    let map v ~f = M.map f v
-    let scal_add = M.scalar_add
-    let scal_mul = M.scalar_mul
-    let inplace_scal_mul x y = M.scalar_mul_ x y
-    let add v1 v2 = M.add v1 v2
-    let mul v1 v2 = M.mul v1 v2
-    let sum v = M.sum' v
-    let log v = M.log v
-    let exp v = M.exp v
-    let min v = M.min' v
-    let max v = M.max' v
-    let get v i = M.get v i 0
-    let set v i x = M.set v i 0 x
-    let pp = Owl_pretty.pp_dsnda
-    let of_array xs = init (Array.length xs) ~f:(fun i -> xs.(i))
-    let to_array v = M.to_array v
-
-    let robust_equal ~tol:p m1 m2 =
-      let diff = M.abs (M.sub m1 m2) in (* substract two matrices *)
-      max diff <= p
-
-    let%test "Linear_algebra.Vec.{to,of}_array" =
-      let xs = [| 1. ; 2. ; 3. |] in
-      to_array (of_array xs) = xs
-  end
-end
-
 module Lacaml = struct
   open Lacaml.D
 
@@ -438,6 +299,9 @@ module Lacaml = struct
       let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j)) in
       robust_equal ~tol:1e-6 (pow m 13) (naive_pow m 13)
 
+    let log_2 = Float.log 2.
+    let log2 x = Float.log x /. log_2
+
     let expm x =
       let m = Mat.dim1 x in
       let n = Mat.dim2 x in
@@ -483,7 +347,7 @@ module Lacaml = struct
         )
         (* for larger norm, Padé-13 approximation *)
         else (
-          let s = Owl_maths.log2 (norm_x /. 5.4) in
+          let s = log2 (norm_x /. 5.4) in
           let t = ceil s in
           let x = if s > 0. then scal_mul (2. ** (-. t)) x else x in
 
@@ -540,24 +404,7 @@ module Lacaml = struct
       let c = 0.4 in
       let m = Mat.make 1 1 c in
       robust_equal ~tol:1e-6 (expm m) (Mat.make 1 1 (Float.exp c))
-
-    let use_owl_matrix_fun m f =
-        Mat.to_array m
-        |> Owl.Mat.of_arrays
-        |> f
-        |> Owl.Mat.to_arrays
-        |> Mat.of_array
-
-    let%test "lacaml expm small norm" =
-      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j) /. 10.) in
-      let owl_expm = use_owl_matrix_fun m Owl.Linalg.D.expm in
-      robust_equal ~tol:1e-6 (expm m) owl_expm
-
-    let%test "lacaml expm large norm" =
-      let m = Linear_algebra_tools.Lacaml.Mat.init 5 ~f:(fun i j -> float (i + j) /. 2.) in
-      let owl_expm = use_owl_matrix_fun m Owl.Linalg.D.expm in
-      robust_equal ~tol:1e-6 (expm m) owl_expm
   end
 end
 
-module Owl = Owl_implementation
+include Lacaml

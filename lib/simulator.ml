@@ -60,7 +60,7 @@ struct
   let branch_gillespie_direct rng ~start_state ~rate_matrix ~branch_length ~init ~f =
     let rec loop state remaining_time acc =
       let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
-      let total_rate = Owl.Stats.sum (rates :> float array) in
+      let total_rate = Utils.array_sum (rates :> float array) in
       let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
       if Float.(tau > remaining_time) then acc
       else
@@ -85,7 +85,7 @@ struct
         let n = Array.length state in
         let rate i = rate_vector b state i in
         let rates = Array.init n ~f:rate in
-        let pos_rate i = Owl.Stats.sum (rates.(i) : float A.table :> float array) in
+        let pos_rate i = Utils.array_sum (rates.(i) : float A.table :> float array) in
         let pos_rates = Discrete_pd.init n ~f:pos_rate in
         let rec loop remaining_time =
           let total_rate = Discrete_pd.total_weight pos_rates in

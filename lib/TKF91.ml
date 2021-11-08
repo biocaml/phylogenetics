@@ -42,7 +42,7 @@ struct
         Bytes.set ali.(row) col (char_of_state state)
       ) ;
     Array.map ali ~f:Bytes.to_string
-      
+
   let index_leaves tree =
     let open Tree in
     let rec node state = function
@@ -66,7 +66,7 @@ struct
 
     let simulation_step remaining_time state ~insertion ~deletion ~substitution ~rate_matrix ~rates_upon_insertion ~branch_end =
       let substitution_rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
-      let total_substitution_rate = Owl.Stats.sum (substitution_rates :> float array) in
+      let total_substitution_rate = Utils.array_sum (substitution_rates :> float array) in
       let total_rate = total_substitution_rate +. lambda +. mu in
       let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
       let remaining_time = Float.(remaining_time - tau) in

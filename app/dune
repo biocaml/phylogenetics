@@ -11,13 +11,6 @@
  (libraries alcotest phylogenetics_test)
  (preprocess (pps ppx_jane)))
 
-(executable
- (name bench_app)
- (modules bench_app)
- (optional)
- (libraries phylogenetics core_bench)
- (preprocess (pps ppx_jane)))
-
 (rule
  (alias runtest)
  (action (run ./test_app.exe))
