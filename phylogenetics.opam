@@ -12,11 +12,10 @@ depends: [
   "angstrom-unix"
   "biocaml" {>= "0.8.0"}
   "core" {>= "v0.14.0"}
-  "dune" {>= "1.11"}
+  "dune" {>= "2.7.0"}
   "gsl"
   "lacaml" {>= "10.0.2"}
   "menhir"
-  "ocaml-r" {>= "0.2.0"}
   "ppx_deriving"
   "printbox"
 ]
