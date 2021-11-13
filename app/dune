@@ -13,5 +13,10 @@
 
 (rule
  (alias runtest)
+ (action (run ./test_app.exe -q))
+ (deps ../tests/data/tiny1.fasta))
+
+(rule
+ (alias fulltest)
  (action (run ./test_app.exe))
  (deps ../tests/data/tiny1.fasta))
