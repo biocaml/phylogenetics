@@ -11,7 +11,7 @@ type 'a model = (module Site_evolution_model.Nucleotide_S_with_reduction with ty
 type test_case = Test_case : {
     model : 'a model ;
     param : 'a ;
-    bpp_spec : Bpp_model.t ;
+    bpp_spec : Bppsuite.model ;
   } -> test_case
 
 (** {6 Preliminary functions} *)
@@ -30,7 +30,7 @@ let test_felsenstein ?(treesize=5) ?(seqsize=5) (Test_case c) () =
     Phylogenetic_tree.to_newick_file tree "tmp.tree" ; (* TODO unique file name *)
     Align.to_file align "tmp.seq" ;
     try
-      Test_utils.felsenstein_bpp ~model:(Printf.sprintf "\"%s\"" (Bpp_model.to_string c.bpp_spec)) ~tree:("tmp.tree") "tmp.seq"
+      Test_utils.felsenstein_bpp ~model:c.bpp_spec ~tree:("tmp.tree") "tmp.seq"
     with
     | Failure s -> Printf.printf "\027[0;31mERROR\027[0;0m(felsenstein_bpp): %s\n" s; 0.0
   end in
@@ -41,10 +41,10 @@ let test_felsenstein ?(treesize=5) ?(seqsize=5) (Test_case c) () =
 
 let models = Site_evolution_model.[
   Test_case { model = (module JC69) ; param = () ; bpp_spec = JC69 } ;
-  Test_case { model = (module K80) ; param = 2. ; bpp_spec = K80 2. } ;
-  Test_case { model = (module K80) ; param = 0.5 ; bpp_spec = K80 0.5 } ;
+  Test_case { model = (module K80) ; param = 2. ; bpp_spec = K80 { kappa = Some 2. } } ;
+  Test_case { model = (module K80) ; param = 0.5 ; bpp_spec = K80 { kappa = Some 0.5 } } ;
   Test_case { model = (module JC69_numerical) ; param = () ; bpp_spec = JC69 } ;
-  Test_case { model = (module K80_numerical) ; param = 4. ; bpp_spec = K80 4. } ;
+  Test_case { model = (module K80_numerical) ; param = 4. ; bpp_spec = K80 { kappa = Some 4. } } ;
 ]
 
 let tree_sizes = [10 ; 250]
@@ -54,6 +54,6 @@ let tests =
   List.cartesian_product tree_sizes seq_sizes
   |> List.cartesian_product models
   |> List.map ~f:(fun ((Test_case tc as test_case), (treesize, seqsize)) ->
-      (Printf.sprintf "Biocaml vs bppml\t%s\ttreesize=%d\tseqsize=%d" (Bpp_model.to_string tc.bpp_spec) treesize seqsize,
+      (Printf.sprintf "test against bppml\t%s\ttreesize=%d\tseqsize=%d" (Bppsuite.string_of_model tc.bpp_spec) treesize seqsize,
        `Slow, test_felsenstein ~treesize ~seqsize test_case)
     )

@@ -1,6 +1,7 @@
 open Core_kernel
 open Alcotest
 open Phylogenetics.Stat_tools
+module Bppsuite = Phylogenetics.Bppsuite
 
 let eps = 0.1
 
@@ -38,18 +39,15 @@ let fail_file ?(path="tmp.data") message =
     message (In_channel.read_all path) |> prerr_endline; Out_channel.flush stdout;
   failwith message
 
-let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
-  let script = Printf.sprintf
-      "bppml \
-       input.tree.file=%s/%s \
-       input.sequence.file=%s/%s \
-       alphabet=%s \
-       model=%s \
-       output.tree.file=tmp.tree \
-       optimization=None \
-       > tmp.data 2>&1"
-      path tree path seq alphabet model
+let felsenstein_bpp ?(alphabet = Bppsuite.DNA) ?(model = Bppsuite.JC69) ?(path=".") ~tree seq =
+  let call =
+    Bppsuite.Cmd.bppml
+      ~alphabet ~model
+      ~input_tree_file:(Filename.concat path tree)
+      ~input_sequence_file:(Filename.concat path seq)
+      ()
   in
+  let script = sprintf "%s > tmp.data 2>&1" call in
   match
     if Sys.command script <> 0 then fail_file "bppml failed" ;
     In_channel.read_lines "tmp.data"
@@ -60,16 +58,15 @@ let felsenstein_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree seq =
   | _ ->
     fail_file "unexpected bppml output"
 
-let seqgen_bpp ?(alphabet="DNA") ?(model="JC69") ?(path=".") ~tree output size =
-  let script = Printf.sprintf
-      "bppseqgen \
-       input.tree.file=%s/%s \
-       output.sequence.file=%s/%s \
-       alphabet=%s \
-       model=%s \
-       number_of_sites=%d \
-       > tmp.data 2>&1"
-      path tree path output alphabet model size
-  in match Sys.command script with
+let seqgen_bpp ?(alphabet = Bppsuite.DNA) ?(model = Bppsuite.JC69) ?(path=".") ~tree output size =
+  let call =
+    Bppsuite.Cmd.bppseqgen
+      ~alphabet ~model
+      ~input_tree_file:(Filename.concat path tree)
+      ~output_sequence_file:(Filename.concat path output)
+      ~number_of_sites:size
+  in
+  let script = sprintf "%s > tmp.data 2>&1" call in
+  match Sys.command script with
   | 0 -> ()
   | _ -> fail_file "bppseqgen failed"
