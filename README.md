@@ -1,19 +1,28 @@
-# README #
+# Phylogenetics
 
-Currently implemented:
-* topology tree data structure w/ branch length and indexes at leaves
-    * parser from post-order enumeration
-    * newick parser
-* data structures for bases, sequences and sequence tables;
-    * hashtable implem for alignments (+ legacy list implem)
-    * list implem for sequences
-* linear algebra functions (half wrappers around lacaml functions and half new functions);
-* evolution models (w/ static distribution and transition matrix diagonalization):
-    * JC69
-    * K80
-    * model generation from transition matrix (poor performance so far)
-* felsenstein pruning w/ underflow avoidance
-* sequence generation from model
-* distribution plotting using gnuplot
-* tests that compare results to bio++
-    * interface for bppml and bppseqgen for validating test results
+This library provides algorithms and datastructures to perform
+inferences in molecular evolution. It features:
+- typed representation of DNA/amino-acid/codon alphabets
+- rate matrices and probability transition matrices for various
+  evolution models (JC69, K80, GTR, Mutsel)
+- site-independent Gillespie simulators
+- a simulator for gapped alignments under the TKF91 model
+- a tree simulator under the birth-death model
+- parsers for Newick, NHX and phylip formats
+- a GSL-based implementation of the pruning algorithm, with underflow
+  avoidance
+
+## Installation
+
+Using [opam](http://opam.ocaml.org/), simply type
+
+```
+opam install phylogenetics
+```
+
+to install the library, or:
+
+```
+opam pin add -y phylogenetics --dev-repo
+```
+to get the current development version.
