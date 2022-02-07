@@ -26,6 +26,10 @@ module type S = sig
     include Linear_algebra.Vector with type t = vector
     val init : (symbol -> float) -> vector
     val map : vector -> f:(float -> float) -> vector
+    val mapi : vector -> f:(symbol -> float -> float) -> vector
+    val map2 : vector -> vector -> f:(float -> float -> float) -> vector
+    val fold : vector -> init:'a -> f:('a -> float -> 'a) -> 'a
+    val foldi : vector -> init:'a -> f:(symbol -> 'a -> float -> 'a) -> 'a
     val iteri : vector -> f:(symbol -> float -> unit) -> unit
     val sum : vector -> float
     val normalize : vector -> vector
@@ -123,6 +127,20 @@ module Make(X : sig val card : int end) = struct
       then a
       else
         invalid_argf "vector_of_arr_exn: argument has shape %d" n ()
+
+    let map2 x y ~f =
+      init (fun i -> f (get x i ) (get y i))
+
+    let mapi x ~f =
+      init (fun i -> f i (get x i))
+
+    let foldi (x:t) ~init ~f =
+      let rec loop x i acc ~f =
+        if i = card then acc else loop x (i+1) (f i acc (get x i)) ~f
+      in loop x 0 init ~f
+
+    let fold (x:t) ~init ~f =
+      foldi x ~init ~f:(fun _ acc x -> f acc x)
   end
 
   let flat_profile () =
