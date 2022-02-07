@@ -70,8 +70,10 @@ let from_fasta fn =
 let to_fasta ({sequences ; descriptions}) fn =
   Out_channel.with_file fn ~f:(fun oc ->
       Array.iter2_exn descriptions sequences ~f:(fun desc seq ->
-          Out_channel.output_lines oc [desc ; seq]
-        )
+          Out_channel.output_lines oc [
+            sprintf ">%s" desc ;
+            seq;
+          ])
     )
 
 let find_sequence t id =
