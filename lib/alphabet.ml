@@ -16,10 +16,15 @@ module type S = sig
     val get : 'a table -> t -> 'a
     val set : 'a table -> t -> 'a -> unit
     val map : 'a table -> f:('a -> 'b) -> 'b table
+    val map2 : 'a table -> 'a table -> f:('a -> 'a -> 'b) -> 'b table
+    val mapi : 'a table -> f:(t -> 'a -> 'b) -> 'b table
     val of_array_exn : 'a array -> 'a table
     val of_vector : vector -> float table
     val choose : float table -> rng:Gsl.Rng.t -> t
     val fold : 'a table -> init:'b -> f:('b -> 'a -> 'b) -> 'b
+    val foldi : 'a table -> init:'b -> f:(t -> 'b -> 'a -> 'b) -> 'b
+    val count : 'a table -> f:('a -> bool) -> int
+    val counti : 'a table -> f:(t -> 'a -> bool) -> int
   end
   module Vector : sig
     type symbol = t
@@ -91,6 +96,8 @@ module Make(X : sig val card : int end) = struct
     let get xs a = xs.(a)
     let set xs a v = xs.(a) <- v
     let map = Array.map
+    let map2 = Array.map2_exn
+    let mapi = Array.mapi
     let of_array_exn a =
       if Array.length a <> card then raise (Invalid_argument "vector_of_array_exn")
       else a
@@ -101,6 +108,9 @@ module Make(X : sig val card : int end) = struct
       Gsl.Randist.(discrete_preproc xs |> discrete rng)
 
     let fold = Array.fold
+    let foldi = Array.foldi
+    let count = Array.count
+    let counti = Array.counti
   end
   module Vector = struct
     type symbol = t
