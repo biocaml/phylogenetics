@@ -12,6 +12,7 @@ type param = {
   omega : float ; (* dN/dS *)
   scaled_fitness : Amino_acid.vector ;
   gBGC : float ;
+  pps : float ; (* persistent positive selection intensity Z as in Tamuri & dos Reis 2021 *)
 }
 
 val random_param :

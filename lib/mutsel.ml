@@ -12,6 +12,7 @@ type param = {
   omega : float ; (* dN/dS *)
   scaled_fitness : Amino_acid.vector ;
   gBGC : float ;
+  pps : float ; (* persistent positive selection intensity Z as in Tamuri & dos Reis 2021 *)
 }
 
 let fitness_of_profile ?(beta = 1.) =
@@ -33,6 +34,7 @@ let random_param rng ~alpha_nucleotide ~alpha_fitness =
       Amino_acid.random_profile rng alpha_fitness
       |> fitness_of_profile ;
     gBGC = 0. ;
+    pps = 0. ;
   }
 
 let flat_param () =
@@ -45,6 +47,7 @@ let flat_param () =
     omega = 1. ;
     scaled_fitness = flat_fitness () ;
     gBGC = 0. ;
+    pps = 0. ;
   }
 
 
@@ -55,7 +58,7 @@ let fixation_probability delta =
   else if delta < - 50. then 0.
   else delta / (1. - exp (- delta))
 
-let rate_matrix { nucleotide_rates ; omega ; scaled_fitness = _F_ ; gBGC ; _ } =
+let rate_matrix { nucleotide_rates ; omega ; scaled_fitness = _F_ ; gBGC ; pps ; _ } =
   let nuc_rates = (nucleotide_rates :> Nucleotide.matrix) in
   NSCodon_rate_matrix.make (fun p q ->
       match NSCodon.neighbours p q with
@@ -71,7 +74,7 @@ let rate_matrix { nucleotide_rates ; omega ; scaled_fitness = _F_ ; gBGC ; _ } =
           else
             let aa_p = NSCodon.aa_of_codon p in
             let aa_q = NSCodon.aa_of_codon q in
-            _F_.Amino_acid.%(aa_q) -. _F_.Amino_acid.%(aa_p)
+            _F_.Amino_acid.%(aa_q) -. _F_.Amino_acid.%(aa_p) +. pps
         in
         let p_fix = fixation_probability selection_coefficient in
         let q_ab = nuc_rates.Nucleotide.%{x_a, x_b} in
