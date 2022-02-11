@@ -15,6 +15,7 @@ type param = {
 }
 
 val random_param :
+  ?nuc_model:[< `GTR | `HKY85 > `GTR ]->
   Gsl.Rng.t ->
   alpha_nucleotide:float ->
   alpha_fitness:float ->

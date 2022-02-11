@@ -21,10 +21,18 @@ let flat_fitness () =
   Amino_acid.Vector.init (fun _ -> 1. /. float Amino_acid.card)
   |> fitness_of_profile
 
-let random_param rng ~alpha_nucleotide ~alpha_fitness =
+let random_param ?(nuc_model=`GTR) rng ~alpha_nucleotide ~alpha_fitness =
   let pi = Nucleotide.random_profile rng alpha_nucleotide in
-  let rho = Utils.random_profile rng 6 in
-  let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
+  let nucleotide_rates = match nuc_model with
+    | `GTR ->
+      let rho = Utils.random_profile rng 6 in
+      Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho
+    | `HKY85 ->
+      let rho = Utils.random_profile rng 6 in
+      Nucleotide_rates.hky85 ~equilibrium_frequencies:pi
+        ~alpha_transition:(Linear_algebra.Vector.get rho 0)
+        ~beta_transversion:(Linear_algebra.Vector.get rho 1)
+  in
   {
     nucleotide_rates ;
     nucleotide_stat_dist = pi ;
