@@ -138,6 +138,30 @@ module Nucleotide = struct
         else if Nucleotide.transversion i j then 1. /. (kappa +. 2.)
         else kappa /. (kappa +. 2.)
       )
+
+  let hky85 ~equilibrium_frequencies:(stationary_distribution : Nucleotide.vector)
+      ~alpha_transition ~beta_transversion =
+    let m = make (fun i j ->
+        let coef = if Nucleotide.equal i j
+          then -1.
+          else if Nucleotide.transversion i j
+          then beta_transversion
+          else alpha_transition
+        in
+        coef *. stationary_distribution.Nucleotide.%(j)
+      ) in
+    scaled_rate_matrix stationary_distribution m
+
+  let%test "HKY85 stationary distribution" =
+    let rng = Utils.rng_of_int 420 in
+    let pi = Nucleotide.random_profile rng 10. in
+    let rate_params = Utils.random_profile rng 2 in
+    let hky_rates = hky85 ~equilibrium_frequencies:pi
+        ~alpha_transition:(Linear_algebra.Vector.get rate_params 0)
+        ~beta_transversion:(Linear_algebra.Vector.get rate_params 1)
+    in
+    let pi' = stationary_distribution hky_rates in
+    Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
 end
 
 module Amino_acid = struct

@@ -49,6 +49,11 @@ module Make(A : Alphabet.S_int) : S with type symbol := A.t
 module Nucleotide : sig
   include module type of Make(Nucleotide)
   val k80 : float -> t
+  val hky85 :
+    equilibrium_frequencies:Nucleotide.vector ->
+    alpha_transition:float ->
+    beta_transversion:float ->
+    t
 end
 
 module Amino_acid : sig
