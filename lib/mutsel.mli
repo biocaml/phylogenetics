@@ -14,11 +14,23 @@ type param = {
   gBGC : float ;
 }
 
-val random_param :
-  ?nuc_model:[< `GTR | `HKY85 > `GTR ]->
+val random_fitness_param :
   Gsl.Rng.t ->
-  alpha_nucleotide:float ->
+  nucleotide_rates:Nucleotide.matrix ->
+  nucleotide_stat_dist:Nucleotide.vector ->
   alpha_fitness:float ->
+  param
+
+val random_gtr_param :
+  Gsl.Rng.t ->
+  alpha_nucleotide: float ->
+  alpha_fitness: float ->
+  param
+
+val random_hky_param :
+  Gsl.Rng.t ->
+  alpha_nucleotide: float ->
+  alpha_fitness: float ->
   param
 
 val flat_param : unit -> param
