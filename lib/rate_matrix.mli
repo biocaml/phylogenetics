@@ -54,6 +54,18 @@ module Nucleotide : sig
     transition_rate:float ->
     transversion_rate:float ->
     t
+
+  module Random : sig
+    val hky85 : Gsl.Rng.t -> alpha:float -> t
+    (** [hky85 rng ~alpha] uses [alpha] as Dirichlet parameter to
+       sample a stationary profile, and draws transversion/transition
+       rates from a Gamma(1, 1) *)
+
+    val gtr : Gsl.Rng.t -> alpha:float -> t
+    (** [gtr rng alpha] uses [alpha] as Dirichlet parameter to sample
+       a stationary profile, and draws exchangeabilities from a
+       Gamma(1, 1) *)
+  end
 end
 
 module Amino_acid : sig

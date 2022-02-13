@@ -162,6 +162,19 @@ module Nucleotide = struct
     in
     let pi' = stationary_distribution hky_rates in
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
+
+  module Random = struct
+    let gtr rng ~alpha =
+      let pi = Nucleotide.random_profile rng alpha in
+      let rho = Vector.init 6 ~f:(fun _ -> Gsl.Randist.gamma rng ~a:1. ~b:1.) in
+      gtr ~equilibrium_frequencies:pi ~transition_rates:rho
+
+    let hky85 rng ~alpha =
+      let pi = Nucleotide.random_profile rng alpha in
+      let transition_rate = Gsl.Randist.gamma rng ~a:1. ~b:1. in
+      let transversion_rate = Gsl.Randist.gamma rng ~a:1. ~b:1. in
+      hky85 ~equilibrium_frequencies:pi ~transition_rate ~transversion_rate
+  end
 end
 
 module Amino_acid = struct
