@@ -1,11 +1,11 @@
 (** Continuous Time Markov Chain rate matrix
 
     A rate matrix is the
-   {{:https://en.wikipedia.org/wiki/Infinitesimal_generator_(stochastic_processes)}infinitesimal
-   generator} for a discrete-space continuous time markov process. It
-   is basically a matrix such that all off-diagonal elements are
-   positive and each diagonal element is minus the sum of all other
-   elements in the row.  *)
+    {{:https://en.wikipedia.org/wiki/Infinitesimal_generator_(stochastic_processes)}infinitesimal
+    generator} for a discrete-space continuous time markov process. It
+    is basically a matrix such that all off-diagonal elements are
+    positive and each diagonal element is minus the sum of all other
+    elements in the row.  *)
 
 
 module type S = sig
@@ -29,13 +29,13 @@ module type S = sig
 
   val stationary_distribution : t -> vector
   (** [stationary_distribution r] numerically computes the asymptotic
-     probability distribution [pi] of the CTMC defined by [r]. *)
+      probability distribution [pi] of the CTMC defined by [r]. *)
 
   val scaled_rate_matrix : vector -> t -> t
   (** [scaled_rate_matrix pi r] is a new matrix rate such that the
-     corresponding CTMC has one expected transition per unit of
-     time. In addition, if [r] is symetrical, the result has [pi] as
-     stationary distribution. *)
+      corresponding CTMC has one expected transition per unit of
+      time. In addition, if [r] is symetrical, the result has [pi] as
+      stationary distribution. *)
 
   val scale : t -> t
   (** rescale matrix such that the sum of off-diagonal elements is 1. *)
@@ -49,6 +49,11 @@ module Make(A : Alphabet.S_int) : S with type symbol := A.t
 module Nucleotide : sig
   include module type of Make(Nucleotide)
   val k80 : float -> t
+  val hky85 :
+    equilibrium_frequencies:Nucleotide.vector ->
+    transition_rate:float ->
+    transversion_rate:float ->
+    t
 end
 
 module Amino_acid : sig
