@@ -156,10 +156,9 @@ module Nucleotide = struct
   let%test "HKY85 stationary distribution" =
     let rng = Utils.rng_of_int 420 in
     let pi = Nucleotide.random_profile rng 10. in
-    let rate_params = Utils.random_profile rng 2 in
-    let hky_rates = hky85 ~equilibrium_frequencies:pi
-        ~transition_rate:(Linear_algebra.Vector.get rate_params 0)
-        ~transversion_rate:(Linear_algebra.Vector.get rate_params 1)
+    let transition_rate = Gsl.Rng.uniform rng
+    and transversion_rate = Gsl.Rng.uniform rng in
+    let hky_rates = hky85 ~equilibrium_frequencies:pi ~transition_rate ~transversion_rate
     in
     let pi' = stationary_distribution hky_rates in
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
