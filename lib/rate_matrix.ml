@@ -39,16 +39,16 @@ module Make(A : Alphabet.S_int) = struct
   let make f =
     let r = A.Matrix.init (fun _ _ -> 0.) in
     List.iter A.all ~f:(fun i->
-      let total = ref 0. in
-      List.iter A.all ~f:(fun j ->
-          if not (A.equal i j) then (
-            let r_ij = f i j in
-            if Float.(r_ij < 0.) then (failwith "Rates should be positive") ;
-            total := r_ij +. !total ;
-            A.(r.%{i, j} <- r_ij)
-          )
-        ) ;
-      A.(r.%{i, i} <- -. !total)
+        let total = ref 0. in
+        List.iter A.all ~f:(fun j ->
+            if not (A.equal i j) then (
+              let r_ij = f i j in
+              if Float.(r_ij < 0.) then (failwith "Rates should be positive") ;
+              total := r_ij +. !total ;
+              A.(r.%{i, j} <- r_ij)
+            )
+          ) ;
+        A.(r.%{i, i} <- -. !total)
       ) ;
     r
 
@@ -123,10 +123,10 @@ let make n ~f =
 
 let transition_probability_matrix ~tau ~rates =
   Matrix.((
-    (of_arrays_exn rates
-     |> scal_mul tau
-     |> expm) :> Lacaml.D.mat)
-  )
+      (of_arrays_exn rates
+       |> scal_mul tau
+       |> expm) :> Lacaml.D.mat)
+    )
   |> Lacaml.D.Mat.to_array
 
 module Nucleotide = struct
@@ -139,14 +139,15 @@ module Nucleotide = struct
         else kappa /. (kappa +. 2.)
       )
 
-  let hky85 ~equilibrium_frequencies:(stationary_distribution : Nucleotide.vector)
-      ~alpha_transition ~beta_transversion =
+  let hky85
+      ~equilibrium_frequencies:(stationary_distribution : Nucleotide.vector)
+      ~transition_rate ~transversion_rate =
     let m = make (fun i j ->
         let coef = if Nucleotide.equal i j
           then -1.
           else if Nucleotide.transversion i j
-          then beta_transversion
-          else alpha_transition
+          then transversion_rate
+          else transition_rate
         in
         coef *. stationary_distribution.Nucleotide.%(j)
       ) in
@@ -157,8 +158,8 @@ module Nucleotide = struct
     let pi = Nucleotide.random_profile rng 10. in
     let rate_params = Utils.random_profile rng 2 in
     let hky_rates = hky85 ~equilibrium_frequencies:pi
-        ~alpha_transition:(Linear_algebra.Vector.get rate_params 0)
-        ~beta_transversion:(Linear_algebra.Vector.get rate_params 1)
+        ~transition_rate:(Linear_algebra.Vector.get rate_params 0)
+        ~transversion_rate:(Linear_algebra.Vector.get rate_params 1)
     in
     let pi' = stationary_distribution hky_rates in
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
