@@ -67,6 +67,11 @@ let from_fasta fn =
   in
   parsing >>| snd >>= of_fasta_items
 
+let from_fasta_exn fn =
+  match from_fasta fn with
+  | Ok al -> al
+  | Error e -> failwith (show_parsing_error e)
+
 let to_fasta ({sequences ; descriptions}) fn =
   Out_channel.with_file fn ~f:(fun oc ->
       Array.iter2_exn descriptions sequences ~f:(fun desc seq ->

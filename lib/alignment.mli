@@ -51,6 +51,9 @@ val from_fasta :
   string ->
   (t, [> parsing_error]) result
 
+val from_fasta_exn : string -> t
+(** Same as {! from_fasta} but raises [Failure] if some error happens *)
+
 val to_fasta : t -> string -> unit
 
 val indel_free_columns : t -> bool array
