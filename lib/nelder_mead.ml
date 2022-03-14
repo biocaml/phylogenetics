@@ -95,7 +95,8 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
       printf "Sigma: %f\n" sigma ;
       printf "Values: %s\n" (Utils.show_float_array (Array.init (n + 1) ~f:(fun i -> obj.(ranks.(i)))))
     ) ;
-    if Float.(sigma < tol) || i >= maxit then obj.(ranks.(0)), points.(ranks.(0))
+    if Float.(sigma < tol) || i >= maxit
+    then obj.(ranks.(0)), points.(ranks.(0)), i
     else loop (i + 1)
   in
   loop 0
@@ -103,14 +104,14 @@ let minimize ?(tol = 1e-8) ?(maxit = 100_000) ?(debug = false) ~f ~sample () =
 let%test "Parabola" =
   let f x = x.(0) ** 2. in
   let sample () = [| Random.float 200. -. 100. |] in
-  let obj, _ = minimize ~f ~tol:1e-3 ~sample () in
+  let obj, _, _ = minimize ~f ~tol:1e-3 ~sample () in
   Float.(abs obj < 1e-3)
 
 let%test "Rosenbrock" =
   let f x = 100. *. (x.(1) -. x.(0) ** 2.) ** 2. +. (1. -. x.(0)) ** 2. in
   let rfloat _ = Random.float 200. -. 100. in
   let sample () = Array.init 2 ~f:rfloat in
-  let obj, _ = minimize ~f ~sample () in
+  let obj, _, _ = minimize ~f ~sample () in
   Float.(abs obj < 1e-3)
 
 let%test "Powell quartic" =
@@ -121,6 +122,6 @@ let%test "Powell quartic" =
   in
   let rfloat _ = Random.float 200. -. 100. in
   let sample () = Array.init 4 ~f:rfloat in
-  let obj, _ = minimize ~f ~sample () in
+  let obj, _, _ = minimize ~f ~sample () in
   Float.(abs obj < 1e-3)
 
