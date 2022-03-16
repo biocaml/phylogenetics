@@ -1,3 +1,12 @@
+v0.1.0 2021-11-09 Villeurbanne
+------------------------------
+
+- new Nucleotide_process module, implementing classical nucleotide
+  evolution models
+- Mutsel: added persistent positive selection
+- Rate_matrix: added HKY85 model
+- Alphabet, Alignment: a few more functions
+
 v0.0.0 2021-11-09 Villeurbanne
 ------------------------------
 
