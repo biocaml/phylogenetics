@@ -1,10 +1,3 @@
-(**
-   Implements method as described in https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
-   some tests from original publication:
-
-     A simplex method for function minimization
-     J. A. Nelder and R. Mead
-*)
 open Core_kernel
 
 let centroid xs =
@@ -124,4 +117,3 @@ let%test "Powell quartic" =
   let sample () = Array.init 4 ~f:rfloat in
   let obj, _, _ = minimize ~f ~sample () in
   Float.(abs obj < 1e-3)
-
