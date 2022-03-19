@@ -1,4 +1,4 @@
-(lang dune 2.0)
+(lang dune 2.7)
 (using menhir 2.0)
 (generate_opam_files true)
 
@@ -22,7 +22,7 @@
     angstrom-unix
     (biocaml (>= 0.8.0))
     (core (>= v0.14.0))
-    (dune (>= 2.7.0))
+    dune
     gsl
     (lacaml (>= 10.0.2))
     menhir

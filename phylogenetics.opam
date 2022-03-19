@@ -12,15 +12,16 @@ depends: [
   "angstrom-unix"
   "biocaml" {>= "0.8.0"}
   "core" {>= "v0.14.0"}
-  "dune" {>= "2.7.0"}
+  "dune" {>= "2.7"}
   "gsl"
   "lacaml" {>= "10.0.2"}
   "menhir"
   "ppx_deriving"
   "printbox" {< "0.6"}
+  "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
