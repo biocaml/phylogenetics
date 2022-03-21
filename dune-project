@@ -27,4 +27,5 @@
     (lacaml (>= 10.0.2))
     menhir
     ppx_deriving
-    (printbox (< 0.6))))
+    (printbox (>= 0.6.1))
+    printbox-text))

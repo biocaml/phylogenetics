@@ -2,7 +2,7 @@
  (name phylogenetics)
  (public_name phylogenetics)
  (inline_tests)
- (libraries angstrom.unix biocaml.ez core_kernel gsl lacaml menhirLib printbox)
+ (libraries angstrom.unix biocaml.ez core_kernel gsl lacaml menhirLib printbox printbox-text)
  (preprocess (pps ppx_deriving.show ppx_inline_test ppx_jane -allow-unannotated-ignores)))
 
 (menhir
