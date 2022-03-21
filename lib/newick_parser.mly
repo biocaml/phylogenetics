@@ -1,6 +1,5 @@
 %{
     (* http://evolution.genetics.washington.edu/phylip/newicktree.html *)
-    open Newick_ast
     let list_of_opt = Base.Option.value ~default:[]
 %}
 
@@ -13,27 +12,16 @@
 %type <Newick_ast.t> start
 
 %%
-start:
-  | tree SEMICOLON EOF { Tree $1 }
-  | branch_with_length SEMICOLON EOF { Branch $1 }
-;
 
-tree:
-  | name = option(STRING)
-    { Tree.leaf { name } }
-  | LPAREN branches = separated_nonempty_list(COMMA, branch) RPAREN name = option(STRING)
-    { match branches with
-      | [] -> assert false
-      | h :: t -> Tree.node { name } (List1.cons h t) }
+start: node SEMICOLON EOF {$1};
 
-branch:
-  | tip = tree length = option(length) tags = option(tags)
-    { Tree.branch { length ; tags = list_of_opt tags } tip }
-;
-
-branch_with_length:
-  | tip = tree l = length tags = option(tags)
-    { Tree.branch { length = Some l ; tags = list_of_opt tags } tip }
+node:
+  | name = option(STRING) parent_branch = option(length) tags = option(tags)
+  { Newick_ast.{name ; tags = list_of_opt tags ; parent_branch ; children = []}
+  }
+  | LPAREN children = separated_nonempty_list(COMMA, node) RPAREN name = option(STRING) parent_branch = option(length) tags = option(tags)
+  { Newick_ast.{name ; tags = list_of_opt tags ; parent_branch ; children }
+  }
 ;
 
 length:
@@ -42,11 +30,11 @@ length:
 ;
 
 tags:
-| LBRACKET NHXTAG COLON tags = separated_nonempty_list(COLON, tag) RBRACKET { tags }
+  | LBRACKET NHXTAG tags = nonempty_list(tag) RBRACKET { tags }
 ;
 
 tag:
-| key = STRING EQUAL data = STRING { (key, data) }
-| key = STRING EQUAL data = FLOAT { (key, data) }
-| key = STRING EQUAL data = INT { (key, data) }
+  | COLON key = STRING EQUAL data = STRING { (key, data) }
+  | COLON key = STRING EQUAL data = FLOAT { (key, data) }
+  | COLON key = STRING EQUAL data = INT { (key, data) }
 ;

@@ -1,13 +1,25 @@
 open Core_kernel
 open Phylogenetics
 
+let rec node_to_nhx ?(parent_branch) = function
+  | Tree.Node n -> Newick_ast.{
+      name = None ;
+      tags = [] ;
+      parent_branch ;
+      children = List1.map n.branches ~f:branch_to_nhx |> List1.to_list;
+    }
+  | Tree.Leaf l -> {
+      name = Some (sprintf "n%d" l) ;
+      tags = [] ;
+      parent_branch ;
+      children = []
+    }
+and branch_to_nhx (Branch b) =
+  node_to_nhx ~parent_branch:b.data b.tip
+
 let () =
   Birth_death.age_ntaxa_simulation (Birth_death.make ~birth_rate:2. ~death_rate:1.) Gsl.Rng.(make (default ())) ~age:5. ~ntaxa:5
-  |> Tree.map
-    ~node:(fun () -> { Newick_ast.name = None })
-    ~leaf:(fun i -> { Newick_ast.name = (Some (Printf.sprintf "n%d" i)) })
-    ~branch:(fun l -> { Newick_ast.length = Some l ; tags = [] })
-  |> (fun x -> Newick.Tree x)
+  |> node_to_nhx
   |> Newick.to_string
   |> print_endline
 
