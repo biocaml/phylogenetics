@@ -22,6 +22,8 @@
     angstrom-unix
     (biocaml (>= 0.8.0))
     (core (>= v0.14.0))
+    (core_kernel (>= v0.14.0))
+    (core_unix (>= v0.14.0))
     (dune (>= 2.7.0))
     gsl
     (lacaml (>= 10.0.2))

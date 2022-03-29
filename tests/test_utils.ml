@@ -1,6 +1,7 @@
 open Core_kernel
 open Alcotest
 open Phylogenetics.Stat_tools
+module Sys = Caml.Sys
 module Bppsuite = Phylogenetics.Bppsuite
 
 let eps = 0.1
