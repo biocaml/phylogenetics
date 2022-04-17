@@ -62,12 +62,12 @@ val map_branch2_exn :
   ('x, 'y, 'z) branch
 
 val propagate :
-  ('n, 'l, 'b) t ->
-  init:'d ->
-  node:('d -> 'n -> 'd) ->
-  leaf:('d -> 'l -> 'e) ->
-  branch:('d -> 'b -> 'd) ->
-  ('d, 'e, 'b) t
+  ('n1, 'l1, 'b1) t ->
+  init:'s ->
+  node:('s -> 'n1 -> 's * 'n2) ->
+  leaf:('s -> 'l1 -> 'l2) ->
+  branch:('s -> 'b1 -> 's * 'b2) ->
+  ('n2, 'l2, 'b2) t
 
 val prefix_traversal :
   ('n, 'l, 'b) t ->

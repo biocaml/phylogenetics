@@ -23,17 +23,26 @@ struct
   let transition_matrix rate_matrix b =
     A.Matrix.(expm (scal_mul (BI.length b) (rate_matrix b)))
 
-  let site_exponential_method rng tree ~(root : A.t) ~transition_matrix =
-    Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
-        A.Matrix.row (transition_matrix b) (n :> int)
+  let evolve tree ~f ~root =
+    Tree.propagate tree ~init:root
+      ~node:(fun x_in ni -> x_in, (ni, x_in))
+      ~leaf:(fun x_in li -> li, x_in)
+      ~branch:(fun x_in bi ->
+        let x_out = f bi x_in in
+        x_out, bi
+      )
+
+  let site_exponential_method rng tree ~root ~transition_matrix =
+    evolve tree ~root ~f:(fun bi (x_in : A.t) ->
+        A.Matrix.row (transition_matrix bi) (x_in :> int)
         |> A.Vector.to_array
         |> symbol_sample rng
       )
 
   (* Gillespie "first reaction" method *)
-  let site_gillespie_first_reaction rng tree ~(root : A.t) ~rate_matrix =
-    Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
-        let rate_matrix = rate_matrix b in
+  let site_gillespie_first_reaction rng tree ~root ~rate_matrix =
+    evolve tree ~root ~f:(fun bi (x_in : A.t) ->
+        let rate_matrix = rate_matrix bi in
         let rec loop state remaining_time =
           let waiting_times =
             A.Table.init (fun m ->
@@ -53,7 +62,7 @@ struct
           if Float.(tau > remaining_time) then state
           else loop next_state Float.(remaining_time - tau)
         in
-        loop n (BI.length b)
+        loop x_in (BI.length bi)
       )
 
   (* Gillespie "direct" method *)
@@ -72,18 +81,18 @@ struct
     loop start_state branch_length init
 
   let site_gillespie_direct rng tree ~(root : A.t) ~rate_matrix =
-    Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun n b ->
-        let rate_matrix = rate_matrix b in
+    evolve tree ~root ~f:(fun bi (x_in : A.t) ->
+        let rate_matrix = rate_matrix bi in
         branch_gillespie_direct rng
-          ~start_state:n ~rate_matrix ~branch_length:(BI.length b)
-          ~init:n ~f:(fun _ n _ -> n)
+          ~start_state:x_in ~rate_matrix ~branch_length:(BI.length bi)
+          ~init:x_in ~f:(fun _ n _ -> n)
       )
 
   let sequence_gillespie_direct rng tree ~update_iterator ~root ~rate_vector =
-    Tree.propagate tree ~init:root ~node:Fn.const ~leaf:Fn.const ~branch:(fun seq b ->
+    evolve tree ~root ~f:(fun bi seq ->
         let state = Array.copy seq in
         let n = Array.length state in
-        let rate i = rate_vector b state i in
+        let rate i = rate_vector bi state i in
         let rates = Array.init n ~f:rate in
         let pos_rate i = Utils.array_sum (rates.(i) : float A.table :> float array) in
         let pos_rates = Discrete_pd.init n ~f:pos_rate in
@@ -101,7 +110,7 @@ struct
               ) ;
             loop Float.(remaining_time - tau)
         in
-        loop (BI.length b)
+        loop (BI.length bi)
       )
 
   let hmm0 rng ~len ~dist =
@@ -116,7 +125,7 @@ module NSCodon(BI : Branch_info) = struct
         let rate_matrix = rate_matrix i in
         site_gillespie_direct rng tree ~root:root.(i) ~rate_matrix
         |> Tree.leaves
-        |> List.map ~f:Codon.Universal_genetic_code.NS.to_string
+        |> List.map ~f:(fun (_, c) -> Codon.Universal_genetic_code.NS.to_string c)
       )
     |> List.transpose_exn
     |> List.map ~f:String.concat

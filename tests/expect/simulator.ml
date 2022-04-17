@@ -50,6 +50,7 @@ let simulation_on_one_branch simulator simulator_name =
     Sequence.init 1000 ~f:(fun _ ->
         simulator rng tree ~root ~rate_matrix:(Fn.const rates)
         |> Tree.leaves
+        |> List.map ~f:snd
         |> List.hd_exn
       )
     |> Amino_acid.counts

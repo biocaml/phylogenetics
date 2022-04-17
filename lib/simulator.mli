@@ -14,10 +14,10 @@ sig
 
   val site_exponential_method :
     Gsl.Rng.t ->
-    (_, _, BI.t) Tree.t ->
+    ('n, 'l, BI.t) Tree.t ->
     root:A.t ->
     transition_matrix:(BI.t -> A.matrix) ->
-    (A.t, A.t, BI.t) Tree.t
+    ('n * A.t, 'l * A.t, BI.t) Tree.t
 
   val branch_gillespie_direct :
     Gsl.Rng.t ->
@@ -30,25 +30,25 @@ sig
 
   val site_gillespie_direct :
     Gsl.Rng.t ->
-    (_, _, BI.t) Tree.t ->
+    ('n, 'l, BI.t) Tree.t ->
     root:A.t ->
     rate_matrix:(BI.t -> A.matrix) ->
-    (A.t, A.t, BI.t) Tree.t
+    ('n * A.t, 'l * A.t, BI.t) Tree.t
 
   val site_gillespie_first_reaction :
     Gsl.Rng.t ->
-    (_, _, BI.t) Tree.t ->
+    ('n, 'l, BI.t) Tree.t ->
     root:A.t ->
     rate_matrix:(BI.t -> A.matrix) ->
-    (A.t, A.t, BI.t) Tree.t
+    ('n * A.t, 'l * A.t, BI.t) Tree.t
 
   val sequence_gillespie_direct :
     Gsl.Rng.t ->
-    (_, _, BI.t) Tree.t ->
+    ('n, 'l, BI.t) Tree.t ->
     update_iterator:(n:int -> pos:int -> (int -> unit) -> unit) ->
     root:A.t array ->
     rate_vector:(BI.t -> A.t array -> int -> float A.table) ->
-    (A.t array, A.t array, BI.t) Tree.t
+    ('n * A.t array, 'l * A.t array, BI.t) Tree.t
 
   val hmm0 :
     Gsl.Rng.t ->

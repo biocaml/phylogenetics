@@ -156,7 +156,7 @@ let () =
   let site = sample_site tree valine in
   let nstates = Amino_acid.card in
   let transition_matrix = (transition_matrix wag_param :> float -> Matrix.t) in
-  let leaf_state = Amino_acid.to_int in
+  let leaf_state (_, aa) = Amino_acid.to_int aa in
   let root_frequencies =  (wag.freqs :> Vector.t) in
   let conditional_likelihoods =
     Phylo_ctmc.conditionial_likelihoods site ~nstates ~leaf_state ~transition_matrix

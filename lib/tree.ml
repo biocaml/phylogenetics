@@ -101,19 +101,17 @@ and map_branch2_exn (Branch b1) (Branch b2) ~node ~leaf ~branch =
   }
 
 let propagate t ~init ~node ~leaf ~branch =
-  let rec inner acc t =
+  let rec inner state t =
     match t with
     | Node n ->
-      let acc = node acc n.data in
-      let branches = List1.map n.branches ~f:(inner_branch acc) in
-      Node { data = acc ; branches }
-    | Leaf l -> Leaf (leaf acc l)
+      let state', data = node state n.data in
+      let branches = List1.map n.branches ~f:(inner_branch state') in
+      Node { data ; branches }
+    | Leaf l -> Leaf (leaf state l)
 
-  and inner_branch acc (Branch b) =
-    Branch {
-      data = b.data ;
-      tip = inner (branch acc b.data) b.tip
-    }
+  and inner_branch state (Branch b) =
+    let state', data = branch state b.data in
+    Branch { data ; tip = inner state' b.tip }
   in
   inner init t
 
