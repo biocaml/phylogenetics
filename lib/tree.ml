@@ -213,12 +213,12 @@ module Simplify_node_with_single_child_tests = struct
     print t ;
     [%expect {|
     ·
-    `+- ·
-     |  `+- A
-     |   +- ·
-     |      `+- C
-     |       +- D
-     +- E |}]
+    ├─·
+    │ ├─A
+    │ └─·
+    │   ├─C
+    │   └─D
+    └─E |}]
 
   let%expect_test "simplify_node_with_single_child" =
     let t = n1 (n1 (leaf "E")) in
@@ -236,8 +236,8 @@ module Simplify_node_with_single_child_tests = struct
     print t ;
     [%expect {|
       ·
-      `+- A
-       +- B |}]
+      ├─A
+      └─B |}]
 end
 
 let unfold t ~init ~branch:f_b ~leaf:f_l ~node:f_n =

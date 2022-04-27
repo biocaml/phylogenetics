@@ -94,10 +94,10 @@ let%expect_test "fitch" =
   |> PrintBox_text.output stdout ;
   [%expect {|
     0
-    `+- 0
-     |  `+- 0
-     |   +- 1
-     +- 0 |}]
+    ├─0
+    │ ├─0
+    │ └─1
+    └─0 |}]
 
 let%expect_test "fitch_2" =
   let node x y = Tree.node () List1.(cons (Tree.branch () x) [ Tree.branch () y ]) in
@@ -109,9 +109,9 @@ let%expect_test "fitch_2" =
   |> PrintBox_text.output stdout ;
   [%expect {|
     1
-    `+- 1
-     |  `+- 0
-     |   +- 1
-     +- 1
-        `+- 1
-         +- 2 |}]
+    ├─1
+    │ ├─0
+    │ └─1
+    └─1
+      ├─1
+      └─2 |}]
