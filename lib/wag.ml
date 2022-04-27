@@ -37,6 +37,7 @@ let from_lines lines =
     List.filter lines ~f:(Fn.non String.is_empty)
     |> Array.of_list
   in
+  if Array.length lines < 21 then failwithf "Syntax error: only %d line(s)" (Array.length lines) () ;
   let rate_matrix_lines = Array.sub lines ~pos:0 ~len:19 in
   let freqs_line = lines.(19) in
   let aa_line = lines.(20) in
@@ -51,3 +52,11 @@ let from_file_exn fn =
   In_channel.read_lines fn |> from_lines
 
 let parse fn = from_file_exn fn
+
+let%test "WAG parsing works" =
+  try ignore (from_file_exn "../tests/data/wag.dat" : t) ; true
+  with exn -> (
+      print_endline (Exn.to_string exn) ;
+      Printexc.print_backtrace stderr ;
+      false
+    )
