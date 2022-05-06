@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 module Make_simulator
     (A : Alphabet.S_int)

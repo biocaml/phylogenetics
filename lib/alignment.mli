@@ -58,7 +58,7 @@ val to_fasta : t -> string -> unit
 
 val indel_free_columns : t -> bool array
 
-val residues : t -> column:int -> Core_kernel.Char.Set.t
+val residues : t -> column:int -> Core.Char.Set.t
 val number_of_residues_per_column_stats : t -> (int * int) list
 val composition : t -> (Char.t * float) list
 val constant_site : t -> int -> bool

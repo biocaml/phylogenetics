@@ -2,7 +2,7 @@
 http://evolution.genetics.washington.edu/phylip/doc/sequence.html
 http://scikit-bio.org/docs/0.2.3/generated/skbio.io.phylip.html
 *)
-open Core_kernel
+open Core
 open Rresult
 
 type item = {

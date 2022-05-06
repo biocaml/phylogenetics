@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 type t = {
   rate_matrix : Amino_acid.matrix ;

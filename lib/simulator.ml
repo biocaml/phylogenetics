@@ -4,7 +4,7 @@
    - https://bmcevolbiol.biomedcentral.com/articles/10.1186/s12862-017-0979-y
    - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5854120/
 *)
-open Core_kernel
+open Core
 
 module type Branch_info = sig
   type t

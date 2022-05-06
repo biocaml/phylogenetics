@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Linear_algebra
 
 type shifted_vector = SV of vec * float

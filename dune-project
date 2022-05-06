@@ -21,7 +21,7 @@
     (alcotest :with-test)
     angstrom-unix
     (biocaml (>= 0.8.0))
-    (core (>= v0.14.0))
+    (core (>= v0.15.0))
     dune
     gsl
     (lacaml (>= 10.0.2))

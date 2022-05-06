@@ -3,7 +3,7 @@
     trees and alignments which are submitted to our felsenstein implementation and
     bppml.*)
 open Phylogenetics
-open Core_kernel
+open Core
 
 
 type 'a model = (module Site_evolution_model.Nucleotide_S_with_reduction with type param = 'a)

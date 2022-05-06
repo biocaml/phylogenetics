@@ -1,4 +1,11 @@
-open Core_kernel
+(**
+   Implements method as described in https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
+   some tests from original publication:
+
+     A simplex method for function minimization
+     J. A. Nelder and R. Mead
+*)
+open Core
 
 let centroid xs =
   let n = Array.length xs in

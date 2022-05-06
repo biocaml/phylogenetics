@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 include Alphabet.Make(struct let card = 16 end)
 

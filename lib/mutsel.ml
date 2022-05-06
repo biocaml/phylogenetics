@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 module NSCodon = Codon.Universal_genetic_code.NS
 

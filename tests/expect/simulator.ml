@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Phylogenetics
 
 module L = Linear_algebra

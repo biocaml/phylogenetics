@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Phylogenetics
 
 let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =

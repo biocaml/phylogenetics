@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Phylogenetics
 
 let rng = Gsl.Rng.(make (default ()))

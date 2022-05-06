@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Sigs
 
 module type Base = sig

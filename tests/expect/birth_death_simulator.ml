@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Phylogenetics
 
 let rec node_to_nhx ?(parent_branch) = function
@@ -48,7 +48,7 @@ let () =
       Gsl.Stats.(mean branch_lengths, variance branch_lengths)
     )
   in
-  let means, vars = Core_kernel.Array.unzip sims in
+  let means, vars = Core.Array.unzip sims in
   let mean = Gsl.Stats.mean means in
   let var = Gsl.Stats.mean vars in
   printf "\nBranch length mean: %f vs 0.2823492 (ref)\n" mean ;

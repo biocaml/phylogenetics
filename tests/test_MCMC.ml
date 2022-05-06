@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 open Phylogenetics
 
 (** {6 Test input parameters} *)

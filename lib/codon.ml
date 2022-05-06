@@ -35,7 +35,7 @@ module Impl(X : sig val triplets : string array end) = struct
   let hash_table =
     Array.to_list X.triplets
     |> List.mapi ~f:(fun i t -> t, i)
-    |> Core_kernel.String.Table.of_alist_exn
+    |> Core.String.Table.of_alist_exn
 
   let to_string i = X.triplets.(i)
   let of_string s = Hashtbl.find hash_table s

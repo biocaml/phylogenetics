@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 type ('n, 'l, 'b) t =
   | Node of {

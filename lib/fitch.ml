@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 let default_cost x y =
   if x = y then 0. else 1.

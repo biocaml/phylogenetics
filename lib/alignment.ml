@@ -1,4 +1,4 @@
-open Core_kernel
+open Core
 
 type t = {
   descriptions : string array ;
@@ -131,7 +131,7 @@ let constant_site al j =
   in
   find_state 0
 
-open Core_kernel
+open Core
 open Biocaml_ez (* for fasta parsing *)
 
 module Make(S : Seq.S) = struct
