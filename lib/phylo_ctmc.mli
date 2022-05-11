@@ -18,6 +18,14 @@ val pruning_with_missing_values :
   root_frequencies:vec ->
   float
 
+val pruning_with_multiple_states :
+  ('a, 'b, 'c) Tree.t ->
+  nstates:int ->
+  transition_matrix:('c -> mat) ->
+  leaf_state:('b -> int -> bool) ->
+  root_frequencies:vec ->
+  float
+
 val conditionial_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
