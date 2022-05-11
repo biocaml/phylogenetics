@@ -22,6 +22,8 @@ let of_char = function
   | 'A'..'Z' as c -> aa_of_chars.(Char.to_int c - code_A)
   | _ -> None
 
+let of_char_exn c = Option.value_exn (of_char c)
+
 let%test "of_char" =
   let open Poly in
   of_char (to_char 19) = Some 19
