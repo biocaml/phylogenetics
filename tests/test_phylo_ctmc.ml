@@ -15,7 +15,7 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   let felsenstein_result = F.felsenstein () tree align in
   let ctmc_result =
     let tree = Phylogenetic_tree.to_tree tree in
-    let transition_matrix l = (M.transition_probability_matrix () l :> Linear_algebra.mat) in
+    let transition_matrix l = [`Mat (M.transition_probability_matrix () l :> Linear_algebra.mat)] in
     let root_frequencies = (M.stationary_distribution () :> Linear_algebra.vec) in
     Array.init (Align.length align) ~f:(fun i ->
         let leaf_state (_, index) = Align.get_base align ~seq:index ~pos:i |> Nucleotide.to_int in
@@ -26,5 +26,5 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   Test_utils.check_likelihood felsenstein_result ctmc_result
 
 let tests = [
-  ("Felsenstein vs Phylo_ctmc", `Slow, test_pruning ~tree_size:100 ~seq_size:10) ;
+  ("Felsenstein vs Phylo_ctmc", `Quick, test_pruning ~tree_size:100 ~seq_size:10) ;
 ]
