@@ -36,7 +36,7 @@ let rate_matrix p =
 
 let transition_matrix p =
   let m = rate_matrix p in
-  fun bl -> Amino_acid.Matrix.(expm (scal_mul bl m))
+  fun bl -> [`Mat (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)]
 
 let wag_param = {
   stationary_distribution = wag.freqs ;
@@ -155,7 +155,7 @@ let () =
   let tree = sample_tree () in
   let site = sample_site tree valine in
   let nstates = Amino_acid.card in
-  let transition_matrix = (transition_matrix wag_param :> float -> Matrix.t) in
+  let transition_matrix = transition_matrix wag_param in
   let leaf_state (_, aa) = Amino_acid.to_int aa in
   let root_frequencies =  (wag.freqs :> Vector.t) in
   let conditional_likelihoods =

@@ -86,10 +86,13 @@ module type Matrix = sig
   val inplace_scal_mul: float -> t -> unit
 
   (** Matrix multiplication *)
-  val dot : t -> t -> t
+  val dot :
+    ?transa:[`N | `T] ->
+    ?transb:[`N | `T] ->
+    t -> t -> t
 
   (** Matrix-vector product *)
-  val apply : t -> vec -> vec
+  val apply : ?trans:[`N | `T] -> t -> vec -> vec
 
   (** Matrix exponentiation *)
   val pow : t -> int -> t
@@ -214,9 +217,9 @@ module Lacaml = struct
       inplace_scal_mat_mul f r ;
       r
 
-    let dot a b = gemm a b
+    let dot ?transa ?transb a b = gemm ?transa ?transb a b
 
-    let apply m x = gemv m x
+    let apply ?trans m x = gemv ?trans m x
 
     let log m = Mat.log m
 

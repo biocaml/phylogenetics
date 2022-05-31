@@ -88,10 +88,13 @@ module type Matrix = sig
   val inplace_scal_mul: float -> t -> unit
 
   (** Matrix multiplication *)
-  val dot : t -> t -> t
+  val dot :
+    ?transa:[`N | `T] ->
+    ?transb:[`N | `T] ->
+    t -> t -> t
 
   (** Matrix-vector product *)
-  val apply : t -> vec -> vec
+  val apply : ?trans:[`N | `T] -> t -> vec -> vec
 
   (** Matrix exponentiation *)
   val pow : t -> int -> t

@@ -1,7 +1,30 @@
 open Core
 open Linear_algebra
 
+type matrix_decomposition = [
+  | `Mat of mat
+  | `Transpose of mat
+  | `Diag of vec
+] list
+
+let identity dim =
+  Matrix.init dim ~f:(fun i j -> if i = j then 1. else 0.)
+
+let rec matrix_decomposition_reduce ~dim = function
+  | [] -> identity dim
+  | [ `Mat m ] -> m
+  | [ `Diag v ] -> Matrix.diagm v
+  | [ `Transpose m ] -> Matrix.transpose m
+  | h :: t ->
+    let m_t = matrix_decomposition_reduce ~dim t in
+    match h with
+    | `Mat m_h -> Matrix.dot m_h m_t
+    | `Transpose m_h -> Matrix.dot ~transa:`T m_h m_t
+    | `Diag v -> Matrix.dot (Matrix.diagm v) m_t (* FIXME: don't build the diagonal matrix *)
+(* FIXME: other cases could be optimized, like [ _ ; `Transpose m] or [_ ; `Diag v ] *)
+
 type shifted_vector = SV of vec * float
+
 module SV = struct
   let of_vec v = SV (v, 0.)
 
@@ -13,6 +36,14 @@ module SV = struct
         Vector.scal_mul (1. /. mv) v,
         carry +. log mv
       )
+
+  let decomp_vec_mul_aux op v = match op with
+    | `Mat m -> Matrix.apply m v
+    | `Transpose m -> Matrix.apply ~trans:`T m v
+    | `Diag d -> Vector.mul d v
+
+  let decomp_vec_mul decomp (SV (v, carry)) =
+    SV (List.fold_right decomp ~init:v ~f:decomp_vec_mul_aux, carry)
 
   let mat_vec_mul mat (SV (v, carry)) =
     SV (Matrix.apply mat v, carry)
@@ -33,7 +64,7 @@ let pruning t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
       |> SV.of_vec
     | Node n ->
       List1.map n.branches ~f:(fun (Branch b) ->
-          SV.mat_vec_mul (transition_matrix b.data) (tree b.tip)
+          SV.decomp_vec_mul (transition_matrix b.data) (tree b.tip)
         )
       |> List1.to_list
       |> List.reduce_exn ~f:SV.mul
@@ -52,7 +83,7 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     | Node n ->
       let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
           let%map tip_term = tree b.tip in
-          SV.mat_vec_mul (transition_matrix b.data) tip_term
+          SV.decomp_vec_mul (transition_matrix b.data) tip_term
         )
       in
       match terms with
@@ -88,7 +119,7 @@ let pruning_with_multiple_states t ~nstates ~transition_matrix ~leaf_state ~root
     | Node n ->
       let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
           let%map tip_term = tree b.tip in
-          SV.mat_vec_mul (transition_matrix b.data) tip_term
+          SV.decomp_vec_mul (transition_matrix b.data) tip_term
         )
       in
       match terms with
@@ -118,7 +149,7 @@ let conditionial_likelihoods t ~nstates ~leaf_state ~transition_matrix =
       let cl = List1.reduce cls ~f:SV.mul in
       Tree.node cl children, cl
   and branch ((Branch b) : _ Tree.branch) =
-    let mat = transition_matrix b.data in
+    let mat = matrix_decomposition_reduce ~dim:nstates (transition_matrix b.data) in
     let tip, tip_cl = tree b.tip in
     let cl = SV.mat_vec_mul mat tip_cl in
     Tree.branch (b.data, mat) tip, cl

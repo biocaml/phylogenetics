@@ -1,11 +1,19 @@
 open Linear_algebra
 
+type matrix_decomposition = [
+  | `Mat of mat
+  | `Transpose of mat
+  | `Diag of vec
+] list
+
+val matrix_decomposition_reduce : dim:int -> matrix_decomposition -> mat
+
 type shifted_vector = SV of vec * float
 
 val pruning :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
-  transition_matrix:('b -> mat) ->
+  transition_matrix:('b -> matrix_decomposition) ->
   leaf_state:('l -> int) ->
   root_frequencies:vec ->
   float
@@ -13,7 +21,7 @@ val pruning :
 val pruning_with_missing_values :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
-  transition_matrix:('b -> mat) ->
+  transition_matrix:('b -> matrix_decomposition) ->
   leaf_state:('l -> int option) ->
   root_frequencies:vec ->
   float
@@ -21,7 +29,7 @@ val pruning_with_missing_values :
 val pruning_with_multiple_states :
   ('a, 'b, 'c) Tree.t ->
   nstates:int ->
-  transition_matrix:('c -> mat) ->
+  transition_matrix:('c -> matrix_decomposition) ->
   leaf_state:('b -> int -> bool) ->
   root_frequencies:vec ->
   float
@@ -30,7 +38,7 @@ val conditionial_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
   leaf_state:('l -> int) ->
-  transition_matrix:('b -> mat) ->
+  transition_matrix:('b -> matrix_decomposition) ->
   (shifted_vector, int, 'b * mat) Tree.t
 
 val conditional_simulation :
