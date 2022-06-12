@@ -17,6 +17,11 @@ val pruning :
   leaf_state:('l -> int) ->
   root_frequencies:vec ->
   float
+(** [pruning t ~nstates ~transition_matrix ~leaf_state
+   ~root_frequencies] returns the probability of observing the states
+   returned by [leaf_state] at the leaves of [t] given the CTMC
+   specified by [nstates], [transition_matrix] and
+   [root_frequencies]. *)
 
 val pruning_with_missing_values :
   ('n, 'l, 'b) Tree.t ->
@@ -25,6 +30,12 @@ val pruning_with_missing_values :
   leaf_state:('l -> int option) ->
   root_frequencies:vec ->
   float
+(** [pruning t ~nstates ~transition_matrix ~leaf_state
+   ~root_frequencies] returns the probability of observing the states
+   returned by [leaf_state] at the leaves of [t] given the CTMC
+   specified by [nstates], [transition_matrix] and
+   [root_frequencies]. With this variant, one can specify that some
+   leaves are unobserved. *)
 
 val pruning_with_multiple_states :
   ('a, 'b, 'c) Tree.t ->
@@ -33,6 +44,15 @@ val pruning_with_multiple_states :
   leaf_state:('b -> int -> bool) ->
   root_frequencies:vec ->
   float
+(** [pruning_with_multiple_states t ~nstates ~transition_matrix
+   ~leaf_state ~root_frequencies] returns the probability of observing
+   the states returned by [leaf_state] at the leaves of [t] given the
+   CTMC specified by [nstates], [transition_matrix] and
+   [root_frequencies]. With this variant one can specify some
+   uncertainty for a given leaf, by letting [leaf_state] return [true]
+   for several states. In that case, it is understood that each state
+   has equal probability. If [leaf_state] always returns [false] for a
+   given leaf, it is interpreted as the leaf being unobserved. *)
 
 val conditionial_likelihoods :
   ('n, 'l, 'b) Tree.t ->
