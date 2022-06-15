@@ -53,33 +53,36 @@ let array_mapi t ~f =
 let fold t ~init ~f = Array.fold2_exn t.descriptions t.sequences ~init
     ~f:(fun acc description sequence -> f acc ~description ~sequence)
 
-let of_fasta_items (items:Biocaml_unix.Fasta.item list) =
-  List.map items ~f:(fun x -> x.description, x.sequence)
-  |> of_assoc_list
+module Fasta = struct
+  let of_fasta_items (items:Biocaml_unix.Fasta.item list) =
+    List.map items ~f:(fun x -> x.description, x.sequence)
+    |> of_assoc_list
 
-let from_fasta fn =
-  let open Result.Monad_infix in
-  let parsing =
-    Biocaml_unix.Fasta.with_file fn ~f:(fun header stream ->
-        CFStream.Stream.Result.all' stream ~f:(fun items -> header, CFStream.Stream.to_list items)
-      )
-    |> Result.map_error ~f:(fun e -> `Fasta_parser_error (Error.to_string_hum e))
-  in
-  parsing >>| snd >>= of_fasta_items
+  let from_file fn =
+    let open Result.Monad_infix in
+    let parsing =
+      Biocaml_unix.Fasta.with_file fn ~f:(fun header stream ->
+          CFStream.Stream.Result.all' stream ~f:(fun items -> header, CFStream.Stream.to_list items)
+        )
+      |> Result.map_error ~f:(fun e -> `Fasta_parser_error (Error.to_string_hum e))
+    in
+    parsing >>| snd >>= of_fasta_items
 
-let from_fasta_exn fn =
-  match from_fasta fn with
-  | Ok al -> al
-  | Error e -> failwith (show_parsing_error e)
+  let from_file_exn fn =
+    match from_file fn with
+    | Ok al -> al
+    | Error e -> failwith (show_parsing_error e)
 
-let to_fasta ({sequences ; descriptions}) fn =
-  Out_channel.with_file fn ~f:(fun oc ->
-      Array.iter2_exn descriptions sequences ~f:(fun desc seq ->
-          Out_channel.output_lines oc [
-            sprintf ">%s" desc ;
-            seq;
-          ])
-    )
+  let to_channel ({sequences ; descriptions}) oc =
+    Array.iter2_exn descriptions sequences ~f:(fun desc seq ->
+        Out_channel.output_lines oc [
+          sprintf ">%s" desc ;
+          seq;
+        ])
+
+  let to_file al fn =
+    Out_channel.with_file fn ~f:(to_channel al)
+end
 
 let find_sequence t id =
   Array.findi t.descriptions ~f:(fun _ x -> String.equal x id)

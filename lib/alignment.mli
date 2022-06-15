@@ -47,14 +47,17 @@ type parsing_error = [
 
 val of_assoc_list : (string * string) list -> (t, [> error]) result
 
-val from_fasta :
-  string ->
-  (t, [> parsing_error]) result
+module Fasta : sig
+  val from_file :
+    string ->
+    (t, [> parsing_error]) result
 
-val from_fasta_exn : string -> t
-(** Same as {! from_fasta} but raises [Failure] if some error happens *)
+  val from_file_exn : string -> t
+  (** Same as {! from_file} but raises [Failure] if some error happens *)
 
-val to_fasta : t -> string -> unit
+  val to_channel : t -> out_channel -> unit
+  val to_file : t -> string -> unit
+end
 
 val indel_free_columns : t -> bool array
 
