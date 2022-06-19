@@ -98,23 +98,44 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     Float.log (Vector.sum v) +. carry
   | None -> 0.
 
-let normalize_opt vec =
-  let total = Vector.sum vec in
-  if Float.(total = 0.)
-  then None
-  else Some (Vector.map vec ~f:(fun x -> x /. total))
+let leaf_indicator ~nstates state =
+  let at_least_one = ref false in
+  let v = Vector.init nstates ~f:(fun i ->
+      if state i then (at_least_one := true ; 1.)
+      else 0.
+    )
+  in
+  if !at_least_one then Some v
+  else None
 
-let leaf_probs ~nstates state =
-  Vector.init nstates ~f:(fun i -> if state i then 1. else 0.)
-  |> normalize_opt
+(* Pruning for a tree (1 (2 3)) computes
 
+     \pi (P_2 I_{x_2} \otimes P_3 I_{x_3}) (1)
+
+   where \pi is the vector of root frequecies, P_2 (resp P_3) the
+   transition probability matrix from 1 to 2 (resp to 3), I_x is the
+   indicator vector corresponding to state x, x_2 (resp x_3) is the
+   observed state in leaf 2 (resp leaf 3), and \otimes is the
+   Kronecker product.
+
+   Now if we only observed state in leaf 2 is inside a set A, we ought
+   to compute the likelihood
+
+   Prob(X_2 \in A, X_3 = x_3) = \sum_{x_2 \in A} Prob(X_2 = x_2, X_3 =
+   x_3)
+
+   (1) becomes
+
+   \pi (P_2 (\sum_{x_2 \in A} I_{x_2}) \otimes P_3 I_{x_3})
+
+   by linearity of matrix-vector multiplication and \otimes *)
 let pruning_with_multiple_states t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
   let open Option.Let_syntax in
   let rec tree (t : _ Tree.t) =
     match t with
     | Leaf l ->
       let state = leaf_state l in
-      let%map vec = leaf_probs ~nstates state in
+      let%map vec = leaf_indicator ~nstates state in
       SV.of_vec vec
     | Node n ->
       let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
