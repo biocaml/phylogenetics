@@ -34,9 +34,23 @@ let substitution_rate p i j =
 let rate_matrix p =
   Rate_matrix.Amino_acid.make (substitution_rate p)
 
+let transition_probabilities_of_rates m =
+  fun bl -> [`Mat (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)]
+
 let transition_matrix p =
   let m = rate_matrix p in
-  fun bl -> [`Mat (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)]
+  transition_probabilities_of_rates m
+
+let uniformized_process p =
+  let transition_rates = rate_matrix p in
+  let transition_probabilities lambda =
+    Phylo_ctmc.matrix_decomposition_reduce
+      ~dim:Amino_acid.card
+      (transition_probabilities_of_rates transition_rates lambda)
+  in
+  Phylo_ctmc.Uniformized_process.make
+    ~transition_rates:(transition_rates :> mat)
+    ~transition_probabilities
 
 let wag_param = {
   stationary_distribution = wag.freqs ;
@@ -80,7 +94,7 @@ let nb_events_along_branch_by_rejection_sampling rng ~param ~branch_length ~star
     )
 
 let nb_events_along_branch rng ~param ~branch_length ~start_state ~end_state ~sample_size =
-  let process = Phylo_ctmc.uniformized_process (rate_matrix param :> Matrix.t) in
+  let process = Staged.unstage (uniformized_process param) branch_length in
   List.init sample_size ~f:(fun _ ->
       Phylo_ctmc.conditional_simulation_along_branch
         rng process ~branch_length
@@ -162,10 +176,7 @@ let () =
     Phylo_ctmc.conditionial_likelihoods site ~nstates ~leaf_state ~transition_matrix
   in
   let rate_matrix = (rate_matrix wag_param :> Matrix.t) in
-  let process =
-    let p = Phylo_ctmc.uniformized_process rate_matrix in
-    fun _ -> p
-  in
+  let process = Staged.unstage (uniformized_process wag_param) in
   let mean_mapping_likelihood =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods

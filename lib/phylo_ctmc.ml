@@ -200,39 +200,48 @@ let conditional_simulation rng t ~root_frequencies =
   in
   tree t (Vector.get root_frequencies)
 
-type uniformized_process = {
-  _Q_ : mat ; (* transition rates *)
-  _P_ : float -> mat ; (* transition_probabilities, lambda -> exp (lambda Q) *)
-  _R_ : int -> mat ; (* transition probabilities in uniformized process, R^n *)
-  mu : float ; (* uniformized rate \mu *)
-}
+module Uniformized_process = struct
+  type t = {
+    _Q_ : mat ; (* transition rates *)
+    _P_ : mat ; (* transition_probabilities *)
+    _R_ : int -> mat ; (* transition probabilities in uniformized process, R^n *)
+    mu : float ; (* uniformized rate \mu *)
+  }
 
-let range_map_reduce a b ~map ~reduce =
-  if b <= a then invalid_arg "empty range" ;
-  let rec loop i acc =
-    if i = b then acc
-    else loop (i + 1) (reduce acc (map i))
-  in
-  loop (a + 1) (map a)
+  let range_map_reduce a b ~map ~reduce =
+    if b <= a then invalid_arg "empty range" ;
+    let rec loop i acc =
+      if i = b then acc
+      else loop (i + 1) (reduce acc (map i))
+    in
+    loop (a + 1) (map a)
 
-let uniformized_process rates =
-  let _Q_ = rates in
-  let _P_ = fun lambda -> Matrix.(expm (scal_mul lambda _Q_)) in
-  let m, n = Matrix.dim _Q_ in
-  if m <> n then invalid_arg "square matrix expected" ;
-  let mu = range_map_reduce 0 n ~map:(fun i-> -. Matrix.get _Q_ i i) ~reduce:Float.max in
-  let _R_ = Matrix.init n ~f:(fun i j -> Matrix.get _Q_ i j /. mu +. if i = j then 1. else 0.) in
-  let cache = Int.Table.create () in
-  let rec pow_R n =
-    assert (n >= 0) ;
-    if n = 0 then Matrix.init (fst (Matrix.dim rates)) ~f:(fun i j -> if i = j then 1. else 0.)
-    else if n = 1 then _R_
-    else
-      Int.Table.find_or_add cache n ~default:(fun () ->
-          Matrix.dot (pow_R (n - 1)) _R_
-        )
-  in
-  { _Q_ ; _P_ ; _R_ = pow_R ; mu }
+  let make ~transition_rates:_Q_ ~transition_probabilities =
+    let dim =
+      let m, n = Matrix.dim _Q_ in
+      if m <> n then invalid_arg "Expected squared matrix" ;
+      m
+    in
+    let mu = range_map_reduce 0 dim ~map:(fun i-> -. Matrix.get _Q_ i i) ~reduce:Float.max in
+    let _R_ = Matrix.init dim ~f:(fun i j -> Matrix.get _Q_ i j /. mu +. if i = j then 1. else 0.) in
+    let cache = Int.Table.create () in
+    let rec pow_R n =
+      assert (n >= 0) ;
+      if n = 0 then Matrix.init dim ~f:(fun i j -> if i = j then 1. else 0.)
+      else if n = 1 then _R_
+      else
+        Int.Table.find_or_add cache n ~default:(fun () ->
+            Matrix.dot (pow_R (n - 1)) _R_
+          )
+    in
+    Staged.stage (
+      fun lambda ->
+        let _P_ = transition_probabilities lambda in
+        { _Q_ ; _P_ ; _R_ = pow_R ; mu }
+    )
+
+  let transition_probabilities up = up._P_
+end
 
 let array_recurrent_init n ~init ~f =
   if n = 0 then [| |]
@@ -255,8 +264,8 @@ let collapse_mapping ~start_state path times =
   loop start_state 0 []
   |> Array.of_list_rev
 
-let conditional_simulation_along_branch rng { _Q_ ; _P_ ; _R_ ; mu } ~branch_length:lambda ~start_state ~end_state ~nstates =
-  let p_b_given_a_lambda = Matrix.get (_P_ lambda) start_state end_state in
+let conditional_simulation_along_branch rng { Uniformized_process._Q_ ; _P_ ; _R_ ; mu } ~branch_length:lambda ~start_state ~end_state ~nstates =
+  let p_b_given_a_lambda = Matrix.get _P_ start_state end_state in
   let p_n_given_lambda n = Gsl.Randist.poisson_pdf n ~mu:(mu *. lambda) in
   let p_b_given_n_a n =
     if n = 0 then
@@ -307,7 +316,11 @@ let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
     let b = Tree.data br.tip in
     let branch_data = fst br.data in
     let branch_length = branch_length branch_data in
-    let data = conditional_simulation_along_branch rng (process branch_data) ~nstates ~branch_length ~start_state:a ~end_state:b in
+    let data =
+      conditional_simulation_along_branch
+        rng (process branch_data)
+        ~nstates ~branch_length
+        ~start_state:a ~end_state:b in
     Tree.branch (branch_data, data) (traverse_node br.tip)
   in
   traverse_node sim

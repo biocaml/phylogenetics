@@ -67,12 +67,19 @@ val conditional_simulation :
   root_frequencies:vec ->
   (int, int, 'b * mat) Tree.t
 
-type uniformized_process
-val uniformized_process : mat -> uniformized_process
+module Uniformized_process : sig
+  type t
+  val make :
+    transition_rates:mat ->
+    transition_probabilities:(float -> mat) ->
+    (float -> t) Core.Staged.t
+
+  val transition_probabilities : t -> mat
+end
 
 val conditional_simulation_along_branch :
   Gsl.Rng.t ->
-  uniformized_process ->
+  Uniformized_process.t ->
   branch_length:float ->
   start_state:int ->
   end_state:int ->
@@ -83,6 +90,6 @@ val substitution_mapping :
   nstates:int ->
   branch_length:('b -> float) ->
   rng:Gsl.Rng.t ->
-  process:('b -> uniformized_process) ->
+  process:('b -> Uniformized_process.t) ->
   (int, int, 'b * mat) Tree.t ->
   (int, int, 'b * (int * float) array) Tree.t
