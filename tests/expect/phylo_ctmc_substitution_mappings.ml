@@ -73,31 +73,10 @@ let render_int_histogram xs =
   |> String.concat ~sep:" | "
   |> print_endline
 
-let simulation_along_branch_by_rejection_sampling rng ~param ~branch_length ~start_state ~end_state ~init ~f =
-  let rate_matrix = rate_matrix param in
-  let rec loop () =
-    let res, simulated_end_state =
-      AASim.branch_gillespie_direct rng
-        ~start_state ~rate_matrix ~branch_length
-        ~init:(init, start_state) ~f:(fun (acc, _) n _ -> f acc n, n)
-    in
-    if Amino_acid.equal simulated_end_state end_state then res
-    else loop ()
-  in
-  loop ()
-
-let nb_events_along_branch_by_rejection_sampling rng ~param ~branch_length ~start_state ~end_state ~sample_size =
+let nb_events_along_branch rng path_sampler ~branch_length ~start_state ~end_state ~sample_size =
   List.init sample_size ~f:(fun _ ->
-      simulation_along_branch_by_rejection_sampling
-        ~init:0 ~f:(fun acc _ -> acc + 1)
-        rng ~param ~branch_length ~start_state ~end_state
-    )
-
-let nb_events_along_branch rng ~param ~branch_length ~start_state ~end_state ~sample_size =
-  let process = Staged.unstage (uniformized_process param) branch_length in
-  List.init sample_size ~f:(fun _ ->
-      Phylo_ctmc.conditional_simulation_along_branch
-        rng process ~branch_length
+      Phylo_ctmc.conditional_simulation_along_branch_exn
+        ~rng path_sampler ~branch_length
         ~start_state:(Amino_acid.to_int start_state)
         ~end_state:(Amino_acid.to_int end_state)
         ~nstates:Amino_acid.card
@@ -109,12 +88,19 @@ let () =
   let end_state = valine in
   let sample_size = 10_000 in
   let branch_length = 2. in
-  render_int_histogram @@ nb_events_along_branch_by_rejection_sampling rng
-    ~param:wag_param ~branch_length
-    ~start_state ~end_state ~sample_size ;
-  render_int_histogram @@ nb_events_along_branch rng
-    ~param:wag_param ~branch_length
-    ~start_state ~end_state ~sample_size
+  let process = Staged.unstage (uniformized_process wag_param) branch_length in
+  let uniformized_path_sampler = Phylo_ctmc.Path_sampler.uniformization process in
+  let rejection_path_sampler = Phylo_ctmc.Path_sampler.rejection_sampling ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process) () in
+  render_int_histogram (
+    nb_events_along_branch
+      rng rejection_path_sampler
+      ~branch_length ~start_state ~end_state ~sample_size
+  ) ;
+  render_int_histogram (
+    nb_events_along_branch
+      rng uniformized_path_sampler ~branch_length
+      ~start_state ~end_state ~sample_size
+  )
 
 let sample_site tree root =
   let rates = rate_matrix wag_param in
@@ -177,10 +163,11 @@ let () =
   in
   let rate_matrix = (rate_matrix wag_param :> Matrix.t) in
   let process = Staged.unstage (uniformized_process wag_param) in
+  let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process bi) in
   let mean_mapping_likelihood =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
-        |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~process
+        |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~path_sampler
         |> mapping_likelihood ~nstates ~rate_matrix
       )
     |> Gsl.Stats.mean

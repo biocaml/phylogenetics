@@ -240,6 +240,7 @@ module Uniformized_process = struct
         { _Q_ ; _P_ ; _R_ = pow_R ; mu }
     )
 
+  let transition_rates up = up._Q_
   let transition_probabilities up = up._P_
 end
 
@@ -264,7 +265,7 @@ let collapse_mapping ~start_state path times =
   loop start_state 0 []
   |> Array.of_list_rev
 
-let conditional_simulation_along_branch rng { Uniformized_process._Q_ ; _P_ ; _R_ ; mu } ~branch_length:lambda ~start_state ~end_state ~nstates =
+let conditional_simulation_along_branch_by_uniformization { Uniformized_process._Q_ ; _P_ ; _R_ ; mu } ~rng ~nstates ~branch_length:lambda ~start_state ~end_state =
   let p_b_given_a_lambda = Matrix.get _P_ start_state end_state in
   let p_n_given_lambda n = Gsl.Randist.poisson_pdf n ~mu:(mu *. lambda) in
   let p_b_given_n_a n =
@@ -307,7 +308,51 @@ let conditional_simulation_along_branch rng { Uniformized_process._Q_ ; _P_ ; _R
   in
   collapse_mapping path times ~start_state
 
-let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
+let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~rng ~nstates ~branch_length ~start_state ~end_state ~init ~f =
+  let module A = Alphabet.Make(struct let card = nstates end) in
+  let module BI = struct type t = float let length = Fn.id end in
+  let module Sim = Simulator.Make(A)(BI) in
+  let rec loop remaining_tries =
+    if Option.value_map remaining_tries ~default:false ~f:(( = ) 0) then failwith "Reached max tries"
+    else
+      let res, simulated_end_state =
+        Sim.branch_gillespie_direct rng
+          ~start_state ~rate_matrix ~branch_length
+          ~init:(init, start_state) ~f:(fun (acc, _) s t -> f acc s t, s)
+      in
+      if A.equal simulated_end_state end_state then res
+      else loop (Option.map remaining_tries ~f:pred)
+  in
+  loop max_tries
+
+let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~rng ~nstates ~branch_length ~start_state ~end_state =
+  conditional_simulation_along_branch_by_rejection_sampling
+    ~rate_matrix ~max_tries ~rng ~nstates ~branch_length ~start_state ~end_state
+    ~init:[] ~f:(fun acc s t -> (s, t) :: acc)
+  |> Array.of_list_rev
+
+module Path_sampler = struct
+  type t =
+    | Uniformization_sampler of Uniformized_process.t
+    | Rejection_sampler of { rates : mat ; max_tries : int option }
+
+  let uniformization process =
+    Uniformization_sampler process
+
+  let rejection_sampling ?max_tries ~rates () =
+    Rejection_sampler { rates ; max_tries }
+
+  let sample_exn meth =
+    match meth with
+    | Uniformization_sampler up ->
+      conditional_simulation_along_branch_by_uniformization up
+    | Rejection_sampler { rates = rate_matrix ; max_tries } ->
+      conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries
+end
+
+let conditional_simulation_along_branch_exn ps = Path_sampler.sample_exn ps
+
+let substitution_mapping ~nstates ~branch_length ~rng ~path_sampler sim =
   let rec traverse_node = function
     | Tree.Leaf l -> Tree.leaf l
     | Node n ->
@@ -317,9 +362,8 @@ let substitution_mapping ~nstates ~branch_length ~rng ~process sim =
     let branch_data = fst br.data in
     let branch_length = branch_length branch_data in
     let data =
-      conditional_simulation_along_branch
-        rng (process branch_data)
-        ~nstates ~branch_length
+      Path_sampler.sample_exn (path_sampler branch_data)
+        ~rng ~nstates ~branch_length
         ~start_state:a ~end_state:b in
     Tree.branch (branch_data, data) (traverse_node br.tip)
   in
