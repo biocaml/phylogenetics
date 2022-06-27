@@ -8,6 +8,15 @@ val from_string : string -> (t, [> error]) result
 
 val from_string_exn : string -> t
 
+val of_tree :
+  ?node_id:('a -> string option) ->
+  ?node_tags:('a -> tag list) ->
+  ?leaf_id:('b -> string option) ->
+  ?leaf_tags:('b -> tag list) ->
+  ?branch_length:('c -> float option) ->
+  ('a, 'b, 'c) Tree.t ->
+  t
+
 val to_string : t -> string
 val to_file : t -> string -> unit
 

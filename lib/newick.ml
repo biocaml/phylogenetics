@@ -81,6 +81,21 @@ let to_string t = unparse t ^ ";"
 let to_file t fn =
   Out_channel.write_all fn ~data:(to_string t)
 
+let of_tree
+    ?(node_id = Fn.const None) ?(node_tags = Fn.const [])
+    ?(leaf_id = Fn.const None) ?(leaf_tags = Fn.const [])
+    ?(branch_length = Fn.const None) tree : t =
+  let rec node ?parent_branch = function
+    | Tree.Node { data ; branches } -> {
+        name = node_id data ; tags = node_tags data ; parent_branch ;
+        children = List1.map branches ~f:branch |> List1.to_list
+      }
+    | Tree.Leaf l ->
+      { name = leaf_id l ; tags = leaf_tags l ; parent_branch ; children = [] }
+  and branch (Branch b) = node ?parent_branch:(branch_length b.data) b.tip
+  in
+  node tree
+
 let test_string_equal x y =
   let b = String.(x = y) in
   if not b then fprintf stderr "expected: %s\ngot %s\n" x y ;
