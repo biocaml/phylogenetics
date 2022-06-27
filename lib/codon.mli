@@ -7,8 +7,17 @@ module type S = sig
   val nucleotides : t -> Nucleotide.t * Nucleotide.t * Nucleotide.t
 end
 
+type genetic_code
+(** Genetic codes specified by {{:https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi?mode=c}this NCBI page} *)
+
+val genetic_codes : genetic_code list
+val transl_table : genetic_code -> int
+val label_of_genetic_code : genetic_code -> string
+
+include S
+
 module type Genetic_code = sig
-  type codon
+  type codon = t
   val stop_codons : codon list
   val is_stop_codon : codon -> bool
   val aa_of_codon : codon -> Amino_acid.t option
@@ -24,5 +33,6 @@ module type Genetic_code = sig
   end
 end
 
-include S
-module Universal_genetic_code : Genetic_code with type codon := t
+module Universal_genetic_code : Genetic_code
+
+val genetic_code_impl : genetic_code -> (module Genetic_code)
