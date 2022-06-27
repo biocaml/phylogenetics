@@ -2,9 +2,19 @@
  (name phylogenetics)
  (public_name phylogenetics)
  (inline_tests
-   (deps ../tests/data/wag.dat))
- (libraries angstrom.unix biocaml.ez core gsl lacaml menhirLib printbox printbox-text)
- (preprocess (pps ppx_deriving.show ppx_inline_test ppx_jane)))
+  (deps ../tests/data/wag.dat))
+ (libraries
+  angstrom.unix
+  biocaml.ez
+  core
+  gsl
+  lacaml
+  yojson
+  menhirLib
+  printbox
+  printbox-text)
+ (preprocess
+  (pps ppx_deriving.show ppx_inline_test ppx_jane)))
 
 (menhir
  (modules newick_parser)
@@ -22,12 +32,20 @@
 (rule
  (with-stdout-to
   newick_parser_errors.ml
-  (run menhir %{dep:newick_parser.mly} --compile-errors %{dep:newick_parser.messages})))
+  (run
+   menhir
+   %{dep:newick_parser.mly}
+   --compile-errors
+   %{dep:newick_parser.messages})))
 
 (rule
  (with-stdout-to
   newick_parser.messages.updated
-  (run menhir %{dep:newick_parser.mly} --update-errors %{dep:newick_parser.messages})))
+  (run
+   menhir
+   %{dep:newick_parser.mly}
+   --update-errors
+   %{dep:newick_parser.messages})))
 
 (rule
  (alias update-newick_parser-messages)
