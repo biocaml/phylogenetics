@@ -151,6 +151,12 @@ module Make(X : sig val card : int end) = struct
 
     let fold (x:t) ~init ~f =
       foldi x ~init ~f:(fun _ acc x -> f acc x)
+
+    let counti (x:t) ~f =
+      foldi x ~init:0 ~f:(fun i acc x -> if f i x then acc + 1 else acc)
+
+    let count (x:t) ~f =
+      counti x ~f:(fun _ x -> f x)
   end
 
   let flat_profile () =
