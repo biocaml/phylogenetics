@@ -36,6 +36,7 @@ module Tree_repr : sig
     | Branch of branch
 
   val of_ast : ast -> t
+  val to_ast : tree -> ast
 
   val map_inner_tree : t -> f:(tree -> tree) -> t
   val with_inner_tree : t -> f:(tree -> 'a) -> 'a

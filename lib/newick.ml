@@ -136,6 +136,14 @@ module Tree_repr = struct
     | None -> Tree (node newick)
     | Some _ -> Branch (branch newick)
 
+  let to_ast (tree_repr : tree) =
+    of_tree tree_repr
+      ~node_id:(fun { name ; _} -> name)
+      ~node_tags:(fun { tags ; _ } -> tags)
+      ~leaf_id:(fun { name ; _} -> name)
+      ~leaf_tags:(fun { tags ; _ } -> tags)
+      ~branch_length:(Fn.id)
+
   let map_inner_tree tree ~f =
     match tree with
     | Tree t -> Tree (f t)
