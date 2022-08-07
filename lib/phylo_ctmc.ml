@@ -308,12 +308,30 @@ let conditional_simulation_along_branch_by_uniformization { Uniformized_process.
   in
   collapse_mapping path times ~start_state
 
+let sum n f =
+  let rec loop acc i =
+    if i = n then acc
+    else loop (acc +. f i) (i + 1)
+  in
+  loop 0. 0
+
 let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~rng ~nstates ~branch_length ~start_state ~end_state ~init ~f =
   let module A = Alphabet.Make(struct let card = nstates end) in
   let module BI = struct type t = float let length = Fn.id end in
   let module Sim = Simulator.Make(A)(BI) in
   let rec loop remaining_tries =
-    if Option.value_map remaining_tries ~default:false ~f:(( = ) 0) then failwith "Reached max tries"
+    if Option.value_map remaining_tries ~default:false ~f:(( = ) 0) then (
+      let rate = Linear_algebra.Matrix.get rate_matrix start_state end_state in
+      let total_rate = sum nstates (fun dest ->
+          if dest = start_state then 0. else Linear_algebra.Matrix.get rate_matrix start_state dest
+        )
+      in
+      let prob = rate /. total_rate in
+      failwithf
+        "Reached max (= %d) tries: %d -[%f]-> %d (rate = %g, total_rate = %g, prob = %g)"
+        (match max_tries with None -> assert false | Some x -> x)
+        start_state branch_length end_state rate total_rate prob ()
+    )
     else
       let res, simulated_end_state =
         Sim.branch_gillespie_direct rng
