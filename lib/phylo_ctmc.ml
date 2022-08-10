@@ -98,63 +98,6 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     Float.log (Vector.sum v) +. carry
   | None -> 0.
 
-let leaf_indicator ~nstates state =
-  let at_least_one = ref false in
-  let v = Vector.init nstates ~f:(fun i ->
-      if state i then (at_least_one := true ; 1.)
-      else 0.
-    )
-  in
-  if !at_least_one then Some v
-  else None
-
-(* Pruning for a tree (1 (2 3)) computes
-
-     \pi (P_2 I_{x_2} \otimes P_3 I_{x_3}) (1)
-
-   where \pi is the vector of root frequecies, P_2 (resp P_3) the
-   transition probability matrix from 1 to 2 (resp to 3), I_x is the
-   indicator vector corresponding to state x, x_2 (resp x_3) is the
-   observed state in leaf 2 (resp leaf 3), and \otimes is the
-   Kronecker product.
-
-   Now if we only observed state in leaf 2 is inside a set A, we ought
-   to compute the likelihood
-
-   Prob(X_2 \in A, X_3 = x_3) = \sum_{x_2 \in A} Prob(X_2 = x_2, X_3 =
-   x_3)
-
-   (1) becomes
-
-   \pi (P_2 (\sum_{x_2 \in A} I_{x_2}) \otimes P_3 I_{x_3})
-
-   by linearity of matrix-vector multiplication and \otimes *)
-let pruning_with_multiple_states t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
-  let open Option.Let_syntax in
-  let rec tree (t : _ Tree.t) =
-    match t with
-    | Leaf l ->
-      let state = leaf_state l in
-      let%map vec = leaf_indicator ~nstates state in
-      SV.of_vec vec
-    | Node n ->
-      let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
-          let%map tip_term = tree b.tip in
-          SV.decomp_vec_mul (transition_matrix b.data) tip_term
-        )
-      in
-      match terms with
-      | [] -> None
-      | _ :: _ as xs ->
-        List.reduce_exn xs ~f:SV.mul
-        |> Option.some
-  in
-  match tree t with
-  | Some res_tree ->
-    let SV (v, carry) = SV.mul res_tree (SV.of_vec root_frequencies) in
-    Float.log (Vector.sum v) +. carry
-  | None -> 0.
-
 let conditionial_likelihoods t ~nstates ~leaf_state ~transition_matrix =
   let rec tree (t : _ Tree.t) =
     match t with
@@ -199,6 +142,143 @@ let conditional_simulation rng t ~root_frequencies =
     Tree.branch br.data (tree br.tip prior)
   in
   tree t (Vector.get root_frequencies)
+
+module Ambiguous = struct
+
+  let leaf_indicator ~nstates state =
+    let at_least_one = ref false in
+    let v = Vector.init nstates ~f:(fun i ->
+        if state i then (at_least_one := true ; 1.)
+        else 0.
+      )
+    in
+    if !at_least_one then Some v
+    else None
+
+  let leaf_indicator_with_set ~nstates state =
+    let set = ref Int.Set.empty in
+    let v = Vector.init nstates ~f:(fun i ->
+        if state i then (
+          set := Int.Set.add !set i ;
+          1.
+        )
+        else 0.
+      )
+    in
+    if not (Int.Set.is_empty !set) then Some (v, !set)
+    else None
+
+  (* Pruning for a tree (1 (2 3)) computes
+
+       \pi (P_2 I_{x_2} \otimes P_3 I_{x_3}) (1)
+
+     where \pi is the vector of root frequecies, P_2 (resp P_3) the
+     transition probability matrix from 1 to 2 (resp to 3), I_x is the
+     indicator vector corresponding to state x, x_2 (resp x_3) is the
+     observed state in leaf 2 (resp leaf 3), and \otimes is the
+     Kronecker product.
+
+     Now if we only observed state in leaf 2 is inside a set A, we ought
+     to compute the likelihood
+
+     Prob(X_2 \in A, X_3 = x_3) = \sum_{x_2 \in A} Prob(X_2 = x_2, X_3 =
+     x_3)
+
+     (1) becomes
+
+     \pi (P_2 (\sum_{x_2 \in A} I_{x_2}) \otimes P_3 I_{x_3})
+
+     by linearity of matrix-vector multiplication and \otimes *)
+  let pruning t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
+    let open Option.Let_syntax in
+    let rec tree (t : _ Tree.t) =
+      match t with
+      | Leaf l ->
+        let state = leaf_state l in
+        let%map vec = leaf_indicator ~nstates state in
+        SV.of_vec vec
+      | Node n ->
+        let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
+            let%map tip_term = tree b.tip in
+            SV.decomp_vec_mul (transition_matrix b.data) tip_term
+          )
+        in
+        match terms with
+        | [] -> None
+        | _ :: _ as xs ->
+          List.reduce_exn xs ~f:SV.mul
+          |> Option.some
+    in
+    match tree t with
+    | Some res_tree ->
+      let SV (v, carry) = SV.mul res_tree (SV.of_vec root_frequencies) in
+      Float.log (Vector.sum v) +. carry
+    | None -> 0.
+
+  let conditionial_likelihoods t ~nstates ~leaf_state ~transition_matrix =
+    let open Option.Let_syntax in
+    let rec node (t : _ Tree.t) =
+      match t with
+      | Leaf l ->
+        let state = leaf_state l in
+        let%map vec, set = leaf_indicator_with_set ~nstates state in
+        Tree.leaf (Int.Set.to_array set), SV.of_vec vec
+      | Node n ->
+        match List1.filter_map n.branches ~f:branch with
+        | [] -> None
+        | (b0, cl0) :: rest ->
+          let branches, cl =
+            List.fold rest ~init:(List1.singleton b0, cl0) ~f:(fun (branches, cl) (b_i, cl_i) ->
+                List1.cons1 b_i branches,
+                SV.mul cl cl_i
+              )
+          in
+          Some (Tree.node cl (List1.rev branches), cl)
+    and branch ((Branch b) : _ Tree.branch) =
+      let mat = matrix_decomposition_reduce ~dim:nstates (transition_matrix b.data) in
+      let%map tip, tip_cl = node b.tip in
+      let cl = SV.mat_vec_mul mat tip_cl in
+      Tree.branch (b.data, mat) tip, cl
+    in
+    match node t with
+    | Some (t', _) -> t'
+    | None ->
+      Leaf (Array.init nstates ~f:Fun.id)
+
+  let conditional_simulation rng t ~root_frequencies =
+    let nstates = Vector.length root_frequencies in
+    let rec tree (t : _ Tree.t) prior =
+      match t with
+      | Leaf xs ->
+        let state = match Array.length xs with
+          | 0 -> failwith "invalid conditional likelihood tree"
+          | 1 -> xs.(1)
+          | _ ->
+            let weights =
+              Array.map xs ~f:prior
+              |> Gsl.Randist.discrete_preproc
+            in
+            xs.(Gsl.Randist.discrete rng weights)
+        in
+        Tree.leaf state
+      | Node n ->
+        let SV (conditional_likelihood, _) = n.data in
+        let weights =
+          Array.init nstates ~f:(fun i ->
+              prior i *. Vector.get conditional_likelihood i
+            )
+          |> Gsl.Randist.discrete_preproc
+        in
+        let state = Gsl.Randist.discrete rng weights in
+        let branches = List1.map n.branches ~f:(fun br -> branch br state) in
+        Tree.node state branches
+
+    and branch (Branch br) parent_state =
+      let prior i = Matrix.get (snd br.data) parent_state i in
+      Tree.branch br.data (tree br.tip prior)
+    in
+    tree t (Vector.get root_frequencies)
+end
 
 module Uniformized_process = struct
   type t = {

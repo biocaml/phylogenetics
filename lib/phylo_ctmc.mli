@@ -37,23 +37,6 @@ val pruning_with_missing_values :
    [root_frequencies]. With this variant, one can specify that some
    leaves are unobserved. *)
 
-val pruning_with_multiple_states :
-  ('a, 'b, 'c) Tree.t ->
-  nstates:int ->
-  transition_matrix:('c -> matrix_decomposition) ->
-  leaf_state:('b -> int -> bool) ->
-  root_frequencies:vec ->
-  float
-(** [pruning_with_multiple_states t ~nstates ~transition_matrix
-   ~leaf_state ~root_frequencies] returns the probability of observing
-   the states returned by [leaf_state] at the leaves of [t] given the
-   CTMC specified by [nstates], [transition_matrix] and
-   [root_frequencies]. With this variant one can specify some
-   uncertainty for a given leaf, by letting [leaf_state] return [true]
-   for several states. In that case, it is understood that each state
-   has equal probability. If [leaf_state] always returns [false] for a
-   given leaf, it is interpreted as the leaf being unobserved. *)
-
 val conditionial_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
@@ -66,6 +49,39 @@ val conditional_simulation :
   (shifted_vector, int, 'b * mat) Tree.t ->
   root_frequencies:vec ->
   (int, int, 'b * mat) Tree.t
+
+(** In this variant implementation, one can specify some uncertainty
+   for a given leaf, by letting [leaf_state] return [true] for several
+   states. In that case, it is understood that each state has equal
+   probability. If [leaf_state] always returns [false] for a given
+   leaf, it is interpreted as the leaf being unobserved. *)
+module Ambiguous : sig
+  val pruning :
+    ('a, 'b, 'c) Tree.t ->
+    nstates:int ->
+    transition_matrix:('c -> matrix_decomposition) ->
+    leaf_state:('b -> int -> bool) ->
+    root_frequencies:vec ->
+    float
+  (** [pruning t ~nstates ~transition_matrix ~leaf_state
+     ~root_frequencies] returns the probability of observing the
+     states returned by [leaf_state] at the leaves of [t] given the
+     CTMC specified by [nstates], [transition_matrix] and
+     [root_frequencies]. *)
+
+  val conditionial_likelihoods :
+    ('n, 'l, 'b) Tree.t ->
+    nstates:int ->
+    leaf_state:('l -> int -> bool) ->
+    transition_matrix:('b -> matrix_decomposition) ->
+    (shifted_vector, int array, 'b * mat) Tree.t
+
+  val conditional_simulation :
+    Gsl.Rng.t ->
+    (shifted_vector, int array, 'b * mat) Tree.t ->
+    root_frequencies:vec ->
+    (int, int, 'b * mat) Tree.t
+end
 
 module Uniformized_process : sig
   type t
