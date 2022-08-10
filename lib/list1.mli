@@ -3,7 +3,9 @@ val hd : 'a t -> 'a
 val length : _ t -> int
 val singleton : 'a -> 'a t
 val cons : 'a -> 'a list -> 'a t
+val cons1 : 'a -> 'a t -> 'a t
 val init : int -> f:(int -> 'a) -> 'a t
+val rev : 'a t -> 'a t
 val map : 'a t -> f:('a -> 'b) -> 'b t
 val mapi : 'a t -> f:(int -> 'a -> 'b) -> 'b t
 val map2_exn : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> 'c t

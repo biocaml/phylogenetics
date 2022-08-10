@@ -10,6 +10,16 @@ let init n ~f =
 
 let cons h t = Cons (h, t)
 
+let cons1 h (Cons (h', t')) = Cons (h, h' :: t')
+
+let rev (Cons (h, t)) =
+  let rec loop (h, acc) = function
+    | [] -> Cons (h, acc)
+    | h' :: t' ->
+      loop (h', h :: acc) t'
+  in
+  loop (h, []) t
+
 let fold (Cons (h, t)) ~init ~f =
   List.fold t ~f ~init:(f init h)
 
