@@ -8,6 +8,7 @@ val init : int -> f:(int -> 'a) -> 'a t
 val rev : 'a t -> 'a t
 val map : 'a t -> f:('a -> 'b) -> 'b t
 val mapi : 'a t -> f:(int -> 'a -> 'b) -> 'b t
+val map2 : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> ('c t, [> `Unequal_lengths]) result
 val map2_exn : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> 'c t
 val filter : 'a t -> f:('a -> bool) -> 'a list
 val filter_map : 'a t -> f:('a -> 'b option) -> 'b list

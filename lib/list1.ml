@@ -35,6 +35,13 @@ let map (Cons (h, t)) ~f =
 let mapi (Cons (h, t)) ~f =
   cons (f 0 h) (List.mapi t ~f:(fun i -> f (i + 1)))
 
+let map2 (Cons (h1, t1)) (Cons (h2, t2)) ~f =
+  match List.map2 t1 t2 ~f with
+  | List.Or_unequal_lengths.Ok l ->
+    Ok (cons (f h1 h2) l)
+  | List.Or_unequal_lengths.Unequal_lengths ->
+    Error `Unequal_lengths
+
 let map2_exn (Cons (h1, t1)) (Cons (h2, t2)) ~f =
   cons (f h1 h2) (List.map2_exn t1 t2 ~f)
 
