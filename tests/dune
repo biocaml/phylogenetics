@@ -1,4 +1,4 @@
 (library
  (name phylogenetics_test)
  (libraries alcotest phylogenetics)
- (preprocess (pps ppx_jane)))
+ (preprocess (pps ppx_deriving.show ppx_jane)))
