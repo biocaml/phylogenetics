@@ -55,7 +55,7 @@ end
 
 let indicator ~i ~n = Vector.init n ~f:(fun j -> if i = j then 1. else 0.)
 
-let pruning t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
+let pruning t ~nstates ~transition_probabilities ~leaf_state ~root_frequencies =
   let rec tree (t : _ Tree.t) =
     match t with
     | Leaf l ->
@@ -64,7 +64,7 @@ let pruning t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
       |> SV.of_vec
     | Node n ->
       List1.map n.branches ~f:(fun (Branch b) ->
-          SV.decomp_vec_mul (transition_matrix b.data) (tree b.tip)
+          SV.decomp_vec_mul (transition_probabilities b.data) (tree b.tip)
         )
       |> List1.to_list
       |> List.reduce_exn ~f:SV.mul
@@ -72,7 +72,7 @@ let pruning t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
   let SV (v, carry) = SV.mul (tree t) (SV.of_vec root_frequencies) in
   Float.log (Vector.sum v) +. carry
 
-let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
+let pruning_with_missing_values t ~nstates ~transition_probabilities ~leaf_state ~root_frequencies =
   let open Option.Let_syntax in
   let rec tree (t : _ Tree.t) =
     match t with
@@ -83,7 +83,7 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     | Node n ->
       let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
           let%map tip_term = tree b.tip in
-          SV.decomp_vec_mul (transition_matrix b.data) tip_term
+          SV.decomp_vec_mul (transition_probabilities b.data) tip_term
         )
       in
       match terms with
@@ -98,7 +98,7 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     Float.log (Vector.sum v) +. carry
   | None -> 0.
 
-let conditional_likelihoods t ~nstates ~leaf_state ~transition_matrix =
+let conditional_likelihoods t ~nstates ~leaf_state ~transition_probabilities =
   let rec tree (t : _ Tree.t) =
     match t with
     | Leaf l ->
@@ -113,7 +113,7 @@ let conditional_likelihoods t ~nstates ~leaf_state ~transition_matrix =
       let cl = List1.reduce cls ~f:SV.mul in
       Tree.node cl children, cl
   and branch ((Branch b) : _ Tree.branch) =
-    let mat = transition_matrix b.data in
+    let mat = transition_probabilities b.data in
     let tip, tip_cl = tree b.tip in
     let cl = SV.mat_vec_mul mat tip_cl in
     Tree.branch (b.data, mat) tip, cl
@@ -189,7 +189,7 @@ module Ambiguous = struct
      \pi (P_2 (\sum_{x_2 \in A} I_{x_2}) \otimes P_3 I_{x_3})
 
      by linearity of matrix-vector multiplication and \otimes *)
-  let pruning t ~nstates ~transition_matrix ~leaf_state ~root_frequencies =
+  let pruning t ~nstates ~transition_probabilities ~leaf_state ~root_frequencies =
     let open Option.Let_syntax in
     let rec tree (t : _ Tree.t) =
       match t with
@@ -200,7 +200,7 @@ module Ambiguous = struct
       | Node n ->
         let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
             let%map tip_term = tree b.tip in
-            SV.decomp_vec_mul (transition_matrix b.data) tip_term
+            SV.decomp_vec_mul (transition_probabilities b.data) tip_term
           )
         in
         match terms with
@@ -215,7 +215,7 @@ module Ambiguous = struct
       Float.log (Vector.sum v) +. carry
     | None -> 0.
 
-  let conditional_likelihoods t ~nstates ~leaf_state ~transition_matrix =
+  let conditional_likelihoods t ~nstates ~leaf_state ~transition_probabilities =
     let open Option.Let_syntax in
     let rec node (t : _ Tree.t) =
       match t with
@@ -235,7 +235,7 @@ module Ambiguous = struct
           in
           Some (Tree.node cl (List1.rev branches), cl)
     and branch ((Branch b) : _ Tree.branch) =
-      let mat = transition_matrix b.data in
+      let mat = transition_probabilities b.data in
       let%map tip, tip_cl = node b.tip in
       let cl = SV.mat_vec_mul mat tip_cl in
       Tree.branch (b.data, mat) tip, cl

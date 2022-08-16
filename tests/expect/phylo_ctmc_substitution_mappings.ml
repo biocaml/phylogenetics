@@ -31,18 +31,18 @@ let substitution_rate p i j =
   p.exchangeability_matrix.Amino_acid.%{i, j} *.
   p.stationary_distribution.Amino_acid.%(j)
 
-let rate_matrix p =
+let transition_rates p =
   Rate_matrix.Amino_acid.make (substitution_rate p)
 
 let transition_probabilities_of_rates m =
   fun bl -> (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)
 
 let transition_matrix p =
-  let m = rate_matrix p in
+  let m = transition_rates p in
   transition_probabilities_of_rates m
 
 let uniformized_process p =
-  let transition_rates = rate_matrix p in
+  let transition_rates = transition_rates p in
   let transition_probabilities =
     transition_probabilities_of_rates transition_rates
   in
@@ -101,7 +101,7 @@ let () =
   )
 
 let sample_site tree root =
-  let rates = rate_matrix wag_param in
+  let rates = transition_rates wag_param in
   AASim.site_gillespie_first_reaction rng tree ~root ~rate_matrix:(fun _ -> rates)
 
 let iter_branches t ~f =
@@ -135,14 +135,14 @@ let sufficient_statistics ~nstates tree =
     ) ;
   counts, waiting_times
 
-let mapping_likelihood ~nstates ~rate_matrix tree =
+let mapping_likelihood ~nstates ~transition_rates tree =
   let counts, waiting_times = sufficient_statistics ~nstates tree in
   let lik = ref 0. in
   for i = 0 to nstates - 1 do
     for j = 0 to nstates - 1 do
       let contrib =
-        if i = j then waiting_times.(i) *. Matrix.get rate_matrix i i
-        else float counts.(i).(j) *. Float.log (Matrix.get rate_matrix i j)
+        if i = j then waiting_times.(i) *. Matrix.get transition_rates i i
+        else float counts.(i).(j) *. Float.log (Matrix.get transition_rates i j)
       in
       lik := !lik +. contrib
     done ;
@@ -155,10 +155,10 @@ let () =
   let nstates = Amino_acid.card in
   let leaf_state (_, aa) = Amino_acid.to_int aa in
   let root_frequencies =  (wag.freqs :> Vector.t) in
-  let rate_matrix = rate_matrix wag_param in
+  let transition_rates = transition_rates wag_param in
   let conditional_likelihoods =
-    let transition_matrix bl = transition_probabilities_of_rates rate_matrix bl in
-    Phylo_ctmc.conditional_likelihoods site ~nstates ~leaf_state ~transition_matrix
+    let transition_probabilities bl = transition_probabilities_of_rates transition_rates bl in
+    Phylo_ctmc.conditional_likelihoods site ~nstates ~leaf_state ~transition_probabilities
   in
   let process = Staged.unstage (uniformized_process wag_param) in
   let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process bi) in
@@ -166,12 +166,12 @@ let () =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
         |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~path_sampler
-        |> mapping_likelihood ~nstates ~rate_matrix:(rate_matrix :> mat)
+        |> mapping_likelihood ~nstates ~transition_rates:(transition_rates :> mat)
       )
     |> Gsl.Stats.mean
   in
   let pruning_likelihood =
-    let transition_matrix bl = [`Mat (transition_probabilities_of_rates rate_matrix bl)] in
-    Phylo_ctmc.pruning site ~nstates ~transition_matrix ~leaf_state ~root_frequencies
+    let transition_probabilities bl = [`Mat (transition_probabilities_of_rates transition_rates bl)] in
+    Phylo_ctmc.pruning site ~nstates ~transition_probabilities ~leaf_state ~root_frequencies
   in
   printf "%f %f\n" pruning_likelihood mean_mapping_likelihood

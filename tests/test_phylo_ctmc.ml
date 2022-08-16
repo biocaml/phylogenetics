@@ -15,11 +15,11 @@ let test_pruning ?(tree_size = 5) ?(seq_size = 10) () =
   let felsenstein_result = F.felsenstein () tree align in
   let ctmc_result =
     let tree = Phylogenetic_tree.to_tree tree in
-    let transition_matrix l = [`Mat (M.transition_probability_matrix () l :> Linear_algebra.mat)] in
+    let transition_probabilities l = [`Mat (M.transition_probability_matrix () l :> Linear_algebra.mat)] in
     let root_frequencies = (M.stationary_distribution () :> Linear_algebra.vec) in
     Array.init (Align.length align) ~f:(fun i ->
         let leaf_state (_, index) = Align.get_base align ~seq:index ~pos:i |> Nucleotide.to_int in
-        CTMC.pruning tree ~nstates:Nucleotide.card ~transition_matrix ~leaf_state ~root_frequencies
+        CTMC.pruning tree ~nstates:Nucleotide.card ~transition_probabilities ~leaf_state ~root_frequencies
       )
     |> Utils.array_sum
   in
@@ -69,15 +69,15 @@ let test_conditional_likelihood_ambiguity () =
   in
   let site = Sim.site_gillespie_direct rng ~root:root_state tree ~rate_matrix:(Fun.const rate_matrix) in
   let nstates = Amino_acid.card in
-  let transition_matrix bl =
+  let transition_probabilities bl =
     (Amino_acid.Matrix.(expm (scal_mul bl rate_matrix)) :> Linear_algebra.mat)
   in
   let cl = Phylo_ctmc.conditional_likelihoods site ~nstates
-      ~transition_matrix
+      ~transition_probabilities
       ~leaf_state:(fun (_, aa) -> Amino_acid.to_int aa) in
   let cl_amb = Phylo_ctmc.Ambiguous.conditional_likelihoods site ~nstates
       ~leaf_state:(fun (_, aa) i -> Amino_acid.to_int aa = i)
-      ~transition_matrix
+      ~transition_probabilities
   in
   match check_equal_conditional_likelihood cl cl_amb with
   | Ok () -> ()

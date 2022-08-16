@@ -13,27 +13,27 @@ type shifted_vector = SV of vec * float
 val pruning :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
-  transition_matrix:('b -> matrix_decomposition) ->
+  transition_probabilities:('b -> matrix_decomposition) ->
   leaf_state:('l -> int) ->
   root_frequencies:vec ->
   float
-(** [pruning t ~nstates ~transition_matrix ~leaf_state
+(** [pruning t ~nstates ~transition_probabilities ~leaf_state
    ~root_frequencies] returns the probability of observing the states
    returned by [leaf_state] at the leaves of [t] given the CTMC
-   specified by [nstates], [transition_matrix] and
+   specified by [nstates], [transition_probabilities] and
    [root_frequencies]. *)
 
 val pruning_with_missing_values :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
-  transition_matrix:('b -> matrix_decomposition) ->
+  transition_probabilities:('b -> matrix_decomposition) ->
   leaf_state:('l -> int option) ->
   root_frequencies:vec ->
   float
-(** [pruning t ~nstates ~transition_matrix ~leaf_state
+(** [pruning t ~nstates ~transition_probabilities ~leaf_state
    ~root_frequencies] returns the probability of observing the states
    returned by [leaf_state] at the leaves of [t] given the CTMC
-   specified by [nstates], [transition_matrix] and
+   specified by [nstates], [transition_probabilities] and
    [root_frequencies]. With this variant, one can specify that some
    leaves are unobserved. *)
 
@@ -41,7 +41,7 @@ val conditional_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
   leaf_state:('l -> int) ->
-  transition_matrix:('b -> mat) ->
+  transition_probabilities:('b -> mat) ->
   (shifted_vector, int, 'b * mat) Tree.t
 
 val conditional_simulation :
@@ -59,21 +59,21 @@ module Ambiguous : sig
   val pruning :
     ('a, 'b, 'c) Tree.t ->
     nstates:int ->
-    transition_matrix:('c -> matrix_decomposition) ->
+    transition_probabilities:('c -> matrix_decomposition) ->
     leaf_state:('b -> int -> bool) ->
     root_frequencies:vec ->
     float
-  (** [pruning t ~nstates ~transition_matrix ~leaf_state
+  (** [pruning t ~nstates ~transition_probabilities ~leaf_state
      ~root_frequencies] returns the probability of observing the
      states returned by [leaf_state] at the leaves of [t] given the
-     CTMC specified by [nstates], [transition_matrix] and
+     CTMC specified by [nstates], [transition_probabilities] and
      [root_frequencies]. *)
 
   val conditional_likelihoods :
     ('n, 'l, 'b) Tree.t ->
     nstates:int ->
     leaf_state:('l -> int -> bool) ->
-    transition_matrix:('b -> mat) ->
+    transition_probabilities:('b -> mat) ->
     (shifted_vector, int array, 'b * mat) Tree.t
 
   val conditional_simulation :
