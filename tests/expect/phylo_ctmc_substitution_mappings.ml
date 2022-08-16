@@ -159,7 +159,7 @@ let () =
   let leaf_state (_, aa) = Amino_acid.to_int aa in
   let root_frequencies =  (wag.freqs :> Vector.t) in
   let conditional_likelihoods =
-    Phylo_ctmc.conditionial_likelihoods site ~nstates ~leaf_state ~transition_matrix
+    Phylo_ctmc.conditional_likelihoods site ~nstates ~leaf_state ~transition_matrix
   in
   let rate_matrix = (rate_matrix wag_param :> Matrix.t) in
   let process = Staged.unstage (uniformized_process wag_param) in

@@ -37,7 +37,7 @@ val pruning_with_missing_values :
    [root_frequencies]. With this variant, one can specify that some
    leaves are unobserved. *)
 
-val conditionial_likelihoods :
+val conditional_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
   leaf_state:('l -> int) ->
@@ -69,7 +69,7 @@ module Ambiguous : sig
      CTMC specified by [nstates], [transition_matrix] and
      [root_frequencies]. *)
 
-  val conditionial_likelihoods :
+  val conditional_likelihoods :
     ('n, 'l, 'b) Tree.t ->
     nstates:int ->
     leaf_state:('l -> int -> bool) ->

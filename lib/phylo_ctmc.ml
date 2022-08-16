@@ -98,7 +98,7 @@ let pruning_with_missing_values t ~nstates ~transition_matrix ~leaf_state ~root_
     Float.log (Vector.sum v) +. carry
   | None -> 0.
 
-let conditionial_likelihoods t ~nstates ~leaf_state ~transition_matrix =
+let conditional_likelihoods t ~nstates ~leaf_state ~transition_matrix =
   let rec tree (t : _ Tree.t) =
     match t with
     | Leaf l ->
@@ -215,7 +215,7 @@ module Ambiguous = struct
       Float.log (Vector.sum v) +. carry
     | None -> 0.
 
-  let conditionial_likelihoods t ~nstates ~leaf_state ~transition_matrix =
+  let conditional_likelihoods t ~nstates ~leaf_state ~transition_matrix =
     let open Option.Let_syntax in
     let rec node (t : _ Tree.t) =
       match t with

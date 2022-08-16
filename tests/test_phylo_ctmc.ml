@@ -72,10 +72,10 @@ let test_conditional_likelihood_ambiguity () =
   let transition_matrix bl =
     [`Mat (Amino_acid.Matrix.(expm (scal_mul bl rate_matrix)) :> Linear_algebra.mat)]
   in
-  let cl = Phylo_ctmc.conditionial_likelihoods site ~nstates
+  let cl = Phylo_ctmc.conditional_likelihoods site ~nstates
       ~transition_matrix
       ~leaf_state:(fun (_, aa) -> Amino_acid.to_int aa) in
-  let cl_amb = Phylo_ctmc.Ambiguous.conditionial_likelihoods site ~nstates
+  let cl_amb = Phylo_ctmc.Ambiguous.conditional_likelihoods site ~nstates
       ~leaf_state:(fun (_, aa) i -> Amino_acid.to_int aa = i)
       ~transition_matrix
   in
