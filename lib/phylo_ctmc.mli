@@ -41,7 +41,7 @@ val conditional_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
   leaf_state:('l -> int) ->
-  transition_matrix:('b -> matrix_decomposition) ->
+  transition_matrix:('b -> mat) ->
   (shifted_vector, int, 'b * mat) Tree.t
 
 val conditional_simulation :
@@ -73,7 +73,7 @@ module Ambiguous : sig
     ('n, 'l, 'b) Tree.t ->
     nstates:int ->
     leaf_state:('l -> int -> bool) ->
-    transition_matrix:('b -> matrix_decomposition) ->
+    transition_matrix:('b -> mat) ->
     (shifted_vector, int array, 'b * mat) Tree.t
 
   val conditional_simulation :

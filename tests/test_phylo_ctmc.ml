@@ -70,7 +70,7 @@ let test_conditional_likelihood_ambiguity () =
   let site = Sim.site_gillespie_direct rng ~root:root_state tree ~rate_matrix:(Fun.const rate_matrix) in
   let nstates = Amino_acid.card in
   let transition_matrix bl =
-    [`Mat (Amino_acid.Matrix.(expm (scal_mul bl rate_matrix)) :> Linear_algebra.mat)]
+    (Amino_acid.Matrix.(expm (scal_mul bl rate_matrix)) :> Linear_algebra.mat)
   in
   let cl = Phylo_ctmc.conditional_likelihoods site ~nstates
       ~transition_matrix

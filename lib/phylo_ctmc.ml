@@ -113,7 +113,7 @@ let conditional_likelihoods t ~nstates ~leaf_state ~transition_matrix =
       let cl = List1.reduce cls ~f:SV.mul in
       Tree.node cl children, cl
   and branch ((Branch b) : _ Tree.branch) =
-    let mat = matrix_decomposition_reduce ~dim:nstates (transition_matrix b.data) in
+    let mat = transition_matrix b.data in
     let tip, tip_cl = tree b.tip in
     let cl = SV.mat_vec_mul mat tip_cl in
     Tree.branch (b.data, mat) tip, cl
@@ -235,7 +235,7 @@ module Ambiguous = struct
           in
           Some (Tree.node cl (List1.rev branches), cl)
     and branch ((Branch b) : _ Tree.branch) =
-      let mat = matrix_decomposition_reduce ~dim:nstates (transition_matrix b.data) in
+      let mat = transition_matrix b.data in
       let%map tip, tip_cl = node b.tip in
       let cl = SV.mat_vec_mul mat tip_cl in
       Tree.branch (b.data, mat) tip, cl

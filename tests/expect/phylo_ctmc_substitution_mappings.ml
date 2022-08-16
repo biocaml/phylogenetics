@@ -35,7 +35,7 @@ let rate_matrix p =
   Rate_matrix.Amino_acid.make (substitution_rate p)
 
 let transition_probabilities_of_rates m =
-  fun bl -> [`Mat (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)]
+  fun bl -> (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)
 
 let transition_matrix p =
   let m = rate_matrix p in
@@ -43,10 +43,8 @@ let transition_matrix p =
 
 let uniformized_process p =
   let transition_rates = rate_matrix p in
-  let transition_probabilities lambda =
-    Phylo_ctmc.matrix_decomposition_reduce
-      ~dim:Amino_acid.card
-      (transition_probabilities_of_rates transition_rates lambda)
+  let transition_probabilities =
+    transition_probabilities_of_rates transition_rates
   in
   Phylo_ctmc.Uniformized_process.make
     ~transition_rates:(transition_rates :> mat)
@@ -155,23 +153,25 @@ let () =
   let tree = sample_tree () in
   let site = sample_site tree valine in
   let nstates = Amino_acid.card in
-  let transition_matrix = transition_matrix wag_param in
   let leaf_state (_, aa) = Amino_acid.to_int aa in
   let root_frequencies =  (wag.freqs :> Vector.t) in
+  let rate_matrix = rate_matrix wag_param in
   let conditional_likelihoods =
+    let transition_matrix bl = transition_probabilities_of_rates rate_matrix bl in
     Phylo_ctmc.conditional_likelihoods site ~nstates ~leaf_state ~transition_matrix
   in
-  let rate_matrix = (rate_matrix wag_param :> Matrix.t) in
   let process = Staged.unstage (uniformized_process wag_param) in
   let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process bi) in
   let mean_mapping_likelihood =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
         |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~path_sampler
-        |> mapping_likelihood ~nstates ~rate_matrix
+        |> mapping_likelihood ~nstates ~rate_matrix:(rate_matrix :> mat)
       )
     |> Gsl.Stats.mean
   in
-  printf "%f %f\n"
-    (Phylo_ctmc.pruning site ~nstates ~transition_matrix ~leaf_state ~root_frequencies)
-    mean_mapping_likelihood
+  let pruning_likelihood =
+    let transition_matrix bl = [`Mat (transition_probabilities_of_rates rate_matrix bl)] in
+    Phylo_ctmc.pruning site ~nstates ~transition_matrix ~leaf_state ~root_frequencies
+  in
+  printf "%f %f\n" pruning_likelihood mean_mapping_likelihood
