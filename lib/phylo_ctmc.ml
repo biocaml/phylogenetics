@@ -303,6 +303,7 @@ module Uniformized_process = struct
       m
     in
     let mu = range_map_reduce 0 dim ~map:(fun i-> -. Matrix.get _Q_ i i) ~reduce:Float.max in
+    if Float.(mu <= 0.) then invalid_arg "invalid rate matrix" ;
     let _R_ = Matrix.init dim ~f:(fun i j -> Matrix.get _Q_ i j /. mu +. if i = j then 1. else 0.) in
     let cache = Int.Table.create () in
     let rec pow_R n =
