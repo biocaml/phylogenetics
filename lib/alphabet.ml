@@ -37,6 +37,7 @@ module type S = sig
     val foldi : vector -> init:'a -> f:(symbol -> 'a -> float -> 'a) -> 'a
     val iteri : vector -> f:(symbol -> float -> unit) -> unit
     val sum : vector -> float
+    val maxi : t -> symbol * float
     val normalize : vector -> vector
     val of_array : float array -> vector option
     val of_array_exn : float array -> vector
@@ -157,6 +158,16 @@ module Make(X : sig val card : int end) = struct
 
     let count (x:t) ~f =
       counti x ~f:(fun _ x -> f x)
+
+    (** Element with maximum value. In case of ties, it is the first one encountered *)
+    let maxi (x:t) =
+      let rec loop x i m =
+        if i = card then m
+        else
+          let m = if Float.((get x i) > snd m) then i, get x i else m in
+          loop x (i+1) m
+      in loop x 1 (0, get x 0)
+
   end
 
   let flat_profile () =
