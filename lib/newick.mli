@@ -14,6 +14,7 @@ val of_tree :
   ?leaf_id:('b -> string option) ->
   ?leaf_tags:('b -> tag list) ->
   ?branch_length:('c -> float option) ->
+  ?parent_branch:float ->
   ('a, 'b, 'c) Tree.t ->
   t
 
@@ -36,7 +37,7 @@ module Tree_repr : sig
     | Branch of branch
 
   val of_ast : ast -> t
-  val to_ast : tree -> ast
+  val to_ast : t -> ast
 
   val map_inner_tree : t -> f:(tree -> tree) -> t
   val with_inner_tree : t -> f:(tree -> 'a) -> 'a

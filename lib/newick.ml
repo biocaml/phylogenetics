@@ -84,7 +84,8 @@ let to_file t fn =
 let of_tree
     ?(node_id = Fn.const None) ?(node_tags = Fn.const [])
     ?(leaf_id = Fn.const None) ?(leaf_tags = Fn.const [])
-    ?(branch_length = Fn.const None) tree : t =
+    ?(branch_length = Fn.const None)
+    ?parent_branch tree : t =
   let rec node ?parent_branch = function
     | Tree.Node { data ; branches } -> {
         name = node_id data ; tags = node_tags data ; parent_branch ;
@@ -94,7 +95,7 @@ let of_tree
       { name = leaf_id l ; tags = leaf_tags l ; parent_branch ; children = [] }
   and branch (Branch b) = node ?parent_branch:(branch_length b.data) b.tip
   in
-  node tree
+  node ?parent_branch tree
 
 let test_string_equal x y =
   let b = String.(x = y) in
@@ -136,13 +137,18 @@ module Tree_repr = struct
     | None -> Tree (node newick)
     | Some _ -> Branch (branch newick)
 
-  let to_ast (tree_repr : tree) =
+  let ast_of_tree ?parent_branch (tree_repr : tree) =
     of_tree tree_repr
+      ?parent_branch
       ~node_id:(fun { name ; _} -> name)
       ~node_tags:(fun { tags ; _ } -> tags)
       ~leaf_id:(fun { name ; _} -> name)
       ~leaf_tags:(fun { tags ; _ } -> tags)
       ~branch_length:(Fn.id)
+
+  let to_ast = function
+    | Tree t -> ast_of_tree t
+    | Branch (Tree.Branch b) -> ast_of_tree ?parent_branch:b.data b.tip
 
   let map_inner_tree tree ~f =
     match tree with
