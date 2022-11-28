@@ -71,13 +71,12 @@ let render_int_histogram xs =
   |> String.concat ~sep:" | "
   |> print_endline
 
-let nb_events_along_branch rng path_sampler ~branch_length ~start_state ~end_state ~sample_size =
+let nb_events_along_branch rng path_sampler ~start_state ~end_state ~sample_size =
   List.init sample_size ~f:(fun _ ->
-      Phylo_ctmc.conditional_simulation_along_branch_exn
-        ~rng path_sampler ~branch_length
+      Phylo_ctmc.Path_sampler.sample_exn
+        ~rng path_sampler
         ~start_state:(Amino_acid.to_int start_state)
         ~end_state:(Amino_acid.to_int end_state)
-        ~nstates:Amino_acid.card
       |> Array.length
     )
 
@@ -86,17 +85,17 @@ let () =
   let end_state = valine in
   let sample_size = 10_000 in
   let branch_length = 2. in
-  let process = Staged.unstage (uniformized_process wag_param) branch_length in
+  let process = Staged.unstage (uniformized_process wag_param) ~branch_length in
   let uniformized_path_sampler = Phylo_ctmc.Path_sampler.uniformization process in
-  let rejection_path_sampler = Phylo_ctmc.Path_sampler.rejection_sampling ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process) () in
+  let rejection_path_sampler = Phylo_ctmc.Path_sampler.rejection_sampling ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process) ~branch_length () in
   render_int_histogram (
     nb_events_along_branch
       rng rejection_path_sampler
-      ~branch_length ~start_state ~end_state ~sample_size
+      ~start_state ~end_state ~sample_size
   ) ;
   render_int_histogram (
     nb_events_along_branch
-      rng uniformized_path_sampler ~branch_length
+      rng uniformized_path_sampler
       ~start_state ~end_state ~sample_size
   )
 
@@ -161,11 +160,11 @@ let () =
     Phylo_ctmc.conditional_likelihoods site ~nstates ~leaf_state ~transition_probabilities
   in
   let process = Staged.unstage (uniformized_process wag_param) in
-  let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process bi) in
+  let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process ~branch_length:bi) in
   let mean_mapping_likelihood =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
-        |> Phylo_ctmc.substitution_mapping ~rng ~branch_length:Fn.id ~nstates ~path_sampler
+        |> Phylo_ctmc.substitution_mapping ~rng ~path_sampler
         |> mapping_likelihood ~nstates ~transition_rates:(transition_rates :> mat)
       )
     |> Gsl.Stats.mean

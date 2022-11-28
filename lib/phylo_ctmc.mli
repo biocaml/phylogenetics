@@ -88,7 +88,7 @@ module Uniformized_process : sig
   val make :
     transition_rates:mat ->
     transition_probabilities:(float -> mat) ->
-    (float -> t) Core.Staged.t
+    (branch_length:float -> t) Core.Staged.t
 
   val transition_rates : t -> mat
   val transition_probabilities : t -> mat
@@ -97,21 +97,20 @@ end
 module Path_sampler : sig
   type t
   val uniformization : Uniformized_process.t -> t
-  val rejection_sampling : ?max_tries:int -> rates:mat -> unit -> t
+  val rejection_sampling :
+    ?max_tries:int ->
+    rates:mat ->
+    branch_length:float ->
+    unit -> t
+  val sample_exn :
+    t ->
+    rng:Gsl.Rng.t ->
+    start_state:int ->
+    end_state:int ->
+    (int * float) array
 end
 
-val conditional_simulation_along_branch_exn :
-  Path_sampler.t ->
-  rng:Gsl.Rng.t ->
-  nstates:int ->
-  branch_length:float ->
-  start_state:int ->
-  end_state:int ->
-  (int * float) array
-
 val substitution_mapping :
-  nstates:int ->
-  branch_length:('b -> float) ->
   rng:Gsl.Rng.t ->
   path_sampler:('b -> Path_sampler.t) ->
   (int, int, 'b * mat) Tree.t ->
