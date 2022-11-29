@@ -398,32 +398,38 @@ let sum n f =
   in
   loop 0. 0
 
+type rejection_sampling_error = {
+  max_tries : int ;
+  start_state : int ;
+  end_state : int ;
+  rate : float ;
+  total_rate : float ;
+  prob : float ;
+}
+
 let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~rng ~branch_length ~start_state ~end_state ~init ~f =
   let nstates = fst (Linear_algebra.Matrix.dim rate_matrix) in
   let module A = Alphabet.Make(struct let card = nstates end) in
   let module BI = struct type t = float let length = Fn.id end in
   let module Sim = Simulator.Make(A)(BI) in
   let rec loop remaining_tries =
-    if Option.value_map remaining_tries ~default:false ~f:(( = ) 0) then (
+    if remaining_tries <= 0 then
       let rate = Linear_algebra.Matrix.get rate_matrix start_state end_state in
       let total_rate = sum nstates (fun dest ->
           if dest = start_state then 0. else Linear_algebra.Matrix.get rate_matrix start_state dest
         )
       in
       let prob = rate /. total_rate in
-      failwithf
-        "Reached max (= %d) tries: %d -[%f]-> %d (rate = %g, total_rate = %g, prob = %g)"
-        (match max_tries with None -> assert false | Some x -> x)
-        start_state branch_length end_state rate total_rate prob ()
-    )
+      Error { max_tries ;
+              start_state ; end_state ; rate ; total_rate ; prob }
     else
       let res, simulated_end_state =
         Sim.branch_gillespie_direct rng
           ~start_state ~rate_matrix ~branch_length
           ~init:(init, start_state) ~f:(fun (acc, _) s t -> f acc s t, s)
       in
-      if A.equal simulated_end_state end_state then res
-      else loop (Option.map remaining_tries ~f:pred)
+      if A.equal simulated_end_state end_state then Ok res
+      else loop (remaining_tries - 1)
   in
   loop max_tries
 
@@ -431,25 +437,52 @@ let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_
   conditional_simulation_along_branch_by_rejection_sampling
     ~rate_matrix ~max_tries ~rng ~branch_length ~start_state ~end_state
     ~init:[] ~f:(fun acc s t -> (s, t) :: acc)
-  |> Array.of_list_rev
+  |> Result.map ~f:Array.of_list_rev
 
 module Path_sampler = struct
   type t =
     | Uniformization_sampler of Uniformized_process.t
-    | Rejection_sampler of { rates : mat ; max_tries : int option ; branch_length : float }
+    | Rejection_sampler of { rates : mat ; max_tries : int ; branch_length : float }
+    | Rejection_sampler_or_uniformization of {
+        max_tries : int ;
+        up : Uniformized_process.t ;
+      }
 
   let uniformization process =
     Uniformization_sampler process
 
-  let rejection_sampling ?max_tries ~rates ~branch_length () =
+  let rejection_sampling ~max_tries ~rates ~branch_length () =
     Rejection_sampler { rates ; max_tries ; branch_length }
 
-  let sample_exn meth =
+  let rejection_sampling_or_uniformization ~max_tries up =
+    Rejection_sampler_or_uniformization { max_tries ; up }
+
+  let sample_exn meth ~rng ~start_state ~end_state =
     match meth with
     | Uniformization_sampler up ->
-      conditional_simulation_along_branch_by_uniformization up
-    | Rejection_sampler { rates = rate_matrix ; max_tries ; branch_length } ->
-      conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~branch_length
+      conditional_simulation_along_branch_by_uniformization up ~rng ~start_state ~end_state
+    | Rejection_sampler { rates = rate_matrix ; max_tries ; branch_length } -> (
+        match
+          conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~branch_length ~rng ~start_state ~end_state
+        with
+        | Ok res -> res
+        | Error { max_tries ; start_state ; end_state ; rate ; total_rate ; prob } ->
+          failwithf
+            "Reached max (= %d) tries: %d -[%f]-> %d (rate = %g, total_rate = %g, prob = %g)"
+            max_tries
+            start_state branch_length end_state rate total_rate prob ()
+      )
+    | Rejection_sampler_or_uniformization rs ->
+      match
+        conditional_simulation_along_branch_by_rejection_sampling
+          ~rng ~start_state ~end_state
+          ~rate_matrix:(Uniformized_process.transition_rates rs.up)
+          ~max_tries:rs.max_tries
+          ~branch_length:rs.up.branch_length
+      with
+      | Ok res -> res
+      | Error _ -> conditional_simulation_along_branch_by_uniformization rs.up ~rng ~start_state ~end_state
+
 end
 
 let substitution_mapping ~rng ~path_sampler sim =

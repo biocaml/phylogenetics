@@ -87,7 +87,10 @@ let () =
   let branch_length = 2. in
   let process = Staged.unstage (uniformized_process wag_param) ~branch_length in
   let uniformized_path_sampler = Phylo_ctmc.Path_sampler.uniformization process in
-  let rejection_path_sampler = Phylo_ctmc.Path_sampler.rejection_sampling ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process) ~branch_length () in
+  let rejection_path_sampler =
+    Phylo_ctmc.Path_sampler.rejection_sampling
+      ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process)
+      ~branch_length ~max_tries:10_000 () in
   render_int_histogram (
     nb_events_along_branch
       rng rejection_path_sampler

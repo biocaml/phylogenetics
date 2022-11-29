@@ -97,11 +97,18 @@ end
 module Path_sampler : sig
   type t
   val uniformization : Uniformized_process.t -> t
+
   val rejection_sampling :
-    ?max_tries:int ->
+    max_tries:int ->
     rates:mat ->
     branch_length:float ->
     unit -> t
+
+  val rejection_sampling_or_uniformization :
+    max_tries:int ->
+    Uniformized_process.t ->
+    t
+
   val sample_exn :
     t ->
     rng:Gsl.Rng.t ->
