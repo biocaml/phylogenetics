@@ -252,7 +252,7 @@ module Ambiguous = struct
       | Leaf xs ->
         let state = match Array.length xs with
           | 0 -> failwith "invalid conditional likelihood tree"
-          | 1 -> xs.(1)
+          | 1 -> xs.(0)
           | _ ->
             let weights =
               Array.map xs ~f:prior
