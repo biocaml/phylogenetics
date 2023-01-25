@@ -5,14 +5,15 @@
   (deps ../tests/data/wag.dat))
  (libraries
   angstrom.unix
-  biocaml.ez
+  biotk
   core
   gsl
   lacaml
   yojson
   menhirLib
   printbox
-  printbox-text)
+  printbox-text
+  rresult)
  (preprocess
   (pps ppx_deriving.show ppx_inline_test ppx_jane)))
 

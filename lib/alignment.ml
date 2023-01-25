@@ -54,19 +54,17 @@ let fold t ~init ~f = Array.fold2_exn t.descriptions t.sequences ~init
     ~f:(fun acc description sequence -> f acc ~description ~sequence)
 
 module Fasta = struct
-  let of_fasta_items (items:Biocaml_unix.Fasta.item list) =
+  let of_fasta_items (items:Biotk.Fasta.item list) =
     List.map items ~f:(fun x -> x.description, x.sequence)
     |> of_assoc_list
 
   let from_file fn =
-    let open Result.Monad_infix in
-    let parsing =
-      Biocaml_unix.Fasta.with_file fn ~f:(fun header stream ->
-          CFStream.Stream.Result.all' stream ~f:(fun items -> header, CFStream.Stream.to_list items)
-        )
-      |> Result.map_error ~f:(fun e -> `Fasta_parser_error (Error.to_string_hum e))
+    let open Biotk.Let_syntax.Result in
+    let* _, items =
+      Biotk.Fasta.from_file fn
+      |> Result.map_error ~f:(fun msg -> `Fasta_parser_error msg)
     in
-    parsing >>| snd >>= of_fasta_items
+    of_fasta_items items
 
   let from_file_exn fn =
     match from_file fn with
@@ -104,17 +102,18 @@ let number_of_residues_per_column_stats al =
         |> Char.Set.length
       )
   in
-  Biocaml_unix.Accu.counts (CFStream.Stream.of_array x)
-  |> CFStream.Stream.to_list
+  Binning.counts (Caml.Array.to_seq x)
+  |> Caml.List.of_seq
 
 let composition al =
-  let module C = Biocaml_unix.Accu.Counter in
+  let module C = Binning.Counter in
   let acc = C.create () in
   let n = float (nrows al * ncols al) in
   Array.iter al.sequences ~f:(fun s ->
-      String.iter s ~f:(fun c -> C.add acc c 1)
+      String.iter s ~f:(fun c -> C.tick acc c)
     ) ;
-  List.map (C.to_alist acc) ~f:(fun (c, k) -> (c, float k /. n))
+  Caml.Seq.map (fun (c, k) -> (c, float k /. n)) (Binning.seq acc)
+  |> Caml.List.of_seq
 
 let constant_site al j =
   let m = nrows al in
@@ -135,7 +134,6 @@ let constant_site al j =
   find_state 0
 
 open Core
-open Biocaml_ez (* for fasta parsing *)
 
 module Make(S : Seq.S) = struct
   type base = S.base
@@ -160,11 +158,10 @@ module Make(S : Seq.S) = struct
 
   let of_fasta filename =
     let align = String.Table.create ~size:10 () in (* placeholder size TODO *)
-    Fasta.with_file filename ~f:(fun _ stream -> (* using biocaml_ez to get a stream of fasta sequences *)
-        CFStream.Stream.iter ~f:(fun item -> (* iterating on said stream *)
-            (*  stream element is a record {sequence:string; description:string} *)
-            let data = S.of_string_exn item.Fasta.sequence in
-            Hashtbl.add_exn ~key:item.Fasta.description ~data:data align) stream
+    let _, items = Biotk.Fasta.from_file_exn filename in
+    List.iter items ~f:(fun item ->
+        let data = S.of_string_exn item.Biotk.Fasta.sequence in
+        Hashtbl.add_exn ~key:item.Biotk.Fasta.description ~data:data align
       ) ;
     align
 

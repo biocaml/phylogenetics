@@ -20,7 +20,8 @@
   (depends
     (alcotest :with-test)
     angstrom-unix
-    (biocaml (>= 0.8.0))
+    binning
+    (biotk (>= 0.2.0))
     (core (>= v0.15.0))
     dune
     gsl

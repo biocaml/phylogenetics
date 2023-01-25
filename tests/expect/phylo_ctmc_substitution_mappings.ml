@@ -60,8 +60,8 @@ let wag_param = {
 
 let int_histogram xs =
   let n = List.length xs in
-  Biocaml_unix.Accu.counts (Stream.of_list xs)
-  |> CFStream.Stream.to_list
+  Binning.counts (Caml.List.to_seq xs)
+  |> Caml.List.of_seq
   |> List.map ~f:(fun (i, k) -> i, float k /. float n)
   |> List.sort ~compare:Poly.compare
 
