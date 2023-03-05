@@ -158,6 +158,7 @@ let%test "leafset_generated_subtree" =
   in
   Poly.(leafset_generated_subtree t Fn.id [] = None)
   && Poly.(leafset_generated_subtree t Fn.id ["A";"B";"C";"D";"E"] = Some t)
+  && leafset_generated_subtree t Fn.id ["A";"B";"F";"G"] |> Option.is_some
 
 let simplify_node_with_single_child ~merge_branch_data t =
   let rec prune_linear_root = function
