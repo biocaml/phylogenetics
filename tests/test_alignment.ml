@@ -19,9 +19,14 @@ let test_of_string_list () =
   Align.of_string_list ["ATT";"TGC";"GTC"] |>
   (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
 
-let test_of_fasta () =
+let test_of_fasta_with_header () =
   Align.of_fasta "../tests/data/tiny1.fasta" |>
   (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
+
+let test_of_fasta () =
+  Align.of_fasta "../tests/data/tiny2.fasta" |>
+  (check @@ testable Align.pp Align.equal) "identical sequence tables" mytab
+
 
 let test_get_base () =
   Align.get_base ~seq:"T1" ~pos:2 mytab
