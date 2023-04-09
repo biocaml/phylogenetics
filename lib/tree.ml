@@ -6,11 +6,11 @@ type ('n, 'l, 'b) t =
       branches : ('n, 'l, 'b) branch List1.t ;
     }
   | Leaf of 'l
-
 and ('n, 'l, 'b) branch = Branch of {
     data : 'b ;
     tip : ('n, 'l, 'b) t ;
   }
+[@@deriving sexp]
 
 let leaf l = Leaf l
 
