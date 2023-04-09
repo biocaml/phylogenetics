@@ -1,6 +1,7 @@
 open Core
 
 type 'a t = Cons of 'a * 'a list
+[@@deriving sexp]
 
 let length (Cons (_, xs)) = 1 + List.length xs
 

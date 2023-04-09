@@ -1,4 +1,6 @@
 type 'a t = Cons of 'a * 'a list
+[@@deriving sexp]
+
 val hd : 'a t -> 'a
 val length : _ t -> int
 val singleton : 'a -> 'a t

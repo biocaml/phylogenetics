@@ -4,6 +4,7 @@ type ('n, 'l, 'b) t =
       branches : ('n, 'l, 'b) branch List1.t ;
     }
   | Leaf of 'l
+[@@deriving sexp]
 
 and ('n, 'l, 'b) branch = Branch of {
     data : 'b ;
