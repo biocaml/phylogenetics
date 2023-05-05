@@ -67,18 +67,16 @@ struct
 
   (* Gillespie "direct" method *)
   let branch_gillespie_direct rng ~start_state ~rate_matrix ~branch_length ~init ~f =
-    let rec loop state remaining_time acc =
+    let rec loop state t acc =
       let rates = A.Table.init (fun m -> if A.equal m state then 0. else rate_matrix.A.%{state, m}) in
-      let total_rate = Utils.array_sum (rates :> float array) in
-      let tau = Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
-      if Float.(tau > remaining_time) then acc
+      let total_rate = -. rate_matrix.A.%{state, state} in
+      let t' = t +. Gsl.Randist.exponential rng ~mu:(1. /. total_rate) in
+      if Float.(t' > branch_length) then acc
       else
         let next_state = symbol_sample rng (rates :> float array) in
-        (* assert (state <> next_state) ; *)
-        let remaining_time' = remaining_time -. tau in
-        loop next_state remaining_time' (f acc next_state (branch_length -. remaining_time'))
+        loop next_state t' (f acc next_state t')
     in
-    loop start_state branch_length init
+    loop start_state 0. init
 
   let site_gillespie_direct rng tree ~(root : A.t) ~rate_matrix =
     evolve tree ~root ~f:(fun bi (x_in : A.t) ->
