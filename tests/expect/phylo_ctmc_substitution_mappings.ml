@@ -37,10 +37,6 @@ let transition_rates p =
 let transition_probabilities_of_rates m =
   fun bl -> (Amino_acid.Matrix.(expm (scal_mul bl m)) :> mat)
 
-let transition_matrix p =
-  let m = transition_rates p in
-  transition_probabilities_of_rates m
-
 let uniformized_process p =
   let transition_rates = transition_rates p in
   let transition_probabilities =

@@ -14,8 +14,6 @@ module Model = struct
     exchangeability_matrix : Amino_acid.matrix ;
   }
 
-  let stationary_distribution p = p.stationary_distribution
-
   let substitution_rate p i j =
     p.exchangeability_matrix.Amino_acid.%{i, j} *.
     p.stationary_distribution.Amino_acid.%(j)
