@@ -13,7 +13,7 @@ depends: [
   "binning"
   "biotk" {>= "0.2.0"}
   "core" {>= "v0.15.0"}
-  "dune" {>= "2.7"}
+  "dune" {>= "3.6"}
   "gsl"
   "lacaml" {>= "10.0.2"}
   "menhir"
