@@ -1,3 +1,14 @@
+v0.2.0 2023-05-05 Maillezais
+----------------------------
+
+- Phylo_ctmc: pruning algorithm with ambiguous observations
+- Phylo_ctmc: introduced matrix decomposition to reduce pruning complexity
+- Codon: implemented all genetic codes
+- Simulator: optimized implementation for Gillespie direct method
+- Newick: improved representation and conversion to Tree
+- few other optimizations, more tests
+
+
 v0.1.0 2021-11-09 Villeurbanne
 ------------------------------
 
