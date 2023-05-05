@@ -1,7 +1,6 @@
 open Core
 
 type t = {
-  n : int ;
   shift : int ;
   weights : float array ;
 }
@@ -19,7 +18,7 @@ let init n ~f =
     if 2 * i + 1 < m then weights.(i) <- weights.(2 * i + 1) ;
     if 2 * i + 2 < m then weights.(i) <- weights.(i) +. weights.(2 * i + 2)
   done ;
-  { n ; shift ; weights }
+  { shift ; weights }
 
 let draw dpd rng =
   let x = dpd.weights.(0) *. Gsl.Rng.uniform rng in
