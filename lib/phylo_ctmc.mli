@@ -1,3 +1,5 @@
+(** Likelihood calculations for continuous-time Markov chain along a tree *)
+
 open Linear_algebra
 
 type matrix_decomposition = [

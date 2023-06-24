@@ -1,3 +1,5 @@
+(** Deprecated. Simulation functions for sequences *)
+
 open Core
 open Sigs
 

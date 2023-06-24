@@ -1,3 +1,5 @@
+(** Utility functions to call programs from the Bio++ library *)
+
 type alphabet =
   | DNA
   | RNA

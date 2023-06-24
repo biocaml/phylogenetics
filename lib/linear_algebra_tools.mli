@@ -1,4 +1,4 @@
-(** This modules wraps linear algebra functions (from Lacaml)
+(** Deprecated, see {! Linear_algebra}. This modules wraps linear algebra functions (from Lacaml)
     and provide a few completely new functions (such as exponentiation)*)
 
 module Lacaml : sig

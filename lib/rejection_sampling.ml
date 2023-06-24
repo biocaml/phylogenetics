@@ -1,3 +1,5 @@
+(** Deprecated. Utility functions for rejection sampling *)
+
 open Core
 open Sigs
 

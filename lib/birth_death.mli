@@ -1,3 +1,5 @@
+(** Simulation for birth-death models *)
+
 type t = private {
   birth_rate : float ;
   death_rate : float ;

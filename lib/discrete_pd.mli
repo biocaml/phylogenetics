@@ -1,4 +1,4 @@
-(* Updatable discrete probability distribution *)
+(** Updatable discrete probability distribution *)
 
 type t
 

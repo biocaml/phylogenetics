@@ -1,3 +1,5 @@
+(** Strings that represent valid DNA sequences *)
+
 type t = private string
 
 val of_string_unsafe : string -> t

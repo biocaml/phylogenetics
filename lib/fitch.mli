@@ -1,3 +1,5 @@
+(** Phylogenetic inference by parcimony *)
+
 val forward :
   ?cost:(int -> int -> float) ->
   n:int ->
@@ -16,4 +18,3 @@ val fitch :
   category:('l -> int option) ->
   ('n, 'l, 'b) Tree.t ->
   ('n * int, 'l * int, 'b) Tree.t
-  
