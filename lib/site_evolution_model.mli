@@ -1,4 +1,4 @@
-(** Compilation of modules implementing evolution models and
+(** Deprecated. Compilation of modules implementing evolution models and
     providing relevant mathematical procedure (eg, exponential of transition matrix);
     also includes functors to build models from transition matrices.*)
 

@@ -1,3 +1,5 @@
+(** Functions to simulate sequences *)
+
 module type Alphabet = sig
   type t
   val card : int

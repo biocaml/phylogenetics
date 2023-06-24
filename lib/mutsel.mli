@@ -1,6 +1,13 @@
-(**
-   https://www.biorxiv.org/content/biorxiv/early/2016/04/30/037689.full.pdf
-   https://academic.oup.com/mbe/article/34/1/204/2656188
+(** Mutation-selection model for codons
+
+    This module defines a parameterization for the Mutsel evolutionary
+    model for codons, as well as functions to compute the
+    corresponding transition rate matrix and the associated stationary
+    distribution.
+
+    References:
+    @see <https://www.biorxiv.org/content/biorxiv/early/2016/04/30/037689.full.pdf>
+    @see <https://academic.oup.com/mbe/article/34/1/204/2656188>
 *)
 
 module NSCodon = Codon.Universal_genetic_code.NS

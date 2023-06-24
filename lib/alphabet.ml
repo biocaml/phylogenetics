@@ -1,3 +1,5 @@
+(** Integer-based representation of sequence alphabets *)
+
 open Core
 
 module type S = sig

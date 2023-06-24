@@ -1,3 +1,5 @@
+(** Simulation for birth-death models *)
+
 type t = private {
   birth_rate : float ;
   death_rate : float ;
@@ -21,7 +23,8 @@ val age_ntaxa_simulation :
 (** [age_ntaxa_simulation p rng ~age ~ntaxa] simulates a birth death
   process of parameters [p] using random generator [rng],
   conditioned on the age of the MRCA being [age] and having [ntaxa]
-  leaves. @raises [Invalid_arg] if the death rate is greater than the
+  leaves.
+  @raises [Invalid_arg] if the death rate is greater than the
   birth rate. The algorithm is adapted from the TESS R package, see
   function [tess.sim.taxa.age.constant], and the underlying algorithm
   is described in "Inferring Speciation and Extinction Rates under

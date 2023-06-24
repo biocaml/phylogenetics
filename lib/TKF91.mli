@@ -1,3 +1,6 @@
+(** Simulator for alignments with indels under the model by Thorne,
+    Kishino and Felsenstein. *)
+
 module Make_simulator
     (A : Alphabet.S_int)
     (BI : Simulator.Branch_info) :
@@ -31,4 +34,3 @@ sig
     site ->
     string Array.t
 end
-

@@ -1,4 +1,4 @@
-(** Functions that implement Felsenstein's "pruning" algorithm to compute
+(** Deprecated, see {! Phylo_ctmc}. Functions that implement Felsenstein's "pruning" algorithm to compute
     likelihood of phylogenetic trees with known sequences at leaves.*)
 
 module type Alignment = sig

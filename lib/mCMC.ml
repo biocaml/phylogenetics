@@ -1,3 +1,5 @@
+(** Deprecated. A simple implementation of the Monte Carlo Markov Chain algorithm *)
+
 open Core
 
 let accept p =

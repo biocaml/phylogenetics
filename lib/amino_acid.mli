@@ -1,3 +1,5 @@
+(** Abstract representation for amino acids *)
+
 include Alphabet.S_int
 
 val yojson_of_vector : vector -> Yojson.Safe.t

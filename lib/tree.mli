@@ -1,3 +1,6 @@
+(** Tree structure with annotations on leaves, internal nodes and
+    branches. *)
+
 type ('n, 'l, 'b) t =
   | Node of {
       data : 'n ;

@@ -1,3 +1,5 @@
+(** Abstract representations of codons and genetic codes *)
+
 module type S = sig
   include Alphabet.S_int
 

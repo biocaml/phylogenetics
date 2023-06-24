@@ -1,3 +1,5 @@
+(** Lists with at least one element *)
+
 type 'a t = Cons of 'a * 'a list
 [@@deriving sexp]
 

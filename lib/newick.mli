@@ -1,3 +1,7 @@
+(** New Hampshire tree (a.k.a. newick) format parsing
+
+    @see <https://evolution.genetics.washington.edu/phylip/newicktree.html>
+*)
 include module type of Newick_ast
 
 val from_file : string -> (t, [> error]) result
