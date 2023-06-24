@@ -57,3 +57,6 @@
  (alias create-newick_parser-messages)
  (action
   (diff newick_parser.messages newick_parser.messages.new)))
+
+(documentation
+  (package phylogenetics))

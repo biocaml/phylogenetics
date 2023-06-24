@@ -1,0 +1,7 @@
+{0 Phylogenetics}
+
+This library provides data structures and algorithms to parse,
+transform and draw phylogenies, perform simulations or statistical
+inference on evolutionary models.
+
+The full API is available {{! Phylogenetics}here}.
