@@ -5,3 +5,27 @@ transform and draw phylogenies, perform simulations or statistical
 inference on evolutionary models.
 
 The full API is available {{! Phylogenetics}here}.
+
+{1 Quickstart}
+
+Let's start using phylogenetics in the ocaml interpreter, by calling
+`utop` or `ocaml` (with `down` installed for instance):
+{[
+# #require "phylogenetics";;
+[...]
+]}
+
+{2 Loading a newick tree}
+
+Several functions are available in the {! Phylogenetics.Newick} module to parse from
+a file or a string:
+{[
+# let t = Phylogenetics.Newick.from_string_exn "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";;
+val t : Phylogenetics.Newick.t =
+  {Phylogenetics.Newick.name = Some "A"; tags = []; parent_branch = None;
+   children =
+    [{Phylogenetics.Newick.name = Some "F"; tags = [];
+      parent_branch = Some 0.1;
+      children =
+[...]
+]}
