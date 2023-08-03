@@ -39,15 +39,17 @@ val find_sequence :
   string ->
   string option
 
-type parsing_error = [
-  | `Fasta_parser_error of string
-  | error
-]
-[@@deriving show]
+
 
 val of_assoc_list : (string * string) list -> (t, [> error]) result
 
 module Fasta : sig
+  type parsing_error = [
+    | `Fasta_parser_error of string
+    | error
+  ]
+  [@@deriving show]
+
   val from_file :
     string ->
     (t, [> parsing_error]) result
@@ -57,6 +59,22 @@ module Fasta : sig
 
   val to_channel : t -> out_channel -> unit
   val to_file : t -> string -> unit
+end
+
+module Phylip : sig
+  type parsing_error = [
+    | `Phylip_parser_error of string
+    | error
+  ]
+  [@@deriving show]
+
+  val of_phylip : Phylip.t -> ( t, error) result
+
+  val to_phylip : t -> Phylip.t
+
+  val from_file : ?strict:bool -> string -> (t, parsing_error) result
+
+  val from_file_exn : string -> t
 end
 
 val indel_free_columns : t -> bool array
