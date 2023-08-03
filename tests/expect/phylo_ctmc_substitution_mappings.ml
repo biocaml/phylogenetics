@@ -18,7 +18,7 @@ module AASim = Phylogenetics.Simulator.Make(Amino_acid)(Branch_info)
 let valine = Option.value_exn (Amino_acid.of_char 'V')
 let alanine = Option.value_exn (Amino_acid.of_char 'A')
 
-let wag = Wag.parse "../data/wag.dat"
+let wag = Wag.from_file_exn "../data/wag.dat"
 
 type param = {
   stationary_distribution : Amino_acid.vector ;

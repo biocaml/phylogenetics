@@ -37,7 +37,7 @@ let simulation_on_one_branch simulator simulator_name =
   let tree = single_branch_tree 10. in
   let root = Amino_acid.of_int_exn 0 in
   let target = draw_amino_acid_profile rng 0.1 in
-  let exchangeability_matrix = (Wag.parse "../data/wag.dat").rate_matrix in
+  let exchangeability_matrix = (Wag.from_file_exn "../data/wag.dat").rate_matrix in
   let param = {
     Model.stationary_distribution = target ;
     exchangeability_matrix ;
