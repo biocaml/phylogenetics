@@ -109,8 +109,8 @@ module Phylip = struct
     in
     of_phylip phylip
 
-  let from_file_exn fn =
-    match from_file fn with
+  let from_file_exn ?strict fn =
+    match from_file ?strict fn with
     | Ok al -> al
     | Error e -> failwith (show_parsing_error e)
 
