@@ -74,7 +74,7 @@ module Phylip : sig
 
   val from_file : ?strict:bool -> string -> (t, parsing_error) result
 
-  val from_file_exn : string -> t
+  val from_file_exn : ?strict:bool -> string -> t
 end
 
 val indel_free_columns : t -> bool array
