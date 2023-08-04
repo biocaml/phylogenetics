@@ -18,6 +18,12 @@ type error = [
 ]
 [@@deriving show]
 
+type parsing_error = [
+  | `Syntax_error of string
+  | error
+]
+[@@deriving show]
+
 val map :
   t ->
   f:(description:string -> sequence:string -> string * string) ->
@@ -44,12 +50,6 @@ val find_sequence :
 val of_assoc_list : (string * string) list -> (t, [> error]) result
 
 module Fasta : sig
-  type parsing_error = [
-    | `Fasta_parser_error of string
-    | error
-  ]
-  [@@deriving show]
-
   val from_file :
     string ->
     (t, [> parsing_error]) result
@@ -62,12 +62,6 @@ module Fasta : sig
 end
 
 module Phylip : sig
-  type parsing_error = [
-    | `Phylip_parser_error of string
-    | error
-  ]
-  [@@deriving show]
-
   val of_phylip : Phylip.t -> ( t, error) result
 
   val to_phylip : t -> Phylip.t

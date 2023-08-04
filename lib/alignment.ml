@@ -19,6 +19,12 @@ type error = [
 ]
 [@@deriving show]
 
+type parsing_error = [
+  | `Syntax_error of string
+  | error
+]
+[@@deriving show]
+
 let check_non_empty_list = function
   | [] -> Error (`Empty_alignment)
   | items -> Ok items
@@ -49,12 +55,6 @@ let fold t ~init ~f = Array.fold2_exn t.descriptions t.sequences ~init
 
 module Fasta = struct
 
-  type parsing_error = [
-    | `Fasta_parser_error of string
-    | error
-  ]
-  [@@deriving show]
-
   let of_fasta_items (items:Biotk.Fasta.item list) =
     List.map items ~f:(fun x -> x.description, x.sequence)
     |> of_assoc_list
@@ -63,7 +63,7 @@ module Fasta = struct
     let open Biotk.Let_syntax.Result in
     let* _, items =
       Biotk.Fasta.from_file fn
-      |> Result.map_error ~f:(fun msg -> `Fasta_parser_error msg)
+      |> Result.map_error ~f:(fun msg -> `Syntax_error msg)
     in
     of_fasta_items items
 
@@ -84,11 +84,6 @@ module Fasta = struct
 end
 
 module Phylip = struct
-  type parsing_error = [
-    | `Phylip_parser_error of string
-    | error
-  ]
-  [@@deriving show]
 
   let of_phylip { Phylip.items ; _ } =
     List.map items ~f:(fun { name ; sequence } -> name, sequence)
@@ -105,7 +100,7 @@ module Phylip = struct
     let open Biotk.Let_syntax.Result in
     let* phylip =
       Phylip.read ?strict fn
-      |> Result.map_error ~f:(fun (`Msg msg) -> `Phylip_parser_error msg)
+      |> Result.map_error ~f:(fun (`Msg msg) -> `Syntax_error msg)
     in
     of_phylip phylip
 
