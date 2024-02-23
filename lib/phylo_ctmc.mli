@@ -11,6 +11,17 @@ type matrix_decomposition = [
 val matrix_decomposition_reduce : dim:int -> matrix_decomposition -> mat
 
 type shifted_vector = SV of vec * float
+(** 〚SV (v, carry)〛= 〚v〛. exp(〚carry〛) *)
+
+module SV : sig
+  type t = shifted_vector
+
+  val of_vec : vec -> t
+  val shift : ?threshold:float -> vec -> carry:float -> t
+  val decomp_vec_mul : matrix_decomposition -> t -> t
+  val mat_vec_mul : mat -> t -> t
+  val mul : t -> t -> t
+end
 
 val pruning :
   ('n, 'l, 'b) Tree.t ->

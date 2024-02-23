@@ -26,6 +26,8 @@ let rec matrix_decomposition_reduce ~dim = function
 type shifted_vector = SV of vec * float
 
 module SV = struct
+  type t = shifted_vector
+
   let of_vec v = SV (v, 0.)
 
   let shift ?(threshold = 1e-6) v ~carry =
