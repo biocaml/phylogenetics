@@ -16,16 +16,19 @@ module type S = sig
 
   val make : (symbol -> symbol -> float) -> t
 
+  val make_symetric : (symbol -> symbol -> float) -> t
+
   val jc69 : unit -> t
   (** {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#JC69_model_(Jukes_and_Cantor_1969)}Jukes and Cantor 1969} *)
 
   val gtr :
-    equilibrium_frequencies:vector ->
-    transition_rates:Linear_algebra.vec ->
+    stationary_distribution:vector ->
+    exchangeabilities:matrix ->
     t
   (**
      {{:https://en.wikipedia.org/wiki/Models_of_DNA_evolution#GTR_model_(Tavar%C3%A9_1986)}Generalised
-     Time-Reversible model} *)
+     Time-Reversible model}. [exchangeabilities] should be a symetric
+     matrix with arbitrary diagonal *)
 
   val stationary_distribution : t -> vector
   (** [stationary_distribution r] numerically computes the asymptotic
@@ -50,7 +53,7 @@ module Nucleotide : sig
   include module type of Make(Nucleotide)
   val k80 : float -> t
   val hky85 :
-    equilibrium_frequencies:Nucleotide.vector ->
+    stationary_distribution:Nucleotide.vector ->
     transition_rate:float ->
     transversion_rate:float ->
     t

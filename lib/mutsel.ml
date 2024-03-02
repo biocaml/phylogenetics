@@ -36,8 +36,8 @@ let random_param rng ~nucleotide_process:np ~alpha =
 
 let flat_param () =
   let pi = Nucleotide.flat_profile () in
-  let rho = Linear_algebra.Vector.init 6 ~f:(fun _ -> 1. /. 6.) in
-  let nucleotide_rates = Nucleotide_rates.gtr ~equilibrium_frequencies:pi ~transition_rates:rho in
+  let exchangeabilities = Nucleotide_rates.make_symetric (fun _ _ -> 1. /. 6.) in
+  let nucleotide_rates = Nucleotide_rates.gtr ~stationary_distribution:pi ~exchangeabilities in
   {
     nucleotide_rates ;
     nucleotide_stat_dist = pi ;

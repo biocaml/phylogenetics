@@ -9,11 +9,13 @@ module type S = sig
 
   val make : (symbol -> symbol -> float) -> t
 
+  val make_symetric : (symbol -> symbol -> float) -> t
+
   val jc69 : unit -> t
 
   val gtr :
-    equilibrium_frequencies:vector ->
-    transition_rates:vec -> (* FIXME: introduce symmetric matrices? *)
+    stationary_distribution:vector ->
+    exchangeabilities:matrix ->
     t
 
   val stationary_distribution : t -> vector
@@ -52,6 +54,22 @@ module Make(A : Alphabet.S_int) = struct
       ) ;
     r
 
+  let make_symetric f =
+    let r = A.Matrix.init (fun _ _ -> 0.) in
+    List.iter A.all ~f:(fun i->
+        List.iter A.all ~f:(fun j ->
+            if (i :> int) > (j :> int) then (
+              let r_ij = f i j in
+              if Float.(r_ij < 0.) then (failwith "Rates should be positive") ;
+              A.(r.%{i, j} <- r_ij) ;
+              A.(r.%{j, i} <- r_ij)
+            )
+          ) ;
+        let total = List.fold A.all ~init:0. ~f:(fun acc j -> acc +. r.A.%{i, j}) in
+        A.(r.%{i, i} <- -. total)
+      ) ;
+    r
+
   let scaled_rate_matrix profile rate =
     let mu = -. sum Float.(fun i ->
         profile.A.%(i) * rate.A.%{i, i}
@@ -86,21 +104,17 @@ module Make(A : Alphabet.S_int) = struct
       )
       (List.init (A.card * (A.card - 1) / 2) ~f:Fn.id)
 
-  let gtr ~equilibrium_frequencies:(stationary_distribution : A.vector)
-      ~transition_rates:rates =
+  let gtr ~stationary_distribution ~exchangeabilities =
     let m = make (fun i j ->
-        let jj = j in
-        let i = (i :> int) in
-        let j = (j :> int) in
-        Vector.get rates (ut_index (min i j) (max i j)) *. stationary_distribution.A.%(jj)
+        A.Matrix.get exchangeabilities (i :> int) (j :> int) *. stationary_distribution.A.%(j)
       ) in
     scaled_rate_matrix stationary_distribution m
 
   let%test "gtr stationary distribution" =
     let rng = Utils.rng_of_int 12334 in
     let pi = A.random_profile rng 10. in
-    let gtr_params = Utils.random_profile rng (A.card * (A.card - 1) / 2) in
-    let gtr_rates = gtr ~equilibrium_frequencies:pi ~transition_rates:gtr_params in
+    let exchangeabilities = make_symetric (fun _ _ -> Gsl.Randist.gamma rng ~a:1. ~b:1.) in
+    let gtr_rates = gtr ~stationary_distribution:pi ~exchangeabilities in
     let pi' = stationary_distribution gtr_rates in
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)
 end
@@ -140,7 +154,7 @@ module Nucleotide = struct
       )
 
   let hky85
-      ~equilibrium_frequencies:(stationary_distribution : Nucleotide.vector)
+      ~(stationary_distribution : Nucleotide.vector)
       ~transition_rate ~transversion_rate =
     let m = make (fun i j ->
         let coef = if Nucleotide.equal i j
@@ -158,7 +172,7 @@ module Nucleotide = struct
     let pi = Nucleotide.random_profile rng 10. in
     let transition_rate = Gsl.Rng.uniform rng
     and transversion_rate = Gsl.Rng.uniform rng in
-    let hky_rates = hky85 ~equilibrium_frequencies:pi ~transition_rate ~transversion_rate
+    let hky_rates = hky85 ~stationary_distribution:pi ~transition_rate ~transversion_rate
     in
     let pi' = stationary_distribution hky_rates in
     Vector.robust_equal ~tol:1e-6 (pi :> vec) (pi' :> vec)

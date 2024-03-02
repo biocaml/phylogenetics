@@ -4,13 +4,13 @@ type t =
   | JC69
   | K80 of float
   | HKY85 of {
-      equilibrium_frequencies : Nucleotide.vector ;
+      stationary_distribution : Nucleotide.vector ;
       transition_rate : float ;
       transversion_rate : float ;
     }
   | GTR of {
-      equilibrium_frequencies : Nucleotide.vector ;
-      exchangeabilities : Linear_algebra.vec
+      stationary_distribution : Nucleotide.vector ;
+      exchangeabilities : Nucleotide.matrix ;
     }
 
 val rate_matrix : t -> Rate_matrix.Nucleotide.t
