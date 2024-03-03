@@ -5,6 +5,10 @@ module type Alphabet = sig
   val card : int
   val of_int_exn : int -> t
   val to_char : t -> char
+  module Vector : sig
+    type t
+    val of_array_exn : float array -> t
+  end
 end
 
 module Make(A : Alphabet) = struct
@@ -13,7 +17,7 @@ module Make(A : Alphabet) = struct
       dist : Gsl.Randist.discrete ;
     }
 
-  let of_array_exn probs =
+  let profile_of_array_exn probs =
     if Array.length probs <> A.card then failwith "Array has incorrect size" ;
     let dist = Gsl.Randist.discrete_preproc probs in
     Profile { probs ; dist }
@@ -22,8 +26,8 @@ module Make(A : Alphabet) = struct
     let alpha = Array.create ~len:A.card alpha in
     let theta = Array.create ~len:A.card 0. in
     Gsl.Randist.dirichlet rng ~alpha ~theta ;
-    of_array_exn theta
-    
+    profile_of_array_exn theta
+
   let draw_from_profile (Profile p) rng =
     Gsl.Randist.discrete rng p.dist
     |> A.of_int_exn
@@ -39,4 +43,7 @@ module Make(A : Alphabet) = struct
         draw_from_profile pwm.(i) rng
         |> A.to_char
       )
+
+  let vec_of_profile (Profile p) =
+    A.Vector.of_array_exn p.probs
 end
