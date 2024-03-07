@@ -20,7 +20,9 @@ module SV : sig
   val shift : ?threshold:float -> vec -> carry:float -> t
   val decomp_vec_mul : matrix_decomposition -> t -> t
   val mat_vec_mul : mat -> t -> t
+  val scal_vec_mul : float -> t -> t
   val mul : t -> t -> t
+  val add : t -> t -> t
 end
 
 val pruning :

@@ -50,6 +50,29 @@ module SV = struct
   let mat_vec_mul mat (SV (v, carry)) =
     SV (Matrix.apply mat v, carry)
 
+  let scal_vec_mul alpha (SV (v, carry)) =
+    SV (Vector.scal_mul alpha v, carry)
+
+  let add (SV (v1, carry1)) (SV (v2, carry2)) =
+    let v1, carry1, v2, carry2 =
+      if Float.(carry1 > carry2) then v1, carry1, v2, carry2
+      else v2, carry2, v1, carry1
+    in
+    let v2' = Vector.scal_mul (exp (carry2 -. carry1)) v2 in
+    SV (Vector.add v1 v2', carry1)
+
+  let%expect_test "SV add" =
+    let x = 1.92403 and y = 6.35782 in
+    let carry_x = 2. and carry_y = -1. in
+    let SV (r, carry_r) =
+      add
+        (SV (Vector.of_array [|x|], carry_x))
+        (SV (Vector.of_array [|y|], carry_y))
+    in
+    let r = Vector.get r 0 in
+    printf "Expected: %f, got %f x exp %f = %f" (x *. exp carry_x +. y *. exp carry_y) r carry_r (r *. exp carry_r) ;
+    [%expect {| Expected: 16.555677, got 2.240567 x exp 2.000000 = 16.555677 |}]
+
   let mul (SV (v1, carry1)) (SV (v2, carry2)) =
     Vector.mul v1 v2
     |> shift ~carry:(carry1 +. carry2)
