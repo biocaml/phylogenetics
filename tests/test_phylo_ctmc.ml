@@ -64,8 +64,8 @@ let test_conditional_likelihood_ambiguity () =
   let stationary_distribution = Amino_acid.random_profile rng 0.1 in
   let root_state = Amino_acid.of_char_exn 'V' in
   let rate_matrix = Rate_matrix.Amino_acid.gtr
-      ~equilibrium_frequencies:stationary_distribution
-      ~transition_rates:(Linear_algebra.Vector.init (20 * 19 / 2) ~f:(Fun.const 1e-3))
+      ~stationary_distribution
+      ~exchangeabilities:(Rate_matrix.Amino_acid.make_symetric (fun _ _ -> 1e-3))
   in
   let site = Sim.site_gillespie_direct rng ~root:root_state tree ~rate_matrix:(Fun.const rate_matrix) in
   let nstates = Amino_acid.card in
