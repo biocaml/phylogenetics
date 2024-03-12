@@ -100,6 +100,22 @@ and map_branch2_exn (Branch b1) (Branch b2) ~node ~leaf ~branch =
     tip = map2_exn b1.tip b2.tip ~node ~leaf ~branch ;
   }
 
+let map_branches t ~node:node_proj ~leaf:leaf_proj ~branch:f =
+  let root_data = function
+    | Leaf l -> leaf_proj l
+    | Node n -> node_proj n.data
+  in
+  let rec traverse_tree = function
+    | Leaf _ as l -> l
+    | Node n ->
+      node n.data (List1.map n.branches ~f:(traverse_branch n.data))
+  and traverse_branch parent_data (Branch bi) =
+    branch
+      (f (node_proj parent_data) bi.data (root_data bi.tip))
+      (traverse_tree bi.tip)
+  in
+  traverse_tree t
+
 let propagate t ~init ~node ~leaf ~branch =
   let rec inner state t =
     match t with
