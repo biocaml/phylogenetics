@@ -49,7 +49,7 @@ let felsenstein_bpp ?(alphabet = Bppsuite.DNA) ?(model = Bppsuite.JC69) ?(path="
   in
   let script = sprintf "%s > tmp.data 2>&1" call in
   match
-    if Caml.Sys.command script <> 0 then fail_file "bppml failed" ;
+    if Stdlib.Sys.command script <> 0 then fail_file "bppml failed" ;
     In_channel.read_lines "tmp.data"
     |> List.filter ~f:String.(fun l-> equal (prefix l 11) "Initial log")
   with (* looking for a very specific line *)
@@ -67,6 +67,6 @@ let seqgen_bpp ?(alphabet = Bppsuite.DNA) ?(model = Bppsuite.JC69) ?(path=".") ~
       ~number_of_sites:size
   in
   let script = sprintf "%s > tmp.data 2>&1" call in
-  match Caml.Sys.command script with
+  match Stdlib.Sys.command script with
   | 0 -> ()
   | _ -> fail_file "bppseqgen failed"

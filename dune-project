@@ -22,7 +22,7 @@
     angstrom-unix
     binning
     (biotk (>= 0.2.0))
-    (core (>= v0.15.0))
+    (core (>= v0.16.0))
     dune
     gsl
     (lacaml (>= 10.0.2))

@@ -56,8 +56,8 @@ let wag_param = {
 
 let int_histogram xs =
   let n = List.length xs in
-  Binning.counts (Caml.List.to_seq xs)
-  |> Caml.List.of_seq
+  Binning.counts (Stdlib.List.to_seq xs)
+  |> Stdlib.List.of_seq
   |> List.map ~f:(fun (i, k) -> i, float k /. float n)
   |> List.sort ~compare:Poly.compare
 

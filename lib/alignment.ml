@@ -122,17 +122,17 @@ let indel_free_columns ali =
 
 let residues al ~column:j =
   if j < 0 || j > ncols al then raise (Invalid_argument "Alignment.residues") ;
-  Array.fold al.sequences ~init:Char.Set.empty ~f:(fun acc s -> Char.Set.add acc s.[j])
+  Array.fold al.sequences ~init:Char.Set.empty ~f:(fun acc s -> Set.add acc s.[j])
 
 let number_of_residues_per_column_stats al =
   let x =
     Array.init (ncols al) ~f:(fun column ->
         residues al ~column
-        |> Char.Set.length
+        |> Set.length
       )
   in
-  Binning.counts (Caml.Array.to_seq x)
-  |> Caml.List.of_seq
+  Binning.counts (Stdlib.Array.to_seq x)
+  |> Stdlib.List.of_seq
 
 let composition al =
   let module C = Binning.Counter in
@@ -141,8 +141,8 @@ let composition al =
   Array.iter al.sequences ~f:(fun s ->
       String.iter s ~f:(fun c -> C.tick acc c)
     ) ;
-  Caml.Seq.map (fun (c, k) -> (c, float k /. n)) (Binning.seq acc)
-  |> Caml.List.of_seq
+  Stdlib.Seq.map (fun (c, k) -> (c, float k /. n)) (Binning.seq acc)
+  |> Stdlib.List.of_seq
 
 let constant_site al j =
   let m = nrows al in

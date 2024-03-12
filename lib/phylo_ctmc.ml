@@ -184,13 +184,13 @@ module Ambiguous = struct
     let set = ref Int.Set.empty in
     let v = Vector.init nstates ~f:(fun i ->
         if state i then (
-          set := Int.Set.add !set i ;
+          set := Set.add !set i ;
           1.
         )
         else 0.
       )
     in
-    if not (Int.Set.is_empty !set) then Some (v, !set)
+    if not (Set.is_empty !set) then Some (v, !set)
     else None
 
   (* Pruning for a tree (1 (2 3)) computes
@@ -247,7 +247,7 @@ module Ambiguous = struct
       | Leaf l ->
         let state = leaf_state l in
         let%map vec, set = leaf_indicator_with_set ~nstates state in
-        Tree.leaf (Int.Set.to_array set), SV.of_vec vec
+        Tree.leaf (Set.to_array set), SV.of_vec vec
       | Node n ->
         match List1.filter_map n.branches ~f:branch with
         | [] -> None
@@ -337,7 +337,7 @@ module Uniformized_process = struct
       if n = 0 then Matrix.init dim ~f:(fun i j -> if i = j then 1. else 0.)
       else if n = 1 then _R_
       else
-        Int.Table.find_or_add cache n ~default:(fun () ->
+        Hashtbl.find_or_add cache n ~default:(fun () ->
             Matrix.dot (pow_R (n - 1)) _R_
           )
     in

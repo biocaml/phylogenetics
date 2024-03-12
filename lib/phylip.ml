@@ -104,7 +104,7 @@ module Parser = struct
     ) <?> "header_parser"
 
   let id_parser =
-    count 10 (not_char '\n') >>| String.of_char_list >>| Caml.String.trim
+    count 10 (not_char '\n') >>| String.of_char_list >>| Stdlib.String.trim
 
   let sequence_parser =
     take_while1 (function
