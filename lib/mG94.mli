@@ -21,3 +21,4 @@ type param = {
 }
 
 val rate_matrix : param -> NSCodon_rate_matrix.t
+val stationary_distribution : param -> NSCodon.vector
