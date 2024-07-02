@@ -48,7 +48,7 @@ struct
     let rec node state = function
       | Node n ->
         let state, branches =
-          List1.fold n.branches ~init:(state, []) ~f:(fun (state, acc) b ->
+          List1.fold_right n.branches ~init:(state, []) ~f:(fun b (state, acc) ->
               let state, b = branch state b in
               state, b :: acc
             )
