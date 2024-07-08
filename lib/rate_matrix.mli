@@ -15,6 +15,8 @@ module type S = sig
   type t = matrix
 
   val make : (symbol -> symbol -> float) -> t
+  (** [make f] is a matrix such that [f i j] is the rate of transition
+      from state [i] to state [j]. [f] is called only for [i <> j]. *)
 
   val make_symetric : (symbol -> symbol -> float) -> t
 
@@ -64,6 +66,9 @@ module Amino_acid : sig
 end
 
 val make : int -> f:(int -> int -> float) -> Linear_algebra.mat
+(** [make n f] is a [n] x [n] matrix such that [f i j] is the rate of
+    transition from state [i] to state [j]. [f] is only called for [i
+    <> j]. *)
 
 val transition_probability_matrix :
   tau:float ->

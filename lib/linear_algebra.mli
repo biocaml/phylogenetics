@@ -1,4 +1,77 @@
-(** This modules wraps linear algebra functions *)
+(** This modules wraps linear algebra functions
+
+    Example usage of functions in the Vector module:
+    {[
+      let v = Vector.init 5 ~f:(fun i -> float_of_int (i + 1)) (* Creates a vector [1.0; 2.0; 3.0; 4.0; 5.0] *)
+
+      let v_length = Vector.length v (* Returns the length of the vector [5] *)
+
+      let v_scaled = Vector.scal_mul 2.0 v (* Multiplies each element of the vector by 2.0 and returns the resulting vector *)
+
+      let v_sum = Vector.sum v (* Computes the sum of the elements of the vector and returns the result [15.0] *)
+
+      let v_get_2 = Vector.get v 2 (* Returns the element at index 2 of the vector and returns the result [3.0] *)
+
+      let v_set_3 = Vector.set v 3 10.0 (* Sets the element at index 3 of the vector to 10.0 *)
+
+      let v_robust_equal = Vector.robust_equal ~tol:1e-6 v v_scaled (* Compares two vectors and returns true if they are equal up to a relative difference of 1e-6 *)
+
+      let v_array = Vector.to_array v (* Converts the vector to a float array *)
+
+      Vector.pp Format.std_formatter v (* Prints the vector to the standard output *)
+
+      let mapped_v = Vector.map v ~f:Float.sqrt (* Applies the square root function to each element of the vector and returns the resulting vector *)
+
+      let logged_v = Vector.log v (* Computes the element-wise logarithm of the vector and returns the resulting vector *)
+
+      let exponentiated_v = Vector.exp v (* Computes the element-wise exponential of the vector and returns the resulting vector *)
+
+      let v_min = Vector.min v (* Computes the minimum element in the vector *)
+
+      let v_max = Vector.max v (* Computes the maximum element in the vector *)
+    ]}
+
+    Example usage of functions in the Matrix module:
+
+    {[
+      let m = Matrix.init 3 ~f:(fun i j -> float_of_int (i + j)) (* Creates a matrix
+                                                                    | 0.0 1.0 2.0 |
+                                                                    | 1.0 2.0 3.0 |
+                                                                    | 2.0 3.0 4.0 | *)
+
+      let m_dim = Matrix.dim m (* Returns the dimensions of the matrix (3, 3) *)
+
+      let m_transposed = Matrix.transpose m (* Transposes the matrix and returns the resulting matrix *)
+
+      let m_inverse = Matrix.inverse m (* Computes the inverse of the matrix and returns the resulting matrix *)
+
+      let m_row_1 = Matrix.row m 1 (* Returns the second row of the matrix as a vector *)
+
+      let m_get_2_2 = Matrix.get m 2 2 (* Returns the element at row 2 and column 2 of the matrix *)
+
+      let m_set_1_1 = Matrix.set m 1 1 10.0 (* Sets the element at row 1 and column 1 of the matrix to 10.0 *)
+
+      let m_mul = Matrix.mul m m_transposed (* Computes the element-wise product of two matrices and returns the resulting matrix *)
+
+      let m_add = Matrix.add m m_transposed (* Adds two matrices element-wise and returns the resulting matrix *)
+
+      let m_scal_mul = Matrix.scal_mul 2.0 m (* Multiplies the matrix by a scalar and returns the resulting matrix *)
+
+      let m_dot = Matrix.dot m m_transposed (* Computes the matrix product of two matrices and returns the resulting matrix *)
+
+      let m_pow = Matrix.pow m 3 (* Computes the matrix raised to the power 3 and returns the resulting matrix *)
+
+      let m_expm = Matrix.expm m (* Computes the matrix exponential and returns the resulting matrix *)
+
+      let m_log = Matrix.log m (* Computes the element-wise logarithm of the matrix and returns the resulting matrix *)
+
+      let m_robust_equal = Matrix.robust_equal ~tol:1e-6 m m_transposed (* Compares two matrices and returns true if they are equal up to a relative difference of 1e-6 *)
+
+      let m_diagm = Matrix.diagm (Vector.of_array [|1.0; 2.0; 3.0|]) (* Creates a diagonal matrix from a vector *)
+
+      Matrix.pp Format.std_formatter m (* Prints the matrix to the standard output *)
+    ]}
+*)
 
 (** A vector of floats. *)
 module type Vector = sig

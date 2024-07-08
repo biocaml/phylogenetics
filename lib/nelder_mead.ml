@@ -4,7 +4,37 @@
 
      A simplex method for function minimization
      J. A. Nelder and R. Mead
+
+
+  Here is what the different functions of this file do:
+
+  - `centroid` calculates the centroid of a set of points. In the
+  context of the Nelder-Mead method, it is used to compute the center
+  of gravity of a simplex, which is a polytope composed of points in a
+  multidimensional space.
+
+  - update performs an update of a point using a specified
+  direction. This can be used to update a point in the Nelder-Mead
+  method according to the specific rules of the algorithm.
+
+  - `minimize` is the main function that implements the Nelder-Mead
+  method to minimize a given function.  It takes parameters such as
+  the function to minimize (f), a sample generation function (sample)
+  to generate initial points, as well as optional parameters like
+  tolerance (tol), maximum number of iterations (maxit), and debug
+  mode (debug).
+
+
+  Using these functions, you can perform the minimization of a given
+  function using the Nelder-Mead method. The algorithm iterates over a
+  set of points (a simplex) and performs updates to get closer to the
+  minimum of the function. The process repeats until a convergence
+  condition is met (e.g., when the difference between function values
+  becomes smaller than a given tolerance). The minimize function
+  returns the obtained minimum, the corresponding point, and the
+  number of iterations performed.
 *)
+
 open Core
 
 let centroid xs =

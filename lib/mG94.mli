@@ -6,7 +6,7 @@
     and Lartillot [2].
 
     References:
-    @see https://academic.oup.com/mbe/article/11/5/715/1008710
+    @see <https://academic.oup.com/mbe/article/11/5/715/1008710>
     @see <https://academic.oup.com/mbe/article/34/1/204/2656188>
 
 *)

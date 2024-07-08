@@ -1,4 +1,8 @@
-(** Likelihood calculations for continuous-time Markov chain along a tree *)
+(** Likelihood calculations for continuous-time Markov chain along a tree
+
+    This module implements several variants of the so-called pruning
+    algorithm, as well as functions to sample substitution mappings
+    conditionally on leaf values. *)
 
 open Linear_algebra
 
@@ -7,8 +11,31 @@ type matrix_decomposition = [
   | `Transpose of mat
   | `Diag of vec
 ] list
+(** The type [matrix_decomposition] represents a product of
+    matrices. In the case that the product is eventually applied to a
+    vector, it is faster to perform a series of matrix-vector products
+    than computing the product of matrices.
+
+    - The constructor [`Mat of mat] represents a matrix without any decomposition.
+    - The constructor [`Transpose of mat] represents the transpose of a matrix.
+    - The constructor [`Diag of vec] represents a diagonal matrix.
+
+    Example usage:
+    {[
+      let decomposition = [
+        `Mat matrix1;
+        `Transpose matrix2;
+        `Diag vector1;
+      ] in
+
+      let result = matrix_decomposition_reduce ~dim:3 decomposition in
+      (* process_result result ...*)
+    ]}
+*)
 
 val matrix_decomposition_reduce : dim:int -> matrix_decomposition -> mat
+(** [matrix_decomposition_reduce dim md] computes the product of
+    elements in [md] as a single matrix of dimension [dim]. *)
 
 type shifted_vector = SV of vec * float
 (** 〚SV (v, carry)〛= 〚v〛. exp(〚carry〛) *)
@@ -58,12 +85,21 @@ val conditional_likelihoods :
   leaf_state:('l -> int) ->
   transition_probabilities:('b -> mat) ->
   (shifted_vector, int, 'b * mat) Tree.t
+(** [conditional_likelihoods t ~nstates ~leaf_state
+    ~transition_probabilities] computes the conditional likelihoods of
+    observing the states returned by [leaf_state] at the leaves of [t]
+    given the CTMC specified by [nstates] and
+    [transition_probabilities]. *)
 
 val conditional_simulation :
   Gsl.Rng.t ->
   (shifted_vector, int, 'b * mat) Tree.t ->
   root_frequencies:vec ->
   (int, int, 'b * mat) Tree.t
+(** [conditional_simulation rng tree ~root_frequencies] performs a
+    conditional simulation on the provided [tree] given the
+    [root_frequencies] using the provided random number generator
+    [rng]. *)
 
 (** In this variant implementation, one can specify some uncertainty
    for a given leaf, by letting [leaf_state] return [true] for several
