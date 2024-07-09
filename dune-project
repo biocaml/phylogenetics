@@ -29,4 +29,5 @@
     menhir
     ppx_deriving
     (printbox (>= 0.6.1))
-    printbox-text))
+    printbox-text
+    (yojson (>= 1.6.0))))
