@@ -10,6 +10,7 @@
 (authors
   "Louis Duchemin"
   "Vincent Lanore"
+  "Corentin Moumard"
   "Philippe Veber")
 (maintainers "philippe.veber@gmail.com")
 
