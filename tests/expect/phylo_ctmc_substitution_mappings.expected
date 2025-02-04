@@ -1,3 +1,5 @@
+Test that rejection sampler and uniformized path sampler coincide
 01 0.488 | 02 0.150 | 03 0.221 | 04 0.081 | 05 0.039 | 06 0.015 | 07 0.004 | 08 0.001 | 09 0.001 | 10 0.000
 01 0.481 | 02 0.149 | 03 0.227 | 04 0.087 | 05 0.038 | 06 0.013 | 07 0.005 | 08 0.001 | 09 0.000
--117.326089 -69.958448
+Check that the marginal likelihood is greater than the average complete likelihood
+-117.326089 >= -101.389767

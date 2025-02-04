@@ -111,7 +111,7 @@ module B = PrintBox
 let display_tree =
   let render_counts k =
     (k : int Amino_acid.table :> int array)
-    |> Array.map ~f:(fun k -> B.sprintf "%.2f" (float k /. float _B_))
+    |> Array.map ~f:(fun k -> B.sprintf "%.3f" (float k /. float _B_))
   in
   let render_node_info (k1, k2) =
     [| render_counts k1 ; render_counts k2 |]
@@ -130,4 +130,11 @@ let display_tree =
   in
   render all_counts
 
-let () = PrintBox_text.output stdout display_tree
+let () =
+  print_endline {|
+Tests if we obtain the same probability distribution for internal nodes of a tree
+given observations on the leaves, whether we compute them using the pruning algorithm
+or a rejection sampling algorithm.
+
+|} ;
+  PrintBox_text.output stdout display_tree

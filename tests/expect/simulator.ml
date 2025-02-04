@@ -67,7 +67,7 @@ let simulation_on_one_branch simulator simulator_name =
   in
   printf "Test convergence of %s on one branch\n" simulator_name ;
   L.Matrix.pp Format.std_formatter res ;
-  Stdlib.print_newline ()
+  Format.print_newline ()
 
 let () =
   simulation_on_one_branch Sim.site_gillespie_direct "Gillespie direct" ;
