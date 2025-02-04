@@ -87,6 +87,7 @@ let () =
     Phylo_ctmc.Path_sampler.rejection_sampling
       ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process)
       ~branch_length ~max_tries:10_000 () in
+  print_endline "Test that rejection sampler and uniformized path sampler coincide" ;
   render_int_histogram (
     nb_events_along_branch
       rng rejection_path_sampler
@@ -118,12 +119,13 @@ let sufficient_statistics ~nstates tree =
   let waiting_times = Array.create ~len:nstates 0. in
   iter_branches tree ~f:(fun start_state (bl, mapping) _ ->
       match mapping with
-      | [||] -> ()
+      | [||] ->
+        waiting_times.(start_state) <- waiting_times.(start_state) +. bl
       | _ ->
         Array.iteri mapping ~f:(fun k (s_j, t_j)  ->
             let s_i, t_i =
               if k = 0 then start_state, 0.
-              else mapping.(k -1)
+              else mapping.(k - 1)
             in
             counts.(s_i).(s_j) <- 1 + counts.(s_i).(s_j) ;
             waiting_times.(s_i) <- waiting_times.(s_i) +. (t_j -. t_i)
@@ -133,9 +135,14 @@ let sufficient_statistics ~nstates tree =
     ) ;
   counts, waiting_times
 
-let mapping_likelihood ~nstates ~transition_rates tree =
+let root_state = function
+  | Tree.Leaf l -> l
+  | Tree.Node n -> n.data
+
+let mapping_likelihood ~nstates ~root_frequencies ~transition_rates tree =
   let counts, waiting_times = sufficient_statistics ~nstates tree in
   let lik = ref 0. in
+  lik := !lik +. Float.log (Vector.get root_frequencies (root_state tree)) ;
   for i = 0 to nstates - 1 do
     for j = 0 to nstates - 1 do
       let contrib =
@@ -164,7 +171,7 @@ let () =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods
         |> Phylo_ctmc.substitution_mapping ~rng ~path_sampler
-        |> mapping_likelihood ~nstates ~transition_rates:(transition_rates :> mat)
+        |> mapping_likelihood ~nstates ~root_frequencies ~transition_rates:(transition_rates :> mat)
       )
     |> Gsl.Stats.mean
   in
@@ -172,4 +179,5 @@ let () =
     let transition_probabilities bl = [`Mat (transition_probabilities_of_rates transition_rates bl)] in
     Phylo_ctmc.pruning site ~nstates ~transition_probabilities ~leaf_state ~root_frequencies
   in
-  printf "%f %f\n" pruning_likelihood mean_mapping_likelihood
+  print_endline "Check that the marginal likelihood is greater than the average complete likelihood" ;
+  printf "%f >= %f\n" pruning_likelihood mean_mapping_likelihood
