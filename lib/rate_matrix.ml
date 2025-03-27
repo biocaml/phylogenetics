@@ -78,13 +78,7 @@ module Make(A : Alphabet.S_int) = struct
     make Float.(fun i j -> rate.A.%{i, j} / mu)
 
   let scale rate =
-    let mu =
-      sum (fun i ->
-          sum (fun j ->
-              if A.equal i j then 0. else rate.A.%{i, j}
-            )
-        )
-    in
+    let mu = sum (fun i -> rate.A.%{i, i}) in
     A.Matrix.init Float.(fun i j -> rate.A.%{i, j} / mu)
 
   let ut_index i j =
