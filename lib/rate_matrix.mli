@@ -38,9 +38,9 @@ module type S = sig
 
   val scaled_rate_matrix : vector -> t -> t
   (** [scaled_rate_matrix pi r] is a new matrix rate such that the
-      corresponding CTMC has one expected transition per unit of
-      time. In addition, if [r] is symetrical, the result has [pi] as
-      stationary distribution. *)
+      corresponding CTMC has one expected transition per unit of time
+      under the distribution [pi]. In addition, if [r] is symetrical,
+      the result has [pi] as stationary distribution. *)
 
   val scale : t -> t
   (** rescale matrix such that the sum of off-diagonal elements is 1. *)
