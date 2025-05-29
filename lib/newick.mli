@@ -1,6 +1,10 @@
 (** New Hampshire tree (a.k.a. newick) format parsing
 
-    @see <https://evolution.genetics.washington.edu/phylip/newicktree.html>
+    This module provides parsing utilities for Newick tree format [1] and
+    its extension with tags [2].
+
+    [1] https://phylipweb.github.io/phylip/newicktree.html
+    [2] http://www.phylosoft.org/NHX/nhx.pdf
 *)
 include module type of Newick_ast
 
