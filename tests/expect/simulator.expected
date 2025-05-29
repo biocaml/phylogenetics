@@ -40,3 +40,6 @@ Test convergence of Gillespie first reaction on one branch
 2.77005E-10     0
 1.35292E-08     0
 5.28832E-06     0
+Test branch length in substitutions
+Expected: 0.500000
+Got: 0.496450
