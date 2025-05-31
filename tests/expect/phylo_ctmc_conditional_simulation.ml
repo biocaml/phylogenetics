@@ -2,7 +2,6 @@ open Core
 open Phylogenetics
 
 let rng = Gsl.Rng.(make (default ()))
-let wag = Wag.from_file_exn "../data/wag.dat"
 let _B_ = 1_000
 
 let small_tree =
@@ -22,17 +21,21 @@ module Branch_info = struct
   let length x = x
 end
 
-module AASim = Phylogenetics.Simulator.Make(Amino_acid)(Branch_info)
-module SeqSim = Sequence_simulator.Make(Amino_acid)
+module NucSim = Phylogenetics.Simulator.Make(Nucleotide)(Branch_info)
+module SeqSim = Sequence_simulator.Make(Nucleotide)
 
 let reference_simulation, profile, rate_matrix =
   let profile = SeqSim.random_profile ~alpha:1. rng in
   let root = SeqSim.draw_from_profile profile rng in
   let stationary_distribution = SeqSim.vec_of_profile profile in
-  let exchangeabilities = wag.rate_matrix in
-  let rate_matrix = Rate_matrix.Amino_acid.gtr ~stationary_distribution ~exchangeabilities in
+  let exchangeabilities =
+    Rate_matrix.Nucleotide.make_symetric (fun a b ->
+        float ((a :> int) + 7 + (b :> int) + 7) /. 20.
+      )
+  in
+  let rate_matrix = Rate_matrix.Nucleotide.gtr ~stationary_distribution ~exchangeabilities in
   let sim =
-    AASim.site_gillespie_direct rng small_tree ~root ~rate_matrix:(fun _ ->
+    NucSim.site_gillespie_direct rng small_tree ~root ~rate_matrix:(fun _ ->
         rate_matrix
       )
   in
@@ -41,17 +44,17 @@ let reference_simulation, profile, rate_matrix =
 let conditional_simulations =
   let map_tree =
     Tree.map
-      ~leaf:Amino_acid.of_int_exn
-      ~node:Amino_acid.of_int_exn
+      ~leaf:Nucleotide.of_int_exn
+      ~node:Nucleotide.of_int_exn
       ~branch:fst
   in
   let cl =
     Phylo_ctmc.conditional_likelihoods
       reference_simulation
-      ~nstates:Amino_acid.card
-      ~leaf_state:(fun (_, aa) -> Amino_acid.to_int aa)
+      ~nstates:Nucleotide.card
+      ~leaf_state:(fun (_, nuc) -> Nucleotide.to_int nuc)
       ~transition_probabilities:(fun bl ->
-          let mat = Amino_acid.Matrix.(expm (scal_mul bl rate_matrix)) in
+          let mat = Nucleotide.Matrix.(expm (scal_mul bl rate_matrix)) in
           (mat :> Linear_algebra.mat)
         )
   in
@@ -67,23 +70,23 @@ let rejection_sampling_simulations =
   let reference_leaves = Tree.leaves reference_simulation in
   let rec loop () =
     let root = SeqSim.draw_from_profile profile rng in
-    let sim = AASim.site_gillespie_direct rng small_tree ~root ~rate_matrix:(fun _ ->
+    let sim = NucSim.site_gillespie_direct rng small_tree ~root ~rate_matrix:(fun _ ->
         rate_matrix
       )
     in
     let leaves = Tree.leaves sim in
-    let equal = List.equal (Tuple2.equal ~eq1:String.equal ~eq2:Amino_acid.equal) in
+    let equal = List.equal (Tuple2.equal ~eq1:String.equal ~eq2:Nucleotide.equal) in
     if equal leaves reference_leaves then map_tree sim
     else loop ()
   in
   Array.init _B_ ~f:(fun _ -> loop ())
 
-let aa_counts xs =
-  let create_table _ = Amino_acid.Table.init (Fun.const 0) in
-  let incr table aa = Amino_acid.Table.(set table aa (get table aa + 1)) in
+let nuc_counts xs =
+  let create_table _ = Nucleotide.Table.init (Fun.const 0) in
+  let incr table nuc = Nucleotide.Table.(set table nuc (get table nuc + 1)) in
   let rec iter2 acc t =
     match acc, t with
-    | Tree.Leaf table, Tree.Leaf aa -> incr table aa
+    | Tree.Leaf table, Tree.Leaf nuc -> incr table nuc
     | Node n_acc, Node n_t ->
       incr n_acc.data n_t.data ;
       List.iter2_exn
@@ -102,15 +105,15 @@ let all_counts =
   let pair x y = x, y in
   let first x _ = x in
   Tree.map2_exn
-    (aa_counts rejection_sampling_simulations)
-    (aa_counts conditional_simulations)
+    (nuc_counts rejection_sampling_simulations)
+    (nuc_counts conditional_simulations)
     ~leaf:pair ~node:pair ~branch:first
 
 module B = PrintBox
 
 let display_tree =
   let render_counts k =
-    (k : int Amino_acid.table :> int array)
+    (k : int Nucleotide.table :> int array)
     |> Array.map ~f:(fun k -> B.sprintf "%.3f" (float k /. float _B_))
   in
   let render_node_info (k1, k2) =
