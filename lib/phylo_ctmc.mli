@@ -65,20 +65,6 @@ val pruning :
    specified by [nstates], [transition_probabilities] and
    [root_frequencies]. *)
 
-val pruning_with_missing_values :
-  ('n, 'l, 'b) Tree.t ->
-  nstates:int ->
-  transition_probabilities:('b -> matrix_decomposition) ->
-  leaf_state:('l -> int option) ->
-  root_frequencies:vec ->
-  float
-(** [pruning t ~nstates ~transition_probabilities ~leaf_state
-   ~root_frequencies] returns the probability of observing the states
-   returned by [leaf_state] at the leaves of [t] given the CTMC
-   specified by [nstates], [transition_probabilities] and
-   [root_frequencies]. With this variant, one can specify that some
-   leaves are unobserved. *)
-
 val conditional_likelihoods :
   ('n, 'l, 'b) Tree.t ->
   nstates:int ->
@@ -100,6 +86,45 @@ val conditional_simulation :
     conditional simulation on the provided [tree] given the
     [root_frequencies] using the provided random number generator
     [rng]. *)
+
+(** In this variant implementation, leaves may be unobserved *)
+module Missing_values : sig
+  val pruning :
+    ('n, 'l, 'b) Tree.t ->
+    nstates:int ->
+    transition_probabilities:('b -> matrix_decomposition) ->
+    leaf_state:('l -> int option) ->
+    root_frequencies:vec ->
+    float
+    (** [pruning t ~nstates ~transition_probabilities ~leaf_state
+        ~root_frequencies] returns the probability of observing the states
+        returned by [leaf_state] at the leaves of [t] given the CTMC
+        specified by [nstates], [transition_probabilities] and
+        [root_frequencies]. With this variant, one can specify that some
+        leaves are unobserved. *)
+
+  val conditional_likelihoods :
+    ('n, 'l, 'b) Tree.t ->
+    nstates:int ->
+    leaf_state:('l -> int option) ->
+    transition_probabilities:('b -> mat) ->
+    (shifted_vector option, int option, 'b * mat) Tree.t
+  (** [conditional_likelihoods t ~nstates ~leaf_state
+      ~transition_probabilities] computes the conditional likelihoods of
+      observing the states returned by [leaf_state] at the leaves of [t]
+      given the CTMC specified by [nstates] and
+      [transition_probabilities]. *)
+
+  val conditional_simulation :
+    Gsl.Rng.t ->
+    (shifted_vector option, int option, 'b * mat) Tree.t ->
+    root_frequencies:vec ->
+    (int, int, 'b * mat) Tree.t
+    (** [conditional_simulation rng tree ~root_frequencies] performs a
+        conditional simulation on the provided [tree] given the
+        [root_frequencies] using the provided random number generator
+        [rng]. *)
+end
 
 (** In this variant implementation, one can specify some uncertainty
    for a given leaf, by letting [leaf_state] return [true] for several

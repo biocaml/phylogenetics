@@ -97,32 +97,6 @@ let pruning t ~nstates ~transition_probabilities ~leaf_state ~root_frequencies =
   let SV (v, carry) = SV.mul (tree t) (SV.of_vec root_frequencies) in
   Float.log (Vector.sum v) +. carry
 
-let pruning_with_missing_values t ~nstates ~transition_probabilities ~leaf_state ~root_frequencies =
-  let open Option.Let_syntax in
-  let rec tree (t : _ Tree.t) =
-    match t with
-    | Leaf l ->
-      let%map state = leaf_state l in
-      indicator ~i:state ~n:nstates
-      |> SV.of_vec
-    | Node n ->
-      let terms = List1.filter_map n.branches ~f:(fun (Branch b) ->
-          let%map tip_term = tree b.tip in
-          SV.decomp_vec_mul (transition_probabilities b.data) tip_term
-        )
-      in
-      match terms with
-      | [] -> None
-      | _ :: _ as xs ->
-        List.reduce_exn xs ~f:SV.mul
-        |> Option.some
-  in
-  match tree t with
-  | Some res_tree ->
-    let SV (v, carry) = SV.mul res_tree (SV.of_vec root_frequencies) in
-    Float.log (Vector.sum v) +. carry
-  | None -> 0.
-
 let conditional_likelihoods t ~nstates ~leaf_state ~transition_probabilities =
   let rec tree (t : _ Tree.t) =
     match t with
@@ -167,6 +141,93 @@ let conditional_simulation rng t ~root_frequencies =
     Tree.branch br.data (tree br.tip prior)
   in
   tree t (Vector.get root_frequencies)
+
+module Missing_values = struct
+  let maybe_sv_mul x y = match x, y with
+    | None, None -> None
+    | Some cl, None
+    | None, Some cl -> Some cl
+    | Some cl1, Some cl2 -> Some (SV.mul cl1 cl2)
+
+  let pruning t ~nstates ~transition_probabilities ~leaf_state ~root_frequencies =
+    let open Let_syntax.Option in
+    let rec tree (t : _ Tree.t) =
+      match t with
+      | Leaf l ->
+        let+ state = leaf_state l in
+        indicator ~i:state ~n:nstates
+        |> SV.of_vec
+      | Node n ->
+        List1.fold n.branches ~init:None ~f:(fun acc b ->
+            maybe_sv_mul acc (branch b)
+          )
+    and branch (Branch b) =
+      let+ tip_value = tree b.tip in
+      SV.decomp_vec_mul (transition_probabilities b.data) tip_value
+    in
+    match tree t with
+    | Some res_tree ->
+      let SV (v, carry) = SV.mul res_tree (SV.of_vec root_frequencies) in
+      Float.log (Vector.sum v) +. carry
+    | None -> 0.
+
+  let conditional_likelihoods t ~nstates ~leaf_state ~transition_probabilities =
+    let rec tree (t : _ Tree.t) =
+      match t with
+      | Leaf l -> (
+          match leaf_state l with
+          | None -> Tree.leaf None, None
+          | Some state ->
+            let cl = indicator ~i:state ~n:nstates in
+            Tree.leaf (Some state), Some (SV.of_vec cl)
+        )
+      | Node n ->
+        let branches, cls =
+          List1.map n.branches ~f:branch
+          |> List1.unzip
+        in
+        let maybe_cl = List1.reduce cls ~f:maybe_sv_mul in
+        Tree.node maybe_cl branches, maybe_cl
+    and branch ((Branch b) : _ Tree.branch) =
+      let mat = transition_probabilities b.data in
+      let tip, maybe_tip_cl = tree b.tip in
+      let maybe_cl = Option.map maybe_tip_cl ~f:(fun tip_cl -> SV.mat_vec_mul mat tip_cl) in
+      Tree.branch (b.data, mat) tip, maybe_cl
+    in
+    fst (tree t)
+
+  let conditional_simulation rng t ~root_frequencies =
+    let nstates = Vector.length root_frequencies in
+
+    let dist_of_prior prior =
+      Array.init nstates ~f:prior
+      |> Gsl.Randist.discrete_preproc
+    in
+    let rec tree (t : _ Tree.t) prior =
+      match t with
+      | Leaf None ->
+        let state = Gsl.Randist.discrete rng (dist_of_prior prior) in
+        Tree.leaf state
+      | Leaf (Some i) -> Tree.leaf i
+      | Node n ->
+        let weights = match n.data with
+          | None -> dist_of_prior prior
+          | Some (SV (conditional_likelihood, _)) ->
+            Array.init nstates ~f:(fun i ->
+                prior i *. Vector.get conditional_likelihood i
+              )
+            |> Gsl.Randist.discrete_preproc
+        in
+        let state = Gsl.Randist.discrete rng weights in
+        let branches = List1.map n.branches ~f:(fun br -> branch br state) in
+        Tree.node state branches
+
+    and branch (Branch br) parent_state =
+      let prior i = Matrix.get (snd br.data) parent_state i in
+      Tree.branch br.data (tree br.tip prior)
+    in
+    tree t (Vector.get root_frequencies)
+end
 
 module Ambiguous = struct
 
