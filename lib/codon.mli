@@ -201,7 +201,7 @@ module type Genetic_code = sig
     val fold_non_synonymous_neighbours :
       t ->
       init:'a ->
-      f:('a -> t -> 'a) ->
+      f:('a -> t -> int -> Nucleotide.t -> Nucleotide.t -> 'a) ->
       'a
 
     val of_int_exn : int -> t
