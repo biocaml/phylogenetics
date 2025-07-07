@@ -58,7 +58,7 @@ let fixation_probability delta =
 let rate_matrix { nucleotide_rates ; omega ; scaled_fitness = _F_ ; gBGC ; pps ; _ } =
   let nuc_rates = (nucleotide_rates :> Nucleotide.matrix) in
   NSCodon_rate_matrix.make (fun p q ->
-      match NSCodon.neighbours p q with
+      match NSCodon.neighbours_diff p q with
       | Some (_, x_a, x_b) ->
         let _B_ = match Nucleotide.(inspect x_a, inspect x_b) with
           | (A | T), (C | G) -> gBGC

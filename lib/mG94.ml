@@ -12,7 +12,7 @@ type param = {
 let rate_matrix { nucleotide_rates ; omega ; _ } =
   let nuc_rates = (nucleotide_rates :> Nucleotide.matrix) in
   NSCodon_rate_matrix.make (fun p q ->
-      match NSCodon.neighbours p q with
+      match NSCodon.neighbours_diff p q with
       | Some (_, x_a, x_b) ->
         let q_ab = nuc_rates.Nucleotide.%{x_a, x_b} in
         if NSCodon.synonym p q then q_ab

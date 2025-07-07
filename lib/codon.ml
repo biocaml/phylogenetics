@@ -5,7 +5,8 @@ module type S = sig
 
   val to_string : t -> string
   val of_string : string -> t option
-  val neighbours : t -> t -> (int * Nucleotide.t * Nucleotide.t) option
+  val neighbours : t -> t -> bool
+  val neighbours_diff : t -> t -> (int * Nucleotide.t * Nucleotide.t) option
   val nucleotides : t -> Nucleotide.t * Nucleotide.t * Nucleotide.t
 end
 
@@ -27,12 +28,20 @@ module Impl(X : sig val triplets : string array end) = struct
   let neighbours p q =
     let p_s = X.triplets.(p) and q_s = X.triplets.(q) in
     match Char.(p_s.[0] = q_s.[0], p_s.[1] = q_s.[1], p_s.[2] = q_s.[2]) with
+    | false, true, true
+    | true, false, true
+    | true, true, false -> true
+    | _ -> false
+
+  let neighbours_diff p q =
+    let p_s = X.triplets.(p) and q_s = X.triplets.(q) in
+    match Char.(p_s.[0] = q_s.[0], p_s.[1] = q_s.[1], p_s.[2] = q_s.[2]) with
     | false, true, true -> Some (0, nucleotides.(p).(0), nucleotides.(q).(0))
     | true, false, true -> Some (1, nucleotides.(p).(1), nucleotides.(q).(1))
     | true, true, false -> Some (2, nucleotides.(p).(2), nucleotides.(q).(2))
     | _ -> None
 
-  let%test _ = Poly.(neighbours 0 5 = None)
+  let%test _ = Poly.(neighbours_diff 0 5 = None)
 
   let nucleotides p = nucleotides.(p).(0), nucleotides.(p).(1), nucleotides.(p).(2)
 
@@ -118,6 +127,7 @@ module Genetic_code_impl(X : sig val code_array : int array end) = struct
   let stop_codons =
     Array.filter_mapi code ~f:(fun i x -> if Option.is_none x then Some i else None)
   let is_stop_codon c = Array.mem stop_codons c ~equal:( = )
+  let stop_codons = Array.to_list stop_codons
   let synonym p q = Poly.(code.(p) = code.(q))
 
   module NS = struct
@@ -131,7 +141,6 @@ module Genetic_code_impl(X : sig val code_array : int array end) = struct
       if i < 0 || i >= card then raise (Invalid_argument "Codon.Genetic_code_impl.NS.of_int_exn")
       else i
   end
-  let stop_codons = Array.to_list stop_codons
 end
 
 let genetic_code_impl (_, _, code) =

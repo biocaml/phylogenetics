@@ -39,8 +39,12 @@ module type S = sig
       representation. It returns [None] if the string is not a valid
       codon *)
 
-  val neighbours : t -> t -> (int * Nucleotide.t * Nucleotide.t) option
-  (** [neighbours p q] tests if codons [p] and [q] are neighbors that
+  val neighbours : t -> t -> bool
+  (** [neighbours p q] tests if codons [p] and [q] differ by exactly
+      one nucleotide. *)
+
+  val neighbours_diff : t -> t -> (int * Nucleotide.t * Nucleotide.t) option
+  (** [neighbours_diff p q] tests if codons [p] and [q] are neighbours that
       is, if they differ by exactly one nucleotide. If so, the
       function returns the index of the differing nucleotide and the
       nucleotides themselves; it returns [None] if the codons are not
