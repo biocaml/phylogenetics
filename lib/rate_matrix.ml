@@ -100,7 +100,7 @@ module Make(A : Alphabet.S_int) = struct
 
   let gtr ~stationary_distribution ~exchangeabilities =
     let m = make (fun i j ->
-        A.Matrix.get exchangeabilities (i :> int) (j :> int) *. stationary_distribution.A.%(j)
+        A.Matrix.get exchangeabilities i j *. stationary_distribution.A.%(j)
       ) in
     scaled_rate_matrix stationary_distribution m
 

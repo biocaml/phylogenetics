@@ -55,6 +55,8 @@ module type S = sig
                                    and type vec := vector
     val init : (symbol -> symbol -> float) -> matrix
     val init_sym : (symbol -> symbol -> float) -> matrix
+    val get : t -> symbol -> symbol -> float
+    val set : t -> symbol -> symbol -> float -> unit
     val of_arrays : float array array -> matrix option
     val of_arrays_exn : float array array -> matrix
   end
