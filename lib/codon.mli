@@ -198,6 +198,12 @@ module type Genetic_code = sig
 
     val synonym : t -> t -> bool
 
+    val fold_non_synonymous_neighbours :
+      t ->
+      init:'a ->
+      f:('a -> t -> 'a) ->
+      'a
+
     val of_int_exn : int -> t
     (** Convert an integer to a codon.
 

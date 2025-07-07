@@ -114,6 +114,11 @@ module type Genetic_code = sig
     val to_codon : t -> codon
     val aa_of_codon : t -> Amino_acid.t
     val synonym : t -> t -> bool
+    val fold_non_synonymous_neighbours :
+      t ->
+      init:'a ->
+      f:('a -> t -> 'a) ->
+      'a
     val of_int_exn : int -> t
   end
 end
@@ -140,6 +145,15 @@ module Genetic_code_impl(X : sig val code_array : int array end) = struct
     let of_int_exn i =
       if i < 0 || i >= card then raise (Invalid_argument "Codon.Genetic_code_impl.NS.of_int_exn")
       else i
+
+    let non_synonymous_neighbours = lazy (
+      Array.init card ~f:(fun c ->
+          List.filter all ~f:(fun c' -> neighbours c c' && not (synonym c c'))
+        )
+    )
+
+    let fold_non_synonymous_neighbours codon ~init ~f =
+      List.fold (Lazy.force non_synonymous_neighbours).(codon) ~init ~f
   end
 end
 
