@@ -114,6 +114,11 @@ module type Genetic_code = sig
     val to_codon : t -> codon
     val aa_of_codon : t -> Amino_acid.t
     val synonym : t -> t -> bool
+    val fold_neighbours :
+      t ->
+      init:'a ->
+      f:('a -> t -> is_synonymous:bool -> int -> Nucleotide.t -> Nucleotide.t -> 'a) ->
+      'a
     val fold_non_synonymous_neighbours :
       t ->
       init:'a ->
@@ -161,6 +166,19 @@ module Genetic_code_impl(X : sig val code_array : int array end) = struct
     let fold_non_synonymous_neighbours codon ~init ~f =
       List.fold (Lazy.force non_synonymous_neighbours).(codon) ~init
         ~f:(fun acc (c, pos, n1, n2) -> f acc c pos n1 n2)
+
+    let neighbours_ = lazy (
+      Array.init card ~f:(fun c ->
+          List.filter_map all ~f:(fun c' ->
+              Option.map (neighbours_diff c c') ~f:(fun (pos, n1, n2) -> c', synonym c c', pos, n1, n2)
+            )
+        )
+    )
+
+    let fold_neighbours codon ~init ~f =
+      List.fold (Lazy.force neighbours_).(codon) ~init
+        ~f:(fun acc (c, is_synonymous, pos, n1, n2) -> f acc c ~is_synonymous pos n1 n2)
+
   end
 end
 

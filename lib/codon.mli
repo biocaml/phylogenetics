@@ -198,6 +198,12 @@ module type Genetic_code = sig
 
     val synonym : t -> t -> bool
 
+    val fold_neighbours :
+      t ->
+      init:'a ->
+      f:('a -> t -> is_synonymous:bool -> int -> Nucleotide.t -> Nucleotide.t -> 'a) ->
+      'a
+
     val fold_non_synonymous_neighbours :
       t ->
       init:'a ->
