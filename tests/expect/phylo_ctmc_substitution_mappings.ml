@@ -82,7 +82,7 @@ let () =
   let sample_size = 10_000 in
   let branch_length = 2. in
   let process = Staged.unstage (uniformized_process wag_param) ~branch_length in
-  let uniformized_path_sampler = Phylo_ctmc.Path_sampler.uniformization process in
+  let uniformized_path_sampler = Phylo_ctmc.Path_sampler.uniformization process ~max_path_length:20 in
   let rejection_path_sampler =
     Phylo_ctmc.Path_sampler.rejection_sampling
       ~rates:(Phylo_ctmc.Uniformized_process.transition_rates process)
@@ -166,7 +166,7 @@ let () =
     Phylo_ctmc.conditional_likelihoods site ~nstates ~leaf_state ~transition_probabilities
   in
   let process = Staged.unstage (uniformized_process wag_param) in
-  let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process ~branch_length:bi) in
+  let path_sampler bi = Phylo_ctmc.Path_sampler.uniformization (process ~branch_length:bi) ~max_path_length:10 in
   let mean_mapping_likelihood =
     Array.init 100 ~f:(fun _ ->
         Phylo_ctmc.conditional_simulation rng ~root_frequencies conditional_likelihoods

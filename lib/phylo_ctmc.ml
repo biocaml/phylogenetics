@@ -433,7 +433,7 @@ let collapse_mapping ~start_state path times =
   loop start_state 0 []
   |> Array.of_list_rev
 
-let conditional_simulation_along_branch_by_uniformization { Uniformized_process._Q_ ; _P_ ; _R_ ; mu ; branch_length = lambda } ~rng ~start_state ~end_state =
+let conditional_simulation_along_branch_by_uniformization ~max_path_length { Uniformized_process._Q_ ; _P_ ; _R_ ; mu ; branch_length = lambda } ~rng ~start_state ~end_state =
   let nstates = fst (Linear_algebra.Matrix.dim _Q_) in
   let p_b_given_a_lambda = Matrix.get _P_ start_state end_state in
   let p_n_given_lambda n = Gsl.Randist.poisson_pdf n ~mu:(mu *. lambda) in
@@ -443,12 +443,21 @@ let conditional_simulation_along_branch_by_uniformization { Uniformized_process.
     else
       Matrix.get (_R_ n) start_state end_state
   in
+  let safe_sample_n_given_a_b_lambda () =
+    Array.init (max_path_length + 1) ~f:(fun i ->
+        p_n_given_lambda i *. p_b_given_n_a i
+      )
+    |> Gsl.Randist.discrete_preproc
+    |> Gsl.Randist.discrete rng
+  in
   let sample_n_given_a_b_lambda () =
     let g = p_b_given_a_lambda *. Gsl.Rng.uniform rng in
     let rec loop acc i =
-      let acc' = acc +. p_n_given_lambda i *. p_b_given_n_a i in
-      if Float.(acc' > g) then i
-      else loop acc' (i + 1)
+      if i > max_path_length then safe_sample_n_given_a_b_lambda ()
+      else
+        let acc' = acc +. p_n_given_lambda i *. p_b_given_n_a i in
+        if Float.(acc' > g) then i
+        else loop acc' (i + 1)
     in
     loop 0. 0
   in
@@ -527,26 +536,27 @@ let conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_
 
 module Path_sampler = struct
   type t =
-    | Uniformization_sampler of Uniformized_process.t
+    | Uniformization_sampler of { up : Uniformized_process.t ; max_path_length : int }
     | Rejection_sampler of { rates : mat ; max_tries : int ; branch_length : float }
     | Rejection_sampler_or_uniformization of {
         max_tries : int ;
         up : Uniformized_process.t ;
+        max_path_length : int ;
       }
 
-  let uniformization process =
-    Uniformization_sampler process
+  let uniformization ~max_path_length up =
+    Uniformization_sampler { max_path_length ; up }
 
   let rejection_sampling ~max_tries ~rates ~branch_length () =
     Rejection_sampler { rates ; max_tries ; branch_length }
 
-  let rejection_sampling_or_uniformization ~max_tries up =
-    Rejection_sampler_or_uniformization { max_tries ; up }
+  let rejection_sampling_or_uniformization ~max_tries ~max_path_length up =
+    Rejection_sampler_or_uniformization { max_tries ; max_path_length ; up }
 
   let sample_exn meth ~rng ~start_state ~end_state =
     match meth with
-    | Uniformization_sampler up ->
-      conditional_simulation_along_branch_by_uniformization up ~rng ~start_state ~end_state
+    | Uniformization_sampler { max_path_length ; up } ->
+      conditional_simulation_along_branch_by_uniformization ~max_path_length up ~rng ~start_state ~end_state
     | Rejection_sampler { rates = rate_matrix ; max_tries ; branch_length } -> (
         match
           conditional_simulation_along_branch_by_rejection_sampling ~rate_matrix ~max_tries ~branch_length ~rng ~start_state ~end_state
@@ -558,16 +568,16 @@ module Path_sampler = struct
             max_tries
             start_state branch_length end_state rate total_rate prob ()
       )
-    | Rejection_sampler_or_uniformization rs ->
+    | Rejection_sampler_or_uniformization { max_tries ; up ; max_path_length } ->
       match
         conditional_simulation_along_branch_by_rejection_sampling
           ~rng ~start_state ~end_state
-          ~rate_matrix:(Uniformized_process.transition_rates rs.up)
-          ~max_tries:rs.max_tries
-          ~branch_length:rs.up.branch_length
+          ~rate_matrix:(Uniformized_process.transition_rates up)
+          ~max_tries
+          ~branch_length:up.branch_length
       with
       | Ok res -> res
-      | Error _ -> conditional_simulation_along_branch_by_uniformization rs.up ~rng ~start_state ~end_state
+      | Error _ -> conditional_simulation_along_branch_by_uniformization up ~max_path_length ~rng ~start_state ~end_state
 
 end
 

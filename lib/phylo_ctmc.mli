@@ -172,7 +172,10 @@ end
 
 module Path_sampler : sig
   type t
-  val uniformization : Uniformized_process.t -> t
+  val uniformization :
+    max_path_length:int ->
+    Uniformized_process.t ->
+    t
 
   val rejection_sampling :
     max_tries:int ->
@@ -182,6 +185,7 @@ module Path_sampler : sig
 
   val rejection_sampling_or_uniformization :
     max_tries:int ->
+    max_path_length:int ->
     Uniformized_process.t ->
     t
 
