@@ -13,6 +13,7 @@ module type S = sig
   val card : int
   val to_int : t -> int
   val counts : t Sequence.t -> int table
+  val pp : Format.formatter -> t -> unit
   module Table : sig
     val init : (t -> 'a) -> 'a table
     val get : 'a table -> t -> 'a
@@ -207,4 +208,5 @@ module Make(X : sig val card : int end) = struct
   type matrix = Linear_algebra.mat
   let ( .%{} ) m (i,j) = Matrix.get m i j
   let ( .%{}<- ) m (i, j) x = Matrix.set m i j x
+  let pp = Format.pp_print_int
 end
